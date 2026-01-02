@@ -1,7 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, X, Calendar, Star, PlayCircle, Tag, FileText } from 'lucide-angular';
+import { LucideAngularModule, X, Calendar, Star, PlayCircle, Tag, FileText, Monitor, Edit, Clock, Plus } from 'lucide-angular';
 import { Anime } from '../../models/anime.model';
+import { AnimeService } from '../../services/anime.service';
 
 @Component({
   selector: 'app-anime-details-dialog',
@@ -13,6 +14,7 @@ import { Anime } from '../../models/anime.model';
 export class AnimeDetailsDialogComponent {
   isOpen = signal(false);
   anime = signal<Anime | null>(null);
+  @Output() edit = new EventEmitter<Anime>();
 
   // Lucide icons
   readonly XIcon = X;
@@ -21,6 +23,12 @@ export class AnimeDetailsDialogComponent {
   readonly PlayCircleIcon = PlayCircle;
   readonly TagIcon = Tag;
   readonly FileTextIcon = FileText;
+  readonly MonitorIcon = Monitor;
+  readonly EditIcon = Edit;
+  readonly ClockIcon = Clock;
+  readonly PlusIcon = Plus;
+
+  constructor(private animeService: AnimeService) {}
 
   open(anime: Anime) {
     this.anime.set(anime);
@@ -30,6 +38,27 @@ export class AnimeDetailsDialogComponent {
   close() {
     this.isOpen.set(false);
     this.anime.set(null);
+  }
+
+  onEdit() {
+    if (this.anime()) {
+      this.edit.emit(this.anime()!);
+      this.close(); // Close details when opening edit
+    }
+  }
+
+  async addWatchDate() {
+    const currentAnime = this.anime();
+    if (!currentAnime || !currentAnime.id) return;
+
+    const newDate = new Date();
+    const updatedDates = [...(currentAnime.watchDates || []), newDate];
+    
+    // Persist
+    await this.animeService.updateAnime(currentAnime.id, { watchDates: updatedDates });
+    
+    // Update local state
+    this.anime.update(a => a ? { ...a, watchDates: updatedDates } : null);
   }
 
   getScoreColorClass(score: number): string {

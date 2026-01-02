@@ -1,0 +1,18 @@
+<div class="tag-input-container" (click)="input.focus()">
+  @for (tag of tags; track tag; let i = $index) {
+    <span class="tag-chip">
+      {{ tag }}
+      <button class="remove-btn" (click)="removeTag(i); $event.stopPropagation()">
+        <lucide-icon [img]="XIcon" [size]="12"></lucide-icon>
+      </button>
+    </span>
+  }
+  <input
+    #input
+    type="text"
+    [placeholder]="tags.length === 0 ? placeholder : ''"
+    (input)="onInput($event)"
+    (keydown)="onKeyDown($event)"
+    (blur)="onBlur()"
+  />
+</div>

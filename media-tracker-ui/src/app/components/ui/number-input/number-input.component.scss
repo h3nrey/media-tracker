@@ -1,0 +1,63 @@
+.number-input-container {
+  display: flex;
+  align-items: center;
+  background: #0F172A;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+
+  &:focus-within {
+    border-color: #8B5CF6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  }
+
+  input[type="number"] {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #F1F5F9;
+    font-size: 0.9375rem;
+    text-align: center;
+    padding: 0.625rem 0;
+    width: 60px;
+    outline: none;
+    
+    /* Hide native spinners */
+    -moz-appearance: textfield;
+    appearance: textfield;
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+
+  .control-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: #64748B;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
+
+    &:hover:not(:disabled) {
+      background: #1E293B;
+      color: #F1F5F9;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    lucide-icon {
+      display: flex;
+    }
+  }
+}

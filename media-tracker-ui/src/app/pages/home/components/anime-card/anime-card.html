@@ -1,10 +1,32 @@
 <div class="anime-card" cdkDrag>
+  <div class="card-actions">
+    <button class="menu-btn" (click)="toggleMenu($event)">
+      <lucide-icon [img]="MoreVerticalIcon" [size]="16"></lucide-icon>
+    </button>
+
+    @if (menuOpen()) {
+      <div class="dropdown-menu">
+        <button class="menu-item" (click)="onEdit($event)">
+          <lucide-icon [img]="EditIcon" [size]="14"></lucide-icon>
+          Edit
+        </button>
+        <button class="menu-item delete" (click)="onDelete($event)">
+          <lucide-icon [img]="TrashIcon" [size]="14"></lucide-icon>
+          Delete
+        </button>
+      </div>
+      <div class="menu-backdrop" (click)="toggleMenu($event)"></div>
+    }
+  </div>
   <div class="anime-card-content">
     @if (anime.coverImage) {
       <img [src]="anime.coverImage" [alt]="anime.title" class="cover-image" />
     }
     <div class="anime-info">
       <h3>{{ anime.title }}</h3>
+      @if (anime.studios && anime.studios.length > 0) {
+        <div class="studio-name">{{ anime.studios[0] }}</div>
+      }
       <div class="meta">
         <span>{{ anime.episodesWatched }} / {{ anime.totalEpisodes || '?' }}</span>
         @if (anime.score > 0) {

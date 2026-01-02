@@ -2,7 +2,7 @@
   <div class="dialog-overlay" (click)="close()">
     <div class="dialog-content" (click)="$event.stopPropagation()">
       <div class="dialog-header">
-        <h2>Add Anime</h2>
+        <h2>{{ dialogTitle() }}</h2>
         <button class="close-btn" (click)="close()">&times;</button>
       </div>
 
@@ -70,6 +70,20 @@
             }
 
             <div class="form-grid">
+              <!-- Category - Emphasized at Top -->
+              <div class="form-group full-width category-section">
+                <label>Category</label>
+                <select
+                  class="category-select-large"
+                  [value]="selectedCategoryId()"
+                  (change)="selectedCategoryId.set(+$any($event.target).value)"
+                >
+                  @for (category of categories(); track category.id) {
+                    <option [value]="category.id">{{ category.name }}</option>
+                  }
+                </select>
+              </div>
+
               <div class="form-group full-width">
                 <label>Title *</label>
                 <input
@@ -82,75 +96,115 @@
 
               <div class="form-group full-width">
                 <label>Cover Image URL</label>
-                <input
-                  type="text"
-                  [value]="coverImage()"
-                  (input)="coverImage.set($any($event.target).value)"
-                />
+                <div class="cover-input-group">
+                  <input
+                    type="text"
+                    [value]="coverImage()"
+                    (input)="coverImage.set($any($event.target).value)"
+                    placeholder="https://..."
+                  />
+                  @if (coverImage()) {
+                    <div class="cover-preview-mini">
+                      <img [src]="coverImage()" alt="Preview" />
+                    </div>
+                  }
+                </div>
               </div>
 
               <div class="form-group">
                 <label>Episodes Watched</label>
-                <input
-                  type="number"
-                  min="0"
-                  [value]="episodesWatched()"
-                  (input)="episodesWatched.set(+$any($event.target).value)"
-                />
+                <div class="episodes-group">
+                  <app-number-input
+                    [value]="episodesWatched()"
+                    [min]="0"
+                    [max]="totalEpisodes() > 0 ? totalEpisodes() : undefined"
+                    (valueChange)="episodesWatched.set($event)"
+                  ></app-number-input>
+                  
+                  @if (totalEpisodes() > 0 && episodesWatched() < totalEpisodes()) {
+                    <button 
+                      class="complete-btn" 
+                      (click)="markAsComplete()" 
+                      title="Mark as Complete"
+                    >
+                      <lucide-icon [img]="CheckCircleIcon" [size]="18"></lucide-icon>
+                    </button>
+                  }
+                </div>
               </div>
 
               <div class="form-group">
                 <label>Total Episodes</label>
-                <input
-                  type="number"
-                  min="0"
+                <app-number-input
                   [value]="totalEpisodes()"
-                  (input)="totalEpisodes.set(+$any($event.target).value)"
-                />
+                  [min]="0"
+                  (valueChange)="totalEpisodes.set($event)"
+                ></app-number-input>
               </div>
 
               <div class="form-group">
-                <label>Category</label>
-                <select
-                  [value]="selectedCategoryId()"
-                  (change)="selectedCategoryId.set(+$any($event.target).value)"
-                >
-                  @for (category of categories(); track category.id) {
-                    <option [value]="category.id">{{ category.name }}</option>
-                  }
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>Score (0-10)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="10"
+                <label>Score (0-11)</label>
+                <app-number-input
                   [value]="score()"
-                  (input)="score.set(+$any($event.target).value)"
-                />
+                  [min]="0"
+                  [max]="11"
+                  (valueChange)="score.set($event)"
+                ></app-number-input>
               </div>
 
               <div class="form-group">
                 <label>Release Year</label>
-                <input
-                  type="number"
-                  min="1900"
-                  max="2100"
-                  [value]="releaseYear()"
-                  (input)="releaseYear.set(+$any($event.target).value || undefined)"
-                />
+                <app-number-input
+                  [value]="releaseYear() || 0"
+                  [min]="1900"
+                  [max]="2100"
+                  placeholder="YYYY"
+                  (valueChange)="releaseYear.set($event || undefined)"
+                ></app-number-input>
               </div>
 
               <div class="form-group full-width">
-                <label>Genres (comma-separated)</label>
-                <input
-                  type="text"
-                  [value]="genres().join(', ')"
-                  (input)="onGenresInput($any($event.target).value)"
-                  placeholder="Action, Adventure, Fantasy"
-                />
+                <label>Studios</label>
+                <app-tag-input
+                  [tags]="studios()"
+                  (tagsChange)="studios.set($event)"
+                  placeholder="Studio Name..."
+                ></app-tag-input>
+              </div>
+
+              <div class="form-group full-width">
+                <label>Genres (Press Enter or Comma to add)</label>
+                <app-tag-input
+                  [tags]="genres()"
+                  (tagsChange)="genres.set($event)"
+                  placeholder="Action, Adventure..."
+                ></app-tag-input>
+              </div>
+
+              <div class="form-group full-width">
+                <label>Watch Dates</label>
+                <div class="watch-date-row">
+                  <input 
+                    type="date" 
+                    [value]="newWatchDate()" 
+                    (input)="newWatchDate.set($any($event.target).value)" 
+                    class="date-input"
+                  />
+                  <button type="button" class="add-date-btn-form" (click)="addDate()">Add</button>
+                </div>
+                
+                @if (watchDates().length > 0) {
+                  <div class="date-chips">
+                    @for (date of watchDates(); track date; let i = $index) {
+                      <div class="date-chip">
+                        {{ date | date:'mediumDate' }}
+                        <button type="button" class="remove-date" (click)="removeDate(i)">
+                          <lucide-icon [img]="XIcon" [size]="12"></lucide-icon>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
               </div>
 
               <div class="form-group full-width">

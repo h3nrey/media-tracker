@@ -347,3 +347,146 @@
     }
   }
 }
+
+.cover-input-group {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+
+  input {
+    flex: 1;
+  }
+
+  .cover-preview-mini {
+    width: 60px;
+    height: 85px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #334155;
+    background: #0F172A;
+    flex-shrink: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
+.category-select-large {
+  padding: 0.875rem 1rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  border: 2px solid #8B5CF6;
+  background: rgba(139, 92, 246, 0.05);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
+  &:focus {
+    border-color: #7C3AED;
+    background: rgba(139, 92, 246, 0.1);
+  }
+
+  option {
+    background: #1E293B;
+  }
+}
+
+.episodes-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  app-number-input {
+    flex: 1;
+  }
+}
+
+.complete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: #334155;
+  border: 1px solid #475569;
+  color: #10B981;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: #10B981;
+    color: #34D399;
+    transform: translateY(-1px);
+  }
+
+  lucide-icon {
+    display: flex;
+  }
+}
+
+.watch-date-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+
+  .date-input {
+    flex: 1;
+    // Inherits global input styles via tag match or separate class if needed (already styled via input selector)
+  }
+
+  .add-date-btn-form {
+    padding: 0 1rem;
+    background: #334155;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: #CBD5E1;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #475569;
+      color: #F1F5F9;
+    }
+  }
+}
+
+.date-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: #0F172A;
+  border-radius: 6px;
+  border: 1px solid #334155;
+}
+
+.date-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: #334155;
+  color: #E2E8F0;
+  border-radius: 4px;
+  font-size: 0.875rem;
+
+  .remove-date {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: none;
+    color: #94A3B8;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 50%;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #F87171;
+    }
+  }
+}

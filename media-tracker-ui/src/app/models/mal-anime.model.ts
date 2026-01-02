@@ -57,5 +57,23 @@ export interface JikanAnime {
     name: string;
     url: string;
   }>;
+  studios?: Array<{
+    mal_id: number;
+    type: string;
+    name: string;
+    url: string;
+  }>;
+  themes?: Array<{
+    mal_id: number;
+    type: string;
+    name: string;
+    url: string;
+  }>;
+  demographics?: Array<{
+    mal_id: number;
+    type: string;
+    name: string;
+    url: string;
+  }>;
   year?: number;
 }

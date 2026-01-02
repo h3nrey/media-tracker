@@ -19,6 +19,7 @@ import { BoardFiltersComponent } from '../board-filters/board-filters.component'
 export class KanbanBoardComponent implements OnInit, OnDestroy {
   @Output() addAnimeToCategory = new EventEmitter<number>();
   @Output() animeClick = new EventEmitter<Anime>();
+  @Output() editAnime = new EventEmitter<Anime>();
   
   columns = signal<AnimeByCategory[]>([]);
   loading = signal(true);
@@ -29,6 +30,19 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
     private categoryService: CategoryService,
     private filterService: FilterService
   ) {}
+
+  // ...
+
+  onEdit(anime: Anime) {
+    this.editAnime.emit(anime);
+  }
+
+  async onDelete(anime: Anime) {
+    if (confirm(`Are you sure you want to delete "${anime.title}"?`)) {
+      await this.animeService.deleteAnime(anime.id!);
+      // The board will auto-update due to reactive subscription
+    }
+  }
 
   async ngOnInit() {
     await this.loadKanbanData();

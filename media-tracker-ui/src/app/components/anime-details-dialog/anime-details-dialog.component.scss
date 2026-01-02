@@ -57,22 +57,51 @@
     text-transform: capitalize;
   }
 
-  .close-btn {
-    background: transparent;
-    border: none;
-    color: #94A3B8;
-    cursor: pointer;
-    padding: 0.25rem;
+  .header-actions {
     display: flex;
-    align-items: center;
-    border-radius: 4px;
-    transition: all 0.2s;
+    gap: 0.5rem;
 
-    &:hover {
-      background: #334155;
-      color: #F1F5F9;
+    .action-btn, 
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: #94A3B8;
+      cursor: pointer;
+      padding: 0.25rem;
+      display: flex;
+      align-items: center;
+      border-radius: 4px;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #334155;
+        color: #F1F5F9;
+      }
     }
   }
+}
+
+.episode-meta-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 140px;
+}
+
+.progress-bar-container {
+  height: 6px;
+  background: #0F172A;
+  border-radius: 3px;
+  overflow: hidden;
+  width: 100%;
+  border: 1px solid #334155;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10B981 0%, #059669 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
 }
 
 .dialog-body {
@@ -116,37 +145,85 @@
   line-height: 1.2;
 }
 
-.meta-tags {
+.anime-meta-grid {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
-.meta-tag {
+.meta-row {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #0F172A;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  color: #CBD5E1;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  border: 1px solid #334155;
+  gap: 2rem;
+}
 
-  lucide-icon {
-    display: flex;
-    align-items: center;
-    color: #94A3B8;
+.meta-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &.full-width {
+    width: 100%;
   }
 
-  &.score-tag {
+  .meta-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #94A3B8;
+    font-size: 0.8125rem;
     font-weight: 600;
-    
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
     lucide-icon {
-      color: currentColor;
+      color: #8B5CF6;
     }
+  }
+
+  .meta-value, .episodes-text {
+    font-size: 1rem;
+    color: #F1F5F9;
+    font-weight: 500;
+  }
+}
+
+.meta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.add-date-btn {
+  background: transparent;
+  border: 1px solid #334155;
+  color: #94A3B8;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #334155;
+    color: #F1F5F9;
+    border-color: #475569;
+  }
+}
+
+.score-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: #F1F5F9;
+    background: #1E293B;
+    border: 1px solid #334155;
 
     &.score-red {
       color: #EF4444;
@@ -165,6 +242,25 @@
       border-color: rgba(168, 85, 247, 0.3);
       background: rgba(168, 85, 247, 0.1);
     }
+}
+
+.watch-dates-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.watch-date-chip {
+  padding: 0.25rem 0.75rem;
+  background: #0F172A;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #CBD5E1;
+  font-size: 0.875rem;
+
+  &.fallback {
+      font-style: italic;
+      color: #94A3B8;
   }
 }
 

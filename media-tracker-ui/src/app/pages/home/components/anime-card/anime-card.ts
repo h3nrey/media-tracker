@@ -1,19 +1,44 @@
-import { Component, Input,  } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { CommonModule, NgClass } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { LucideAngularModule, Star } from 'lucide-angular';
+import { LucideAngularModule, Star, MoreVertical, Edit2, Trash2 } from 'lucide-angular';
 import { Anime } from '../../../../models/anime.model';
-import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-anime-card',
-  imports: [DragDropModule, LucideAngularModule, NgClass],
+  standalone: true,
+  imports: [CommonModule, DragDropModule, LucideAngularModule, NgClass],
   templateUrl: './anime-card.html',
-  styleUrl: './anime-card.scss',
+  styleUrl: './anime-card.scss'
 })
 export class AnimeCard {
   @Input() anime!: Anime;
+  @Output() edit = new EventEmitter<Anime>();
+  @Output() delete = new EventEmitter<Anime>();
   
   readonly StarIcon = Star;
+  readonly MoreVerticalIcon = MoreVertical;
+  readonly EditIcon = Edit2;
+  readonly TrashIcon = Trash2;
+
+  menuOpen = signal(false);
+
+  toggleMenu(event: Event) {
+    event.stopPropagation();
+    this.menuOpen.update(v => !v);
+  }
+
+  onEdit(event: Event) {
+    event.stopPropagation();
+    this.menuOpen.set(false);
+    this.edit.emit(this.anime);
+  }
+
+  onDelete(event: Event) {
+    event.stopPropagation();
+    this.menuOpen.set(false);
+    this.delete.emit(this.anime);
+  }
 
   getScoreColorClass(score: number): string {
     if (score >= 1 && score <= 5) return 'score-red';

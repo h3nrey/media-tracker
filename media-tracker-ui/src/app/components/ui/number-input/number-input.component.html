@@ -1,0 +1,16 @@
+<div class="number-input-container">
+  <button class="control-btn" (click)="decrement()" [disabled]="min !== undefined && value <= min" type="button">
+    <lucide-icon [img]="MinusIcon" [size]="16"></lucide-icon>
+  </button>
+  <input
+    type="number"
+    [value]="value"
+    [min]="min"
+    [max]="max"
+    [placeholder]="placeholder"
+    (input)="onInput($event)"
+  />
+  <button class="control-btn" (click)="increment()" [disabled]="max !== undefined && value >= max" type="button">
+    <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
+  </button>
+</div>

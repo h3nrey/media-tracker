@@ -36,6 +36,8 @@
               <app-anime-card 
                 [anime]="anime"
                 (click)="animeClick.emit(anime)"
+                (edit)="onEdit($event)"
+                (delete)="onDelete($event)"
               ></app-anime-card>
             } @empty {
               <div class="empty-column">

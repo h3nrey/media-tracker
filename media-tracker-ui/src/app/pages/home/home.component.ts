@@ -34,4 +34,8 @@ export class HomeComponent {
   openAnimeDetails(anime: Anime) {
     this.animeDetailsDialog.open(anime);
   }
+
+  openEditAnime(anime: Anime) {
+    this.addDialog.openForEdit(anime);
+  }
 }
