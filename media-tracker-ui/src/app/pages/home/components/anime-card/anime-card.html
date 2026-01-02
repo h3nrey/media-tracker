@@ -1,0 +1,23 @@
+<div class="anime-card" cdkDrag>
+  <div class="anime-card-content">
+    @if (anime.coverImage) {
+      <img [src]="anime.coverImage" [alt]="anime.title" class="cover-image" />
+    }
+    <div class="anime-info">
+      <h3>{{ anime.title }}</h3>
+      <div class="meta">
+        <span>{{ anime.episodesWatched }} / {{ anime.totalEpisodes || '?' }}</span>
+        @if (anime.score > 0) {
+          <span class="score">⭐ {{ anime.score }}/10</span>
+        }
+      </div>
+      @if (anime.genres.length > 0) {
+        <div class="genres">
+          @for (genre of anime.genres.slice(0, 3); track genre) {
+            <span class="genre-tag">{{ genre }}</span>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

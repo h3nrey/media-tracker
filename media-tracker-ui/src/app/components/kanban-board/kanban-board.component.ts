@@ -1,26 +1,25 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { Subscription } from 'rxjs';
 import { Anime } from '../../models/anime.model';
-import { Category } from '../../models/status.model';
-import { AnimeService } from '../../services/anime.service';
+import { AnimeService, AnimeByCategory } from '../../services/anime.service';
 import { CategoryService } from '../../services/status.service';
-
-interface KanbanColumn {
-  category: Category;
-  anime: Anime[];
-}
+import { AnimeCard } from '../../pages/home/components/anime-card/anime-card';
 
 @Component({
   selector: 'app-kanban-board',
   standalone: true,
-  imports: [CommonModule, DragDropModule],
+  imports: [CommonModule, DragDropModule, AnimeCard ],
   templateUrl: './kanban-board.component.html',
   styleUrl: './kanban-board.component.scss'
 })
-export class KanbanBoardComponent implements OnInit {
-  columns = signal<KanbanColumn[]>([]);
+export class KanbanBoardComponent implements OnInit, OnDestroy {
+  @Output() addAnimeToCategory = new EventEmitter<number>();
+  
+  columns = signal<AnimeByCategory[]>([]);
   loading = signal(true);
+  private subscription?: Subscription;
 
   constructor(
     private animeService: AnimeService,
@@ -31,49 +30,71 @@ export class KanbanBoardComponent implements OnInit {
     await this.loadKanbanData();
   }
 
+  ngOnDestroy() {
+    this.subscription?.unsubscribe();
+  }
+
   private async loadKanbanData() {
     try {
       this.loading.set(true);
-      
       const categories = await this.categoryService.getAllCategories();
       
-      const allAnime = await this.animeService.getAllAnime$().subscribe(anime => {
-        const columns: KanbanColumn[] = categories.map(category => ({
-          category,
-          anime: anime.filter(a => a.statusId === category.id)
-        }));
-        
-        this.columns.set(columns);
-        this.loading.set(false);
-      });
+      this.subscription = this.animeService
+        .getAnimeGroupedByCategory$(categories)
+        .subscribe({
+          next: (columns) => {
+            this.columns.set(columns);
+            this.loading.set(false);
+          },
+          error: (error) => {
+            console.error('Error loading kanban data:', error);
+            this.loading.set(false);
+          }
+        });
     } catch (error) {
-      console.error('Error loading kanban data:', error);
+      console.error('Error loading categories:', error);
       this.loading.set(false);
     }
   }
 
   async onDrop(event: CdkDragDrop<Anime[]>, targetCategoryId: number) {
-    const columns = this.columns();
-    
     if (event.previousContainer === event.container) {
-      moveItemInArray(
-        event.container.data,
-        event.previousIndex,
-        event.currentIndex
-      );
+      this.handleReorder(event);
     } else {
-      const anime = event.previousContainer.data[event.previousIndex];
-      
-      if (anime.id) {
+      await this.handleCategoryChange(event, targetCategoryId);
+    }
+  }
+
+  private handleReorder(event: CdkDragDrop<Anime[]>) {
+    moveItemInArray(
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+  }
+
+  private async handleCategoryChange(event: CdkDragDrop<Anime[]>, targetCategoryId: number) {
+    const anime = event.previousContainer.data[event.previousIndex];
+    
+    transferArrayItem(
+      event.previousContainer.data,
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+    
+    if (anime.id) {
+      try {
         await this.animeService.updateAnimeStatus(anime.id, targetCategoryId);
+      } catch (error) {
+        console.error('Error updating anime status:', error);
+        transferArrayItem(
+          event.container.data,
+          event.previousContainer.data,
+          event.currentIndex,
+          event.previousIndex
+        );
       }
-      
-      transferArrayItem(
-        event.previousContainer.data,
-        event.container.data,
-        event.previousIndex,
-        event.currentIndex
-      );
     }
   }
 
@@ -81,7 +102,11 @@ export class KanbanBoardComponent implements OnInit {
     return this.columns().map((_, index) => `column-${index}`);
   }
 
-  trackByCategoryId(index: number, column: KanbanColumn): number {
+  openAddDialog(categoryId: number) {
+    this.addAnimeToCategory.emit(categoryId);
+  }
+
+  trackByCategoryId(index: number, column: AnimeByCategory): number {
     return column.category.id || index;
   }
 

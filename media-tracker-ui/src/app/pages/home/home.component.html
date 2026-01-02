@@ -7,6 +7,6 @@
     </button>
   </header>
 
-  <app-kanban-board />
+  <app-kanban-board (addAnimeToCategory)="openAddDialogWithCategory($event)" />
   <app-add-anime-dialog />
 </div>

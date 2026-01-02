@@ -87,6 +87,12 @@ export class AddAnimeDialogComponent {
     this.resetForm();
   }
 
+  openWithCategory(categoryId: number) {
+    this.isOpen.set(true);
+    this.resetForm();
+    this.selectedCategoryId.set(categoryId);
+  }
+
   close() {
     this.isOpen.set(false);
     this.resetForm();

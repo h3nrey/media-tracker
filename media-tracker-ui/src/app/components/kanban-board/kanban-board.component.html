@@ -8,8 +8,18 @@
       @for (column of columns(); track trackByCategoryId($index, column)) {
         <div class="kanban-column">
           <div class="column-header" [style.border-color]="column.category.color">
-            <h2>{{ column.category.name }}</h2>
-            <span class="count">{{ column.anime.length }}</span>
+            <div class="header-left">
+              <h2>{{ column.category.name }}</h2>
+              <span class="count">{{ column.anime.length }}</span>
+            </div>
+            <button 
+              class="add-column-btn" 
+              [style.background]="column.category.color"
+              (click)="openAddDialog(column.category.id!)"
+              title="Add anime to {{ column.category.name }}"
+            >
+              <span class="add-icon">+</span>
+            </button>
           </div>
 
           <div
@@ -18,32 +28,12 @@
             [id]="'column-' + $index"
             [cdkDropListData]="column.anime"
             [cdkDropListConnectedTo]="getConnectedLists()"
+            [cdkDropListAutoScrollDisabled]="false"
+            cdkDropListOrientation="vertical"
             (cdkDropListDropped)="onDrop($event, column.category.id!)"
           >
             @for (anime of column.anime; track trackByAnimeId($index, anime)) {
-              <div class="anime-card" cdkDrag>
-                <div class="anime-card-content">
-                  @if (anime.coverImage) {
-                    <img [src]="anime.coverImage" [alt]="anime.title" class="cover-image" />
-                  }
-                  <div class="anime-info">
-                    <h3>{{ anime.title }}</h3>
-                    <div class="meta">
-                      <span>{{ anime.episodesWatched }} / {{ anime.totalEpisodes || '?' }}</span>
-                      @if (anime.score > 0) {
-                        <span class="score">⭐ {{ anime.score }}/10</span>
-                      }
-                    </div>
-                    @if (anime.genres.length > 0) {
-                      <div class="genres">
-                        @for (genre of anime.genres.slice(0, 3); track genre) {
-                          <span class="genre-tag">{{ genre }}</span>
-                        }
-                      </div>
-                    }
-                  </div>
-                </div>
-              </div>
+              <app-anime-card [anime]="anime"></app-anime-card>
             } @empty {
               <div class="empty-column">
                 <p>No anime in this category</p>

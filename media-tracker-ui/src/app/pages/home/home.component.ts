@@ -16,4 +16,8 @@ export class HomeComponent {
   openAddDialog() {
     this.addDialog.open();
   }
+
+  openAddDialogWithCategory(categoryId: number) {
+    this.addDialog.openWithCategory(categoryId);
+  }
 }
