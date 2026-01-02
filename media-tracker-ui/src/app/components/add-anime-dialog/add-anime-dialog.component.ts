@@ -117,6 +117,7 @@ export class AddAnimeDialogComponent {
 
   open() {
     this.isOpen.set(true);
+    document.body.style.overflow = 'hidden';
     this.resetForm();
     if (this.categories().length > 0 && this.categories()[0].id) {
       this.selectedCategoryId.set(this.categories()[0].id!);
@@ -125,12 +126,14 @@ export class AddAnimeDialogComponent {
 
   openWithCategory(categoryId: number) {
     this.isOpen.set(true);
+    document.body.style.overflow = 'hidden';
     this.resetForm();
     this.selectedCategoryId.set(categoryId);
   }
 
   openForEdit(anime: Anime) {
     this.isOpen.set(true);
+    document.body.style.overflow = 'hidden';
     this.resetForm();
     this.editMode.set(true);
     this.manualMode.set(true);
@@ -153,6 +156,7 @@ export class AddAnimeDialogComponent {
 
   close() {
     this.isOpen.set(false);
+    document.body.style.overflow = '';
     this.resetForm();
   }
 

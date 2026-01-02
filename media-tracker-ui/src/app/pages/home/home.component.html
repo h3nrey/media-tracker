@@ -1,19 +1,9 @@
 <div class="home-container">
-  <header class="app-header">
-    <h1>🎌 Anime Tracker</h1>
-    <div class="header-actions">
-      <button class="manage-btn" (click)="openManageSourcesDialog()">
-        Manage Sources
-      </button>
-      <button class="manage-btn" (click)="openManageCategoriesDialog()">
-        Manage Categories
-      </button>
-      <button class="add-btn" (click)="openAddDialog()">
-        <span class="add-icon">+</span>
-        Add Anime
-      </button>
-    </div>
-  </header>
+  <app-header 
+    (addAnime)="openAddDialog()" 
+    (manageCategories)="openManageCategoriesDialog()"
+    (manageSources)="openManageSourcesDialog()"
+  ></app-header>
 
   <app-kanban-board 
     (addAnimeToCategory)="openAddDialogWithCategory($event)" 

@@ -6,12 +6,13 @@ import { FilterBarComponent } from '../../components/filter-bar/filter-bar.compo
 import { ManageCategoriesDialogComponent } from '../../components/manage-categories-dialog/manage-categories-dialog.component';
 import { ManageSourcesDialogComponent } from '../../components/manage-sources-dialog/manage-sources-dialog.component';
 import { AnimeDetailsDialogComponent } from '../../components/anime-details-dialog/anime-details-dialog.component';
+import { HeaderComponent } from '../../components/header/header.component';
 import { Anime } from '../../models/anime.model';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, KanbanBoardComponent, AddAnimeDialogComponent, FilterBarComponent, ManageCategoriesDialogComponent, ManageSourcesDialogComponent, AnimeDetailsDialogComponent],
+  imports: [CommonModule, KanbanBoardComponent, AddAnimeDialogComponent, FilterBarComponent, ManageCategoriesDialogComponent, ManageSourcesDialogComponent, AnimeDetailsDialogComponent, HeaderComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })

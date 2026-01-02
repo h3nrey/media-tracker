@@ -40,11 +40,13 @@ export class ManageCategoriesDialogComponent implements OnInit {
 
   open() {
     this.isOpen.set(true);
+    document.body.style.overflow = 'hidden';
     this.loadCategories();
   }
 
   close() {
     this.isOpen.set(false);
+    document.body.style.overflow = '';
     this.resetForm();
   }
 

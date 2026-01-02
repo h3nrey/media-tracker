@@ -58,11 +58,13 @@ export class AnimeDetailsDialogComponent {
   open(anime: Anime) {
     this.anime.set(anime);
     this.isOpen.set(true);
+    document.body.style.overflow = 'hidden';
   }
 
   close() {
     this.isOpen.set(false);
     this.anime.set(null);
+    document.body.style.overflow = '';
   }
 
   onEdit() {

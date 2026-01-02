@@ -37,11 +37,13 @@ export class ManageSourcesDialogComponent {
 
   open() {
     this.isOpen.set(true);
+    document.body.style.overflow = 'hidden';
     this.loadSources();
   }
 
   close() {
     this.isOpen.set(false);
+    document.body.style.overflow = '';
     this.resetForm();
   }
 

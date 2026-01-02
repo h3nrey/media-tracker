@@ -1,0 +1,20 @@
+<header class="app-header">
+  <div class="logo">
+    <h1>🎌 Anime Tracker</h1>
+  </div>
+  <div class="header-actions">
+    <button class="nav-btn" (click)="manageSources.emit()" title="Manage Sources">
+      <lucide-icon [img]="MonitorIcon" [size]="18"></lucide-icon>
+      Sources
+    </button>
+    <button class="nav-btn" (click)="manageCategories.emit()" title="Manage Categories">
+      <lucide-icon [img]="LayersIcon" [size]="18"></lucide-icon>
+      Categories
+    </button>
+    <div class="divider"></div>
+    <button class="add-btn" (click)="addAnime.emit()">
+      <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
+      Add Anime
+    </button>
+  </div>
+</header>
