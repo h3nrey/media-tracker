@@ -4,6 +4,8 @@
     (addAnime)="openAddDialog()" 
     (manageCategories)="openManageCategoriesDialog()"
     (manageSources)="openManageSourcesDialog()"
+    (bulkImport)="openBulkImportDialog()"
+    (refreshMetadata)="openMetadataSyncDialog()"
   ></app-header>
 
   <app-kanban-board 
@@ -22,5 +24,7 @@
   <app-add-anime-dialog />
   <app-manage-categories-dialog />
   <app-manage-sources-dialog />
+  <app-bulk-import-dialog />
+  <app-metadata-sync-dialog />
   <app-anime-details-dialog (edit)="openEditAnime($event)"></app-anime-details-dialog>
 </div>

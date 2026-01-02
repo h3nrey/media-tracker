@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { liveQuery } from 'dexie';
 import { Observable, from, BehaviorSubject, combineLatest, map } from 'rxjs';
 import { Anime, AnimeFilterParams } from '../models/anime.model';
@@ -16,7 +16,8 @@ export interface AnimeByCategory {
 })
 export class AnimeService {
   private syncService = inject(SyncService);
-  private filterUpdate$ = new BehaviorSubject<number>(0);
+  public filterUpdate$ = new BehaviorSubject<number>(0);
+  public metadataSyncRequested = signal(false);
 
   constructor() {}
 

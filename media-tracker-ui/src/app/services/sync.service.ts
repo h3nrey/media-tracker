@@ -46,17 +46,8 @@ export class SyncService {
 
     // 3. Conflict Resolution & Sync
     for (const local of localCategories) {
-      let remote = remoteCategories?.find(r => r.id === local.supabaseId);
+      const remote = remoteCategories?.find(r => r.id === local.supabaseId);
       
-      // Fallback: match by name if not found by ID (prevents duplicates when seeding)
-      if (!remote && !local.supabaseId) {
-        remote = remoteCategories?.find(r => r.name.toLowerCase() === local.name.toLowerCase() && !r.is_deleted);
-        if (remote) {
-          await db.categories.update(local.id!, { supabaseId: remote.id });
-          local.supabaseId = remote.id; // Update local object for the rest of loop
-        }
-      }
-
       if (!remote) {
         // Not on remote yet, upload it
         if (!local.isDeleted) {
@@ -139,16 +130,7 @@ export class SyncService {
     if (error) throw error;
 
     for (const local of localSources) {
-      let remote = remoteSources?.find(r => r.id === local.supabaseId);
-      
-      if (!remote && !local.supabaseId) {
-        remote = remoteSources?.find(r => r.name.toLowerCase() === local.name.toLowerCase() && !r.is_deleted);
-        if (remote) {
-          await db.watchSources.update(local.id!, { supabaseId: remote.id });
-          local.supabaseId = remote.id;
-        }
-      }
-
+      const remote = remoteSources?.find(r => r.id === local.supabaseId);
       if (!remote) {
         if (!local.isDeleted) {
             const { data, error: insertError } = await this.supabase

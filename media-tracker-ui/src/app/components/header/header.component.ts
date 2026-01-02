@@ -1,6 +1,6 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Plus, Monitor, Layers } from 'lucide-angular';
+import { LucideAngularModule, Plus, Monitor, Layers, FileUp, RefreshCw } from 'lucide-angular';
 
 @Component({
   selector: 'app-header',
@@ -13,8 +13,12 @@ export class HeaderComponent {
   @Output() addAnime = new EventEmitter<void>();
   @Output() manageCategories = new EventEmitter<void>();
   @Output() manageSources = new EventEmitter<void>();
+  @Output() bulkImport = new EventEmitter<void>();
+  @Output() refreshMetadata = new EventEmitter<void>();
 
   readonly PlusIcon = Plus;
   readonly LayersIcon = Layers;
   readonly MonitorIcon = Monitor;
+  readonly ImportIcon = FileUp;
+  readonly RefreshIcon = RefreshCw;
 }

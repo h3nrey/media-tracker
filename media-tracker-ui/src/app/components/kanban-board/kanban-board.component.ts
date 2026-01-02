@@ -71,7 +71,7 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
       this.subscription = combineLatest([
         this.categoryService.getAllCategories$(),
         this.animeService.getAllAnime$(),
-        this.animeService['filterUpdate$']
+        this.animeService.filterUpdate$
       ]).subscribe({
         next: ([categories, allAnime]) => {
           const filteredAnime = this.filterService.filterAnime(allAnime);

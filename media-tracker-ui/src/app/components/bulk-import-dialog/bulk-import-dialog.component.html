@@ -1,0 +1,75 @@
+<div class="dialog-overlay" [class.open]="isOpen()" (click)="close()">
+  <div class="dialog-content" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <div class="title-area">
+        <lucide-icon [img]="UploadIcon" [size]="20" class="header-icon"></lucide-icon>
+        <h2>Bulk Import Anime</h2>
+      </div>
+      <button class="close-btn" (click)="close()">
+        <lucide-icon [img]="XIcon" [size]="24"></lucide-icon>
+      </button>
+    </div>
+
+    <div class="dialog-body">
+      <div class="info-banner">
+        <lucide-icon [img]="InfoIcon" [size]="18"></lucide-icon>
+        <p>Formats: <strong>Title, Genres...</strong> or <strong>Index, Image, Title...</strong></p>
+      </div>
+
+      <div class="import-options">
+        <div class="option">
+          <label>1. Select Category</label>
+          <select [(ngModel)]="selectedCategoryId" class="form-select">
+            <option *ngFor="let cat of categories()" [value]="cat.id">{{ cat.name }}</option>
+          </select>
+        </div>
+        <div class="option">
+          <label>2. Skip First X Items</label>
+          <input type="number" [(ngModel)]="skipFirstX" class="form-input" min="0">
+        </div>
+      </div>
+
+      <div class="file-upload-area" *ngIf="status() === 'idle'">
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept=".csv,.txt" hidden>
+        <button class="btn-outline" (click)="fileInput.click()">
+          <lucide-icon [img]="UploadIcon" [size]="18"></lucide-icon>
+          Upload .CSV File
+        </button>
+        <span class="or-divider">OR PASTE BELOW</span>
+      </div>
+
+      <div class="form-group" *ngIf="status() === 'idle'">
+        <label>Data to Import</label>
+        <textarea 
+          [(ngModel)]="importData" 
+          placeholder="One piece, Shounen, Toei Animation, 2014, 11&#10;Naruto, Shounen, Pierrot, 2014, 9"
+          class="import-textarea"
+          [disabled]="status() === 'processing'"
+        ></textarea>
+      </div>
+
+      <div class="status-area" *ngIf="status() !== 'idle'">
+        <div class="progress-bar" *ngIf="status() === 'processing'">
+          <div class="progress-fill" [style.width.%]="progress()"></div>
+        </div>
+        
+        <div class="status-msg" [class]="status()">
+          <lucide-icon *ngIf="status() === 'success'" [img]="CheckIcon" [size]="18"></lucide-icon>
+          <lucide-icon *ngIf="status() === 'error'" [img]="AlertIcon" [size]="18"></lucide-icon>
+          {{ message() }}
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-footer">
+      <button class="btn-cancel" (click)="close()">Cancel</button>
+      <button 
+        class="btn-import" 
+        [disabled]="!importData.trim() || status() === 'processing'"
+        (click)="processImport()"
+      >
+        {{ status() === 'processing' ? 'Processing...' : 'Start Import' }}
+      </button>
+    </div>
+  </div>
+</div>

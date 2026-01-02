@@ -1,0 +1,76 @@
+<div class="dialog-overlay" [class.open]="isOpen()" (click)="close()">
+  <div class="dialog-content" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <div class="title-area">
+        <lucide-icon [img]="RefreshIcon" [size]="20" class="header-icon" [class.rotating]="isProcessing()"></lucide-icon>
+        <h2>Refresh Metadata</h2>
+      </div>
+      <button class="close-btn" (click)="close()" [disabled]="isProcessing()">
+        <lucide-icon [img]="XIcon" [size]="24"></lucide-icon>
+      </button>
+    </div>
+
+    <div class="dialog-body">
+      <div class="info-card">
+        <lucide-icon [img]="SearchIcon" [size]="18"></lucide-icon>
+        <p>This will scan all animes in your library and fetch images, studios, and genres from <strong>MyAnimeList</strong> (via Jikan API).</p>
+      </div>
+
+      <div class="sync-status" *ngIf="isProcessing() || stats().total > 0">
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="progress()"></div>
+            </div>
+            <span class="progress-text">{{ progress() }}%</span>
+        </div>
+
+        <div class="current-task">
+            <span class="label">Processing:</span>
+            <span class="value">{{ currentAnime() || 'Initializing...' }}</span>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-label">Total</span>
+                <span class="stat-value">{{ stats().total }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Updated</span>
+                <span class="stat-value success">{{ stats().updated }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Skipped</span>
+                <span class="stat-value">{{ stats().skipped }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Failed</span>
+                <span class="stat-value error">{{ stats().failed }}</span>
+            </div>
+        </div>
+      </div>
+
+      <div class="rate-limit-warning" *ngIf="isProcessing()">
+        <lucide-icon [img]="AlertIcon" [size]="14"></lucide-icon>
+        <span>Processing slowly to respect API rate limits (1.2s per item)...</span>
+      </div>
+    </div>
+
+    <div class="dialog-footer">
+      <button class="btn-cancel" (click)="close()" [disabled]="isProcessing()">
+        {{ stats().total > 0 && !isProcessing() ? 'Done' : 'Cancel' }}
+      </button>
+      <button 
+        class="btn-sync" 
+        *ngIf="!isProcessing() && stats().updated === 0"
+        (click)="startSync()"
+      >
+        <lucide-icon [img]="RefreshIcon" [size]="18"></lucide-icon>
+        Start Sync
+      </button>
+      <div class="success-message" *ngIf="!isProcessing() && stats().updated > 0">
+        <lucide-icon [img]="CheckIcon" [size]="18"></lucide-icon>
+        Synchronization Complete!
+      </div>
+    </div>
+  </div>
+</div>
