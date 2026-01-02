@@ -1,0 +1,41 @@
+<div class="mobile-library">
+  <div class="tabs-header">
+    <div class="tabs-scroll">
+      @for (cat of categories(); track cat.id) {
+        <button 
+          class="tab-btn" 
+          [class.active]="cat.id === selectedCategoryId()"
+          [style.border-bottom-color]="cat.id === selectedCategoryId() ? cat.color : 'transparent'"
+          [style.color]="cat.id === selectedCategoryId() ? cat.color : ''"
+          (click)="selectCategory(cat.id!, $event)"
+        >
+          <span class="tab-label">{{ cat.name }}</span>
+          <span class="count" [style.background]="cat.id === selectedCategoryId() ? cat.color + '20' : ''">{{ getCount(cat.id!) }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="anime-grid">
+    @for (anime of filteredAnime(); track anime.id) {
+      <app-mobile-anime-card 
+        [anime]="anime"
+        [categories]="categories()"
+        (click)="animeClick.emit(anime)"
+        (edit)="editAnime.emit($event)"
+        (move)="onMoveAnime($event)"
+        (delete)="onDeleteAnime($event)"
+      ></app-mobile-anime-card>
+    }
+    
+    @if (filteredAnime().length === 0) {
+      <div class="empty-state">
+        No anime here yet
+      </div>
+    }
+  </div>
+
+  <button class="fab-btn" (click)="onAddAnime()">
+    <lucide-icon [img]="PlusIcon" [size]="24"></lucide-icon>
+  </button>
+</div>

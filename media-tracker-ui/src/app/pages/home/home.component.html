@@ -6,10 +6,18 @@
   ></app-header>
 
   <app-kanban-board 
+    class="desktop-only"
     (addAnimeToCategory)="openAddDialogWithCategory($event)" 
     (animeClick)="openAnimeDetails($event)"
     (editAnime)="openEditAnime($event)"
   />
+
+  <app-mobile-library
+    class="mobile-only"
+    (animeClick)="openAnimeDetails($event)"
+    (editAnime)="openEditAnime($event)"
+    (addAnimeReq)="openAddDialogWithCategory($event)"
+  ></app-mobile-library>
   <app-add-anime-dialog />
   <app-manage-categories-dialog />
   <app-manage-sources-dialog />

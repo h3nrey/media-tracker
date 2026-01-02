@@ -1,0 +1,48 @@
+<div class="mobile-card">
+  <div class="cover-wrapper">
+    <img [src]="anime.coverImage || 'assets/placeholder-cover.jpg'" [alt]="anime.title" loading="lazy" />
+    
+    <div class="title-overlay">
+      <span>{{ anime.title }}</span>
+    </div>
+
+    <div class="top-badges">
+        <span class="badge ep-badge">{{ anime.episodesWatched }}</span>
+        @if (anime.score > 0) {
+           <span class="badge score">★ {{ anime.score }}</span>
+        }
+    </div>
+
+    <button class="menu-btn" (click)="toggleMenu($event)">
+      <lucide-icon [img]="MoreVerticalIcon" [size]="16"></lucide-icon>
+    </button>
+  </div>
+
+  @if (menuOpen()) {
+    <div class="dropdown-menu" (click)="$event.stopPropagation()">
+      <button class="menu-item" (click)="onEdit($event)">
+        <lucide-icon [img]="EditIcon" [size]="14"></lucide-icon>
+        Edit
+      </button>
+
+      @if (categories.length > 0) {
+        <div class="menu-label">Move to</div>
+        @for (cat of categories; track cat.id) {
+          @if (cat.id !== anime.statusId) {
+            <button class="menu-item sub-item" (click)="onMove($event, cat.id!)">
+              <span class="dot" [style.background]="cat.color"></span>
+              {{ cat.name }}
+            </button>
+          }
+        }
+        <div class="menu-divider"></div>
+      }
+
+      <button class="menu-item delete" (click)="onDelete($event)">
+        <lucide-icon [img]="TrashIcon" [size]="14"></lucide-icon>
+        Delete
+      </button>
+    </div>
+    <div class="menu-backdrop" (click)="toggleMenu($event)"></div>
+  }
+</div>
