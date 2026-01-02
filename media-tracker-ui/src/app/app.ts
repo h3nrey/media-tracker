@@ -16,7 +16,7 @@ export class App implements OnInit {
   private syncService = inject(SyncService);
 
   async ngOnInit() {
+    await this.syncService.sync(); // Initial sync first to pull existing categories
     await this.categoryService.seedDefaultCategories();
-    this.syncService.sync(); // Initial sync on load
   }
 }
