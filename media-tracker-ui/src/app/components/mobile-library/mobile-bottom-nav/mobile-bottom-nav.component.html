@@ -1,0 +1,16 @@
+<nav class="bottom-nav">
+  <button class="nav-item active">
+    <lucide-icon [img]="LibraryIcon" [size]="20"></lucide-icon>
+    <span>Library</span>
+  </button>
+  
+  <button class="nav-item" (click)="manageCategories.emit()">
+    <lucide-icon [img]="LayersIcon" [size]="20"></lucide-icon>
+    <span>Categories</span>
+  </button>
+  
+  <button class="nav-item" (click)="manageSources.emit()">
+    <lucide-icon [img]="MonitorIcon" [size]="20"></lucide-icon>
+    <span>Sources</span>
+  </button>
+</nav>

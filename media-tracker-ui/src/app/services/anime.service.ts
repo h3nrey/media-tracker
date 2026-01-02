@@ -104,4 +104,61 @@ export class AnimeService {
   async getAnimeCountByStatus(statusId: number): Promise<number> {
     return await db.anime.where('statusId').equals(statusId).count();
   }
+
+  filterAnimeList(list: Anime[], params: AnimeFilterParams): Anime[] {
+    let result = [...list];
+
+    // Text Search
+    if (params.query) {
+      const q = params.query.toLowerCase();
+      result = result.filter(a => a.title.toLowerCase().includes(q));
+    }
+
+    // Genres
+    if (params.genres && params.genres.length > 0) {
+      result = result.filter(a => a.genres && params.genres!.every(g => a.genres.includes(g)));
+    }
+
+    // Studios
+    if (params.studios && params.studios.length > 0) {
+      result = result.filter(a => a.studios && params.studios!.some(s => a.studios.includes(s)));
+    }
+
+    // Year
+    if (params.year) {
+      result = result.filter(a => a.releaseYear === params.year);
+    }
+
+    // Sort
+    if (params.sortBy) {
+      const mult = params.sortOrder === 'asc' ? 1 : -1;
+      result.sort((a, b) => {
+        let valA: any = a[params.sortBy as keyof Anime];
+        let valB: any = b[params.sortBy as keyof Anime];
+        
+        // Handle specific sort keys that might differ from model keys
+        if (params.sortBy === 'updated') {
+            valA = new Date(a.updatedAt || 0).getTime();
+            valB = new Date(b.updatedAt || 0).getTime();
+        } else if (params.sortBy === 'title') {
+            return a.title.localeCompare(b.title) * mult;
+        }
+
+        if (valA < valB) return -1 * mult;
+        if (valA > valB) return 1 * mult;
+        return 0;
+      });
+    }
+
+    return result;
+  }
+}
+
+export interface AnimeFilterParams {
+  query?: string;
+  sortBy?: 'title' | 'score' | 'updated' | 'releaseYear';
+  sortOrder?: 'asc' | 'desc';
+  genres?: string[];
+  studios?: string[];
+  year?: number;
 }

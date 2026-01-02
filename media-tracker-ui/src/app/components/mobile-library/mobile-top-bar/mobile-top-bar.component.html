@@ -1,0 +1,14 @@
+<div class="top-bar">
+   <div class="search-wrapper">
+      <lucide-icon [img]="SearchIcon" [size]="18" class="search-icon"></lucide-icon>
+      <input 
+        type="text" 
+        placeholder="Search library..." 
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange($event)"
+      />
+   </div>
+   <button class="icon-btn" (click)="filterClick.emit()">
+      <lucide-icon [img]="FilterIcon" [size]="20"></lucide-icon>
+   </button>
+</div>

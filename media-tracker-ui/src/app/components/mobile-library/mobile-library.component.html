@@ -1,8 +1,25 @@
 <div class="mobile-library">
+  <app-mobile-search-bar 
+    (search)="onSearch($event)" 
+    (filterClick)="onFilter()"
+  ></app-mobile-search-bar>
+
+  <app-mobile-filter-drawer
+    [open]="drawerOpen()"
+    [availableGenres]="availableGenres()"
+    [availableStudios]="availableStudios()"
+    [availableYears]="availableYears()"
+    [currentFilters]="filterParams()"
+    (close)="drawerOpen.set(false)"
+    (update)="onUpdateFilters($event)"
+    (reset)="onResetFilters()"
+  ></app-mobile-filter-drawer>
+
   <div class="tabs-header">
-    <div class="tabs-scroll">
+    <div class="tabs-scroll" #tabsScroll>
       @for (cat of categories(); track cat.id) {
         <button 
+          #tabBtn
           class="tab-btn" 
           [class.active]="cat.id === selectedCategoryId()"
           [style.border-bottom-color]="cat.id === selectedCategoryId() ? cat.color : 'transparent'"
@@ -30,10 +47,15 @@
     
     @if (filteredAnime().length === 0) {
       <div class="empty-state">
-        No anime here yet
+        No anime found
       </div>
     }
   </div>
+
+  <app-mobile-nav 
+     (manageCategories)="manageCategories.emit()"
+     (manageSources)="manageSources.emit()"
+  ></app-mobile-nav>
 
   <button class="fab-btn" (click)="onAddAnime()">
     <lucide-icon [img]="PlusIcon" [size]="24"></lucide-icon>

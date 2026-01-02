@@ -1,0 +1,76 @@
+<div class="drawer-overlay" [class.open]="open" (click)="close.emit()"></div>
+<div class="drawer-content" [class.open]="open">
+  <div class="drawer-header">
+    <h3>Filters & Sort</h3>
+    <div class="header-actions">
+        <button class="reset-btn" (click)="onReset()" title="Reset Filters">
+            <lucide-icon [img]="ResetIcon" [size]="18"></lucide-icon>
+        </button>
+        <button class="close-btn" (click)="close.emit()">
+            <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+        </button>
+    </div>
+  </div>
+
+  <div class="drawer-body">
+    <!-- Sort -->
+    <div class="section">
+      <div class="section-title">Sort By</div>
+      <div class="chips">
+          <button class="chip" [class.active]="currentFilters.sortBy === 'title'" (click)="updateSort('title')">
+              Title 
+              @if(currentFilters.sortBy === 'title') { <span class="arrow">{{ currentFilters.sortOrder === 'asc' ? '↑' : '↓' }}</span> }
+          </button>
+          <button class="chip" [class.active]="currentFilters.sortBy === 'score'" (click)="updateSort('score')">
+              Score
+              @if(currentFilters.sortBy === 'score') { <span class="arrow">{{ currentFilters.sortOrder === 'asc' ? '↑' : '↓' }}</span> }
+          </button>
+          <button class="chip" [class.active]="currentFilters.sortBy === 'updated'" (click)="updateSort('updated')">
+              Updated
+              @if(currentFilters.sortBy === 'updated') { <span class="arrow">{{ currentFilters.sortOrder === 'asc' ? '↑' : '↓' }}</span> }
+          </button>
+           <button class="chip" [class.active]="currentFilters.sortBy === 'releaseYear'" (click)="updateSort('releaseYear')">
+              Release
+              @if(currentFilters.sortBy === 'releaseYear') { <span class="arrow">{{ currentFilters.sortOrder === 'asc' ? '↑' : '↓' }}</span> }
+          </button>
+      </div>
+    </div>
+
+    <!-- Genres -->
+    <div class="section">
+      <div class="section-title">Genres</div>
+      <div class="chips scrollable">
+          @for(g of availableGenres; track g) {
+             <button class="chip" 
+               [class.active]="currentFilters.genres?.includes(g)" 
+               (click)="toggleGenre(g)">{{ g }}</button>
+          }
+      </div>
+    </div>
+
+    <!-- Studios -->
+    <div class="section">
+      <div class="section-title">Studios</div>
+      <div class="chips scrollable">
+          @for(s of availableStudios; track s) {
+             <button class="chip" 
+               [class.active]="currentFilters.studios?.includes(s)" 
+               (click)="toggleStudio(s)">{{ s }}</button>
+          }
+      </div>
+    </div>
+    
+     <!-- Year -->
+    <div class="section">
+      <div class="section-title">Year</div>
+      <div class="chips scrollable">
+          @for(y of availableYears; track y) {
+             <button class="chip" 
+               [class.active]="currentFilters.year === y" 
+               (click)="selectYear(y)">{{ y }}</button>
+          }
+      </div>
+    </div>
+
+  </div>
+</div>
