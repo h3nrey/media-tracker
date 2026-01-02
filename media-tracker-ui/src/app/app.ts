@@ -1,7 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { db } from './services/database.service';
 import { MobileNavComponent } from './components/mobile-library/mobile-nav/mobile-nav.component';
+import { CategoryService } from './services/status.service';
+import { SyncService } from './services/sync.service';
 
 @Component({
   selector: 'app-root',
@@ -11,8 +12,11 @@ import { MobileNavComponent } from './components/mobile-library/mobile-nav/mobil
 })
 export class App implements OnInit {
   protected readonly title = signal('Anime Tracker');
+  private categoryService = inject(CategoryService);
+  private syncService = inject(SyncService);
 
   async ngOnInit() {
-    await db.seedDefaultCategories();
+    await this.categoryService.seedDefaultCategories();
+    this.syncService.sync(); // Initial sync on load
   }
 }

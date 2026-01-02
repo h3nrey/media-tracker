@@ -1,5 +1,6 @@
 export interface Anime {
   id?: number;
+  supabaseId?: number;
   title: string;
   coverImage?: string;
   malId?: number;
@@ -15,9 +16,20 @@ export interface Anime {
   watchLinks?: AnimeWatchLink[];
   createdAt: Date;
   updatedAt: Date;
+  lastSyncedAt?: Date;
+  isDeleted?: boolean;
 }
 
 export interface AnimeWatchLink {
   sourceId: number;
   url: string;
+}
+
+export interface AnimeFilterParams {
+  query?: string;
+  sortBy?: 'title' | 'score' | 'updated' | 'releaseYear';
+  sortOrder?: 'asc' | 'desc';
+  genres?: string[];
+  studios?: string[];
+  year?: number;
 }

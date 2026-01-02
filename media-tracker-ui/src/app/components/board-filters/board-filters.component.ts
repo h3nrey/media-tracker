@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Settings, X, RotateCcw } from 'lucide-angular';
 import { FilterService } from '../../services/filter.service';
-import { AnimeService, AnimeFilterParams } from '../../services/anime.service';
-import { Anime } from '../../models/anime.model';
+import { AnimeService } from '../../services/anime.service';
+import { Anime, AnimeFilterParams } from '../../models/anime.model';
 
 @Component({
   selector: 'app-board-filters',
@@ -106,7 +106,7 @@ export class BoardFiltersComponent implements OnInit {
   toggleGenre(genre: string) {
       const genres = this.currentFilters().genres || [];
       if (genres.includes(genre)) {
-          this.filterService.updateGenres(genres.filter(g => g !== genre));
+          this.filterService.updateGenres(genres.filter((g: string) => g !== genre));
       } else {
            this.filterService.updateGenres([...genres, genre]);
       }
@@ -116,7 +116,7 @@ export class BoardFiltersComponent implements OnInit {
   toggleStudio(studio: string) {
        const studios = this.currentFilters().studios || [];
        if (studios.includes(studio)) {
-           this.filterService.updateStudios(studios.filter(s => s !== studio));
+           this.filterService.updateStudios(studios.filter((s: string) => s !== studio));
        } else {
             this.filterService.updateStudios([...studios, studio]);
        }

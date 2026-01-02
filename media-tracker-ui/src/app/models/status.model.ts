@@ -1,10 +1,13 @@
 export interface Category {
   id?: number;
+  supabaseId?: number;
   name: string;
   color: string;
   order: number;
   createdAt: Date;
   updatedAt: Date;
+  lastSyncedAt?: Date;
+  isDeleted?: boolean;
 }
 
 export const DEFAULT_CATEGORIES: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>[] = [

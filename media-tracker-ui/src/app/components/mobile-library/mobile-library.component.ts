@@ -9,7 +9,7 @@ import { LucideAngularModule, Plus } from 'lucide-angular';
 import { MobileAnimeCardComponent } from './mobile-anime-card/mobile-anime-card.component';
 import { MobileSearchBarComponent } from './mobile-search-bar/mobile-search-bar.component';
 import { MobileFilterDrawerComponent } from './mobile-filter-drawer/mobile-filter-drawer.component';
-import { AnimeFilterParams } from '../../services/anime.service';
+import { AnimeFilterParams } from '../../models/anime.model';
 
 @Component({
   selector: 'app-mobile-library',

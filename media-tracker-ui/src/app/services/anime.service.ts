@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { liveQuery } from 'dexie';
 import { Observable, from, BehaviorSubject, combineLatest, map } from 'rxjs';
-import { Anime } from '../models/anime.model';
+import { Anime, AnimeFilterParams } from '../models/anime.model';
 import { Category } from '../models/status.model';
 import { db } from './database.service';
+import { SyncService } from './sync.service';
 
 export interface AnimeByCategory {
   category: Category;
@@ -14,6 +15,7 @@ export interface AnimeByCategory {
   providedIn: 'root'
 })
 export class AnimeService {
+  private syncService = inject(SyncService);
   private filterUpdate$ = new BehaviorSubject<number>(0);
 
   constructor() {}
@@ -23,13 +25,19 @@ export class AnimeService {
   }
 
   getAllAnime$(): Observable<Anime[]> {
-    return from(liveQuery(() => db.anime.toArray()));
+    return from(liveQuery(() => 
+        db.anime.toArray()
+    )).pipe(
+        map(list => list.filter(a => !a.isDeleted))
+    );
   }
 
   getAnimeByStatus$(statusId: number): Observable<Anime[]> {
     return from(liveQuery(() => 
       db.anime.where('statusId').equals(statusId).toArray()
-    ));
+    )).pipe(
+        map(list => list.filter(a => !a.isDeleted))
+    );
   }
 
   getAnimeGroupedByCategory$(categories: Category[]): Observable<AnimeByCategory[]> {
@@ -67,42 +75,55 @@ export class AnimeService {
 
   async addAnime(anime: Omit<Anime, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();
-    const animeToAdd: Omit<Anime, 'id'> = {
+    const id = await db.anime.add({
       ...anime,
       createdAt: now,
-      updatedAt: now
-    };
+      updatedAt: now,
+      isDeleted: false
+    } as Anime);
     
-    return await db.anime.add(animeToAdd as Anime);
+    this.syncService.sync();
+    return id;
   }
 
   async updateAnime(id: number, updates: Partial<Anime>): Promise<number> {
-    return await db.anime.update(id, {
+    const result = await db.anime.update(id, {
       ...updates,
       updatedAt: new Date()
     });
+    this.syncService.sync();
+    return result;
   }
 
   async updateAnimeStatus(id: number, statusId: number): Promise<number> {
-    return await db.anime.update(id, {
+    const result = await db.anime.update(id, {
       statusId,
       updatedAt: new Date()
     });
+    this.syncService.sync();
+    return result;
   }
 
   async deleteAnime(id: number): Promise<void> {
-    await db.anime.delete(id);
+    // Soft delete for sync
+    await db.anime.update(id, {
+        isDeleted: true,
+        updatedAt: new Date()
+    });
+    this.syncService.sync();
   }
 
   async searchAnimeByTitle(query: string): Promise<Anime[]> {
     const lowerQuery = query.toLowerCase();
-    return await db.anime
-      .filter(anime => anime.title.toLowerCase().includes(lowerQuery))
+    const list = await db.anime
+      .filter(anime => !anime.isDeleted && anime.title.toLowerCase().includes(lowerQuery))
       .toArray();
+    return list;
   }
 
   async getAnimeCountByStatus(statusId: number): Promise<number> {
-    return await db.anime.where('statusId').equals(statusId).count();
+    const list = await db.anime.where('statusId').equals(statusId).toArray();
+    return list.filter(a => !a.isDeleted).length;
   }
 
   filterAnimeList(list: Anime[], params: AnimeFilterParams): Anime[] {
@@ -116,12 +137,12 @@ export class AnimeService {
 
     // Genres
     if (params.genres && params.genres.length > 0) {
-      result = result.filter(a => a.genres && params.genres!.every(g => a.genres.includes(g)));
+      result = result.filter(a => a.genres && params.genres!.every((g: string) => a.genres.includes(g)));
     }
 
     // Studios
     if (params.studios && params.studios.length > 0) {
-      result = result.filter(a => a.studios && params.studios!.some(s => a.studios.includes(s)));
+      result = result.filter(a => a.studios && params.studios!.some((s: string) => a.studios.includes(s)));
     }
 
     // Year
@@ -152,13 +173,4 @@ export class AnimeService {
 
     return result;
   }
-}
-
-export interface AnimeFilterParams {
-  query?: string;
-  sortBy?: 'title' | 'score' | 'updated' | 'releaseYear';
-  sortOrder?: 'asc' | 'desc';
-  genres?: string[];
-  studios?: string[];
-  year?: number;
 }

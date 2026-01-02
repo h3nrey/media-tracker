@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { Anime } from '../models/anime.model';
-import { AnimeService, AnimeFilterParams } from './anime.service';
+import { Anime, AnimeFilterParams } from '../models/anime.model';
+import { AnimeService } from './anime.service';
 
 @Injectable({
   providedIn: 'root'

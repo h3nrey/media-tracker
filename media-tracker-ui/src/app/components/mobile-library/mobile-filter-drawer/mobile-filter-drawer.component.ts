@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AnimeFilterParams } from '../../../services/anime.service';
+import { AnimeFilterParams } from '../../../models/anime.model';
 import { LucideAngularModule, X, RotateCcw } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 

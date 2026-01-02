@@ -16,8 +16,10 @@ export class AnimeTrackerDatabase extends Dexie {
       categories: '++id, name, order, createdAt, updatedAt'
     });
 
-    this.version(2).stores({
-      watchSources: '++id, name, baseUrl'
+    this.version(3).stores({
+      anime: '++id, supabaseId, title, malId, statusId, score, releaseYear, createdAt, updatedAt, isDeleted',
+      categories: '++id, supabaseId, name, order, createdAt, updatedAt, isDeleted',
+      watchSources: '++id, supabaseId, name, baseUrl, createdAt, updatedAt, isDeleted'
     });
   }
 

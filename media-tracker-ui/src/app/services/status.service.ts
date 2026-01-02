@@ -1,23 +1,27 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { liveQuery } from 'dexie';
-import { Observable, from } from 'rxjs';
-import { Category } from '../models/status.model';
+import { Observable, from, map } from 'rxjs';
+import { Category, DEFAULT_CATEGORIES } from '../models/status.model';
 import { db } from './database.service';
+import { SyncService } from './sync.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CategoryService {
-  constructor() {}
+  private syncService = inject(SyncService);
 
   getAllCategories$(): Observable<Category[]> {
     return from(liveQuery(() => 
-      db.categories.orderBy('order').toArray()
-    ));
+      db.categories.toCollection().sortBy('order')
+    )).pipe(
+        map(cats => cats.filter(c => !c.isDeleted))
+    );
   }
 
   async getAllCategories(): Promise<Category[]> {
-    return await db.categories.orderBy('order').toArray();
+    const cats = await db.categories.toCollection().sortBy('order');
+    return cats.filter(c => !c.isDeleted);
   }
 
   async getCategoryById(id: number): Promise<Category | undefined> {
@@ -26,32 +30,59 @@ export class CategoryService {
 
   async addCategory(category: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();
-    const categoryToAdd: Omit<Category, 'id'> = {
+    const id = await db.categories.add({
       ...category,
       createdAt: now,
-      updatedAt: now
-    };
+      updatedAt: now,
+      isDeleted: false
+    } as Category);
     
-    return await db.categories.add(categoryToAdd as Category);
+    this.syncService.sync(); // Trigger sync in background
+    return id;
   }
 
-  async updateCategory(id: number, updates: Partial<Category>): Promise<number> {
-    return await db.categories.update(id, {
+  async updateCategory(id: number, updates: Partial<Category>): Promise<void> {
+    await db.categories.update(id, {
       ...updates,
       updatedAt: new Date()
     });
+    this.syncService.sync();
   }
 
   async deleteCategory(id: number): Promise<void> {
-    await db.categories.delete(id);
+    // Soft delete for sync
+    await db.categories.update(id, {
+      isDeleted: true,
+      updatedAt: new Date()
+    });
+    this.syncService.sync();
   }
 
   async reorderCategories(categoryIds: number[]): Promise<void> {
+    const now = new Date();
     const updates = categoryIds.map((id, index) => ({
       key: id,
-      changes: { order: index, updatedAt: new Date() }
+      changes: { order: index, updatedAt: now }
     }));
 
     await db.categories.bulkUpdate(updates);
+    this.syncService.sync();
+  }
+
+  async seedDefaultCategories(): Promise<void> {
+    const count = await db.categories.count();
+    
+    if (count === 0) {
+      const now = new Date();
+      const categoriesToAdd = DEFAULT_CATEGORIES.map(category => ({
+        ...category,
+        createdAt: now,
+        updatedAt: now,
+        isDeleted: false
+      }));
+      
+      await db.categories.bulkAdd(categoriesToAdd as Category[]);
+      this.syncService.sync();
+    }
   }
 }
