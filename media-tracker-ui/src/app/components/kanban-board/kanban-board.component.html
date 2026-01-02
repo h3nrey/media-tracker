@@ -1,9 +1,9 @@
 <div class="kanban-container">
-  <h1>Anime Tracker</h1>
-
   @if (loading()) {
     <div class="loading">Loading...</div>
   } @else {
+    <app-board-filters />
+
     <div class="kanban-board">
       @for (column of columns(); track trackByCategoryId($index, column)) {
         <div class="kanban-column">

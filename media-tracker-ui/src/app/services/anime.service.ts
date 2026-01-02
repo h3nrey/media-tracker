@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { liveQuery } from 'dexie';
-import { Observable, from, combineLatest, map } from 'rxjs';
+import { Observable, from, BehaviorSubject, combineLatest, map } from 'rxjs';
 import { Anime } from '../models/anime.model';
 import { Category } from '../models/status.model';
 import { db } from './database.service';
@@ -14,7 +14,13 @@ export interface AnimeByCategory {
   providedIn: 'root'
 })
 export class AnimeService {
+  private filterUpdate$ = new BehaviorSubject<number>(0);
+
   constructor() {}
+
+  triggerFilterUpdate() {
+    this.filterUpdate$.next(Date.now());
+  }
 
   getAllAnime$(): Observable<Anime[]> {
     return from(liveQuery(() => db.anime.toArray()));
@@ -34,6 +40,24 @@ export class AnimeService {
           anime: allAnime.filter(anime => anime.statusId === category.id)
         }))
       )
+    );
+  }
+
+  getFilteredAnimeGroupedByCategory$(
+    categories: Category[],
+    filterFn: (anime: Anime[]) => Anime[]
+  ): Observable<AnimeByCategory[]> {
+    return combineLatest([
+      this.getAllAnime$(),
+      this.filterUpdate$
+    ]).pipe(
+      map(([allAnime]) => {
+        const filteredAnime = filterFn(allAnime);
+        return categories.map(category => ({
+          category,
+          anime: filteredAnime.filter(anime => anime.statusId === category.id)
+        }));
+      })
     );
   }
 

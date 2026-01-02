@@ -1,0 +1,75 @@
+<div class="filter-bar">
+  <div class="search-section">
+    <div class="search-input-wrapper">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search anime by title..."
+        [value]="searchQuery()"
+        (input)="onSearchChange($any($event.target).value)"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+
+    <button class="filter-toggle-btn" (click)="toggleFilters()" [class.active]="showFilters()">
+      <span class="filter-icon">⚙️</span>
+      Filters
+      @if (hasActiveFilters) {
+        <span class="filter-badge">{{ selectedGenres().length + (releaseYear() ? 1 : 0) + (watchedYear() ? 1 : 0) }}</span>
+      }
+    </button>
+
+    @if (hasActiveFilters) {
+      <button class="clear-btn" (click)="clearFilters()">
+        Clear All
+      </button>
+    }
+  </div>
+
+  @if (showFilters()) {
+    <div class="filters-panel">
+      <div class="filter-group">
+        <label>Genres</label>
+        <div class="genre-chips">
+          @for (genre of availableGenres(); track genre) {
+            <button
+              class="genre-chip"
+              [class.selected]="selectedGenres().includes(genre)"
+              (click)="toggleGenre(genre)"
+            >
+              {{ genre }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-group">
+          <label for="releaseYear">Release Year</label>
+          <input
+            id="releaseYear"
+            type="number"
+            min="1900"
+            max="2100"
+            placeholder="e.g., 2020"
+            [value]="releaseYear() || ''"
+            (input)="onReleaseYearChange($any($event.target).value)"
+          />
+        </div>
+
+        <div class="filter-group">
+          <label for="watchedYear">Year Watched</label>
+          <input
+            id="watchedYear"
+            type="number"
+            min="1900"
+            max="2100"
+            placeholder="e.g., 2024"
+            [value]="watchedYear() || ''"
+            (input)="onWatchedYearChange($any($event.target).value)"
+          />
+        </div>
+      </div>
+    </div>
+  }
+</div>

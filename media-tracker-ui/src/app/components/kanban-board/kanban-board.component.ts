@@ -5,12 +5,14 @@ import { Subscription } from 'rxjs';
 import { Anime } from '../../models/anime.model';
 import { AnimeService, AnimeByCategory } from '../../services/anime.service';
 import { CategoryService } from '../../services/status.service';
+import { FilterService } from '../../services/filter.service';
 import { AnimeCard } from '../../pages/home/components/anime-card/anime-card';
+import { BoardFiltersComponent } from '../board-filters/board-filters.component';
 
 @Component({
   selector: 'app-kanban-board',
   standalone: true,
-  imports: [CommonModule, DragDropModule, AnimeCard ],
+  imports: [CommonModule, DragDropModule, AnimeCard, BoardFiltersComponent],
   templateUrl: './kanban-board.component.html',
   styleUrl: './kanban-board.component.scss'
 })
@@ -20,10 +22,12 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
   columns = signal<AnimeByCategory[]>([]);
   loading = signal(true);
   private subscription?: Subscription;
+  private categories: any[] = [];
 
   constructor(
     private animeService: AnimeService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private filterService: FilterService
   ) {}
 
   async ngOnInit() {
@@ -37,10 +41,13 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
   private async loadKanbanData() {
     try {
       this.loading.set(true);
-      const categories = await this.categoryService.getAllCategories();
+      this.categories = await this.categoryService.getAllCategories();
       
       this.subscription = this.animeService
-        .getAnimeGroupedByCategory$(categories)
+        .getFilteredAnimeGroupedByCategory$(
+          this.categories,
+          (anime) => this.filterService.filterAnime(anime)
+        )
         .subscribe({
           next: (columns) => {
             this.columns.set(columns);

@@ -1,0 +1,58 @@
+<div class="board-toolbar">
+  <div class="search-box">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search..."
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="onSearchChange($event)"
+    />
+    @if (searchQuery) {
+      <button class="clear-search-btn" (click)="clearSearch()">
+        <lucide-icon [img]="XIcon" [size]="14"></lucide-icon>
+      </button>
+    }
+  </div>
+
+  <button class="filter-btn" (click)="toggleFilters()" [class.active]="showFilters()">
+    <lucide-icon [img]="SettingsIcon" [size]="16"></lucide-icon>
+    Filters
+    @if (hasActiveFilters()) {
+      <span class="filter-badge">{{ getActiveFilterCount() }}</span>
+    }
+  </button>
+
+  @if (hasActiveFilters()) {
+    <button class="clear-all-btn" (click)="clearAllFilters()">
+      Clear filters
+    </button>
+  }
+</div>
+
+@if (showFilters()) {
+  <div class="filters-panel">
+    <div class="filter-group">
+      <label>Release Year</label>
+      <input
+        type="number"
+        min="1900"
+        max="2100"
+        placeholder="Any year"
+        [(ngModel)]="releaseYear"
+        (ngModelChange)="onReleaseYearChange($event)"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label>Watched Year</label>
+      <input
+        type="number"
+        min="1900"
+        max="2100"
+        placeholder="Any year"
+        [(ngModel)]="watchedYear"
+        (ngModelChange)="onWatchedYearChange($event)"
+      />
+    </div>
+  </div>
+}
