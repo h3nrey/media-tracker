@@ -21,6 +21,17 @@
               [alt]="anime()!.title" 
               class="cover-image"
             />
+
+            @if (sources().length > 0) {
+              <div class="watch-actions">
+                @for (source of sources(); track source.id) {
+                  <a [href]="getSourceUrl(source)" target="_blank" class="watch-btn-rounded">
+                    <lucide-icon [img]="ExternalLinkIcon" [size]="16"></lucide-icon>
+                    Watch on {{ source.name }}
+                  </a>
+                }
+              </div>
+            }
           </div>
           
           <div class="info-section">
@@ -96,6 +107,8 @@
                 </div>
               </div>
             </div>
+
+
 
             @if (anime()!.studios && anime()!.studios.length > 0) {
               <div class="section">

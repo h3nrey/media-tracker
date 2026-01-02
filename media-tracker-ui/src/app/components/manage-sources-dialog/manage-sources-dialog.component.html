@@ -1,0 +1,74 @@
+@if (isOpen()) {
+  <div class="dialog-overlay" (click)="close()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>Manage Watch Sources</h2>
+        <button class="close-btn" (click)="close()">
+          <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        <!-- Add New Source -->
+        <div class="add-source-section">
+          <h3>Add New Source</h3>
+          <div class="form-row">
+             <input type="text" placeholder="Source Name (e.g. Netflix)" [ngModel]="newName()" (ngModelChange)="newName.set($event)">
+             <input type="text" placeholder="Base URL (e.g. https://netflix.com)" [ngModel]="newUrl()" (ngModelChange)="newUrl.set($event)">
+             <button class="add-btn" (click)="addSource()" [disabled]="!newName().trim()">
+               <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
+             </button>
+          </div>
+        </div>
+
+        <!-- List -->
+        <div class="sources-list">
+           @for (source of sources(); track source.id) {
+             <div class="source-item">
+               @if (editingId() === source.id) {
+                 <div class="edit-row">
+                    <input type="text" [ngModel]="editName()" (ngModelChange)="editName.set($event)" placeholder="Name">
+                    <input type="text" [ngModel]="editUrl()" (ngModelChange)="editUrl.set($event)" placeholder="URL">
+                    <div class="actions">
+                       <button class="icon-btn save" (click)="saveEdit()">
+                          <lucide-icon [img]="CheckIcon" [size]="18"></lucide-icon>
+                       </button>
+                       <button class="icon-btn cancel" (click)="cancelEdit()">
+                          <lucide-icon [img]="XIcon" [size]="18"></lucide-icon>
+                       </button>
+                    </div>
+                 </div>
+               } @else {
+                 <div class="view-row">
+                    <div class="source-info">
+                       <span class="name">{{ source.name }}</span>
+                       @if (source.baseUrl) {
+                         <span class="url">
+                           <lucide-icon [img]="ExternalLinkIcon" [size]="12"></lucide-icon>
+                           {{ source.baseUrl }}
+                         </span>
+                       }
+                    </div>
+                    <div class="actions">
+                       <button class="icon-btn edit" (click)="startEdit(source)">
+                          <lucide-icon [img]="EditIcon" [size]="18"></lucide-icon>
+                       </button>
+                       <button class="icon-btn delete" (click)="deleteSource(source.id!)">
+                          <lucide-icon [img]="TrashIcon" [size]="18"></lucide-icon>
+                       </button>
+                    </div>
+                 </div>
+               }
+             </div>
+           }
+           
+           @if (sources().length === 0) {
+             <div class="empty-state">
+               No watch sources added yet.
+             </div>
+           }
+        </div>
+      </div>
+    </div>
+  </div>
+}

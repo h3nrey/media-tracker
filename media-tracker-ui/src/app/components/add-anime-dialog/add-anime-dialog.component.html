@@ -207,6 +207,48 @@
                 }
               </div>
 
+              <!-- Watch Sources -->
+              <div class="form-group full-width">
+                <label>Watch Sources</label>
+                <div class="watch-date-row">
+                  <select 
+                    class="source-select" 
+                    [ngModel]="newLinkSourceId()" 
+                    (ngModelChange)="newLinkSourceId.set(+$event || null)"
+                  >
+                    <option [ngValue]="null">Select Source</option>
+                    @for (source of sources(); track source.id) {
+                      <option [value]="source.id">{{ source.name }}</option>
+                    }
+                  </select>
+                  <input 
+                    type="text" 
+                    class="date-input" 
+                    placeholder="URL" 
+                    [ngModel]="newLinkUrl()" 
+                    (ngModelChange)="newLinkUrl.set($event)"
+                  >
+                  <button type="button" class="add-date-btn-form" (click)="addLink()" [disabled]="!newLinkSourceId() || !newLinkUrl()">Add</button>
+                </div>
+                
+                @if (watchLinks().length > 0) {
+                  <div class="date-chips">
+                    @for (link of watchLinks(); track i; let i = $index) {
+                      <div class="date-chip link-chip-wide">
+                        <span class="source-badge-mini">{{ getLinkSourceName(link.sourceId) }}</span>
+                        <a [href]="link.url" target="_blank" class="link-preview" (click)="$event.stopPropagation()">
+                          <lucide-icon [img]="ExternalLinkIcon" [size]="12"></lucide-icon>
+                          Link
+                        </a>
+                        <button type="button" class="remove-date" (click)="removeLink(i)">
+                          <lucide-icon [img]="XIcon" [size]="12"></lucide-icon>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
               <div class="form-group full-width">
                 <label>Notes</label>
                 <textarea

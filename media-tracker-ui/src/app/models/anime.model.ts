@@ -12,6 +12,12 @@ export interface Anime {
   releaseYear?: number;
   notes?: string;
   watchDates?: Date[];
+  watchLinks?: AnimeWatchLink[];
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface AnimeWatchLink {
+  sourceId: number;
+  url: string;
 }

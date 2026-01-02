@@ -4,19 +4,21 @@ import { KanbanBoardComponent } from '../../components/kanban-board/kanban-board
 import { AddAnimeDialogComponent } from '../../components/add-anime-dialog/add-anime-dialog.component';
 import { FilterBarComponent } from '../../components/filter-bar/filter-bar.component';
 import { ManageCategoriesDialogComponent } from '../../components/manage-categories-dialog/manage-categories-dialog.component';
+import { ManageSourcesDialogComponent } from '../../components/manage-sources-dialog/manage-sources-dialog.component';
 import { AnimeDetailsDialogComponent } from '../../components/anime-details-dialog/anime-details-dialog.component';
 import { Anime } from '../../models/anime.model';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, KanbanBoardComponent, AddAnimeDialogComponent, FilterBarComponent, ManageCategoriesDialogComponent, AnimeDetailsDialogComponent],
+  imports: [CommonModule, KanbanBoardComponent, AddAnimeDialogComponent, FilterBarComponent, ManageCategoriesDialogComponent, ManageSourcesDialogComponent, AnimeDetailsDialogComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
 export class HomeComponent {
   @ViewChild(AddAnimeDialogComponent) addDialog!: AddAnimeDialogComponent;
   @ViewChild(ManageCategoriesDialogComponent) manageCategoriesDialog!: ManageCategoriesDialogComponent;
+  @ViewChild(ManageSourcesDialogComponent) manageSourcesDialog!: ManageSourcesDialogComponent;
   @ViewChild(AnimeDetailsDialogComponent) animeDetailsDialog!: AnimeDetailsDialogComponent;
 
   openAddDialog() {
@@ -29,6 +31,10 @@ export class HomeComponent {
 
   openManageCategoriesDialog() {
     this.manageCategoriesDialog.open();
+  }
+
+  openManageSourcesDialog() {
+    this.manageSourcesDialog.open();
   }
 
   openAnimeDetails(anime: Anime) {

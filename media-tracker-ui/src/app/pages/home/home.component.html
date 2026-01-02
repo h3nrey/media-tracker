@@ -2,6 +2,9 @@
   <header class="app-header">
     <h1>🎌 Anime Tracker</h1>
     <div class="header-actions">
+      <button class="manage-btn" (click)="openManageSourcesDialog()">
+        Manage Sources
+      </button>
       <button class="manage-btn" (click)="openManageCategoriesDialog()">
         Manage Categories
       </button>
@@ -19,5 +22,6 @@
   />
   <app-add-anime-dialog />
   <app-manage-categories-dialog />
+  <app-manage-sources-dialog />
   <app-anime-details-dialog (edit)="openEditAnime($event)"></app-anime-details-dialog>
 </div>

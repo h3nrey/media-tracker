@@ -1,10 +1,12 @@
 import Dexie, { Table } from 'dexie';
 import { Anime } from '../models/anime.model';
 import { Category, DEFAULT_CATEGORIES } from '../models/status.model';
+import { WatchSource } from '../models/watch-source.model';
 
 export class AnimeTrackerDatabase extends Dexie {
   anime!: Table<Anime, number>;
   categories!: Table<Category, number>;
+  watchSources!: Table<WatchSource, number>;
 
   constructor() {
     super('AnimeTrackerDB');
@@ -12,6 +14,10 @@ export class AnimeTrackerDatabase extends Dexie {
     this.version(1).stores({
       anime: '++id, title, malId, statusId, score, releaseYear, createdAt, updatedAt',
       categories: '++id, name, order, createdAt, updatedAt'
+    });
+
+    this.version(2).stores({
+      watchSources: '++id, name, baseUrl'
     });
   }
 

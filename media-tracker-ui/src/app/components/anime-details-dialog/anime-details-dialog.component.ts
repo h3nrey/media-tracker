@@ -1,8 +1,10 @@
 import { Component, signal, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, X, Calendar, Star, PlayCircle, Tag, FileText, Monitor, Edit, Clock, Plus } from 'lucide-angular';
+import { LucideAngularModule, X, Calendar, Star, PlayCircle, Tag, FileText, Monitor, Edit, Clock, Plus, ExternalLink } from 'lucide-angular';
 import { Anime } from '../../models/anime.model';
 import { AnimeService } from '../../services/anime.service';
+import { WatchSourceService } from '../../services/watch-source.service';
+import { WatchSource } from '../../models/watch-source.model';
 
 @Component({
   selector: 'app-anime-details-dialog',
@@ -14,8 +16,9 @@ import { AnimeService } from '../../services/anime.service';
 export class AnimeDetailsDialogComponent {
   isOpen = signal(false);
   anime = signal<Anime | null>(null);
+  sources = signal<WatchSource[]>([]);
   @Output() edit = new EventEmitter<Anime>();
-
+  
   // Lucide icons
   readonly XIcon = X;
   readonly CalendarIcon = Calendar;
@@ -27,8 +30,30 @@ export class AnimeDetailsDialogComponent {
   readonly EditIcon = Edit;
   readonly ClockIcon = Clock;
   readonly PlusIcon = Plus;
+  readonly ExternalLinkIcon = ExternalLink;
 
-  constructor(private animeService: AnimeService) {}
+  constructor(
+    private animeService: AnimeService,
+    private watchSourceService: WatchSourceService
+  ) {
+    this.loadSources();
+  }
+
+  private loadSources() {
+    this.watchSourceService.getAllSources$().subscribe(sources => {
+      this.sources.set(sources);
+    });
+  }
+
+  getSourceUrl(source: WatchSource): string {
+    const currentAnime = this.anime();
+    if (!currentAnime || !source.baseUrl) return '#';
+
+    const override = currentAnime.watchLinks?.find(l => l.sourceId === source.id);
+    if (override) return override.url;
+
+    return source.baseUrl + encodeURIComponent(currentAnime.title);
+  }
 
   open(anime: Anime) {
     this.anime.set(anime);

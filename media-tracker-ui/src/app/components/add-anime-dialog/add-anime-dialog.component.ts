@@ -6,11 +6,13 @@ import { JikanAnime } from '../../models/mal-anime.model';
 import { MalService } from '../../services/mal.service';
 import { AnimeService } from '../../services/anime.service';
 import { CategoryService } from '../../services/status.service';
+import { WatchSourceService } from '../../services/watch-source.service';
 import { Category } from '../../models/status.model';
-import { Anime } from '../../models/anime.model';
+import { Anime, AnimeWatchLink } from '../../models/anime.model';
+import { WatchSource } from '../../models/watch-source.model';
 import { NumberInputComponent } from '../ui/number-input/number-input.component';
 import { TagInputComponent } from '../ui/tag-input/tag-input.component';
-import { LucideAngularModule, CheckCircle, X } from 'lucide-angular';
+import { LucideAngularModule, CheckCircle, X, ExternalLink } from 'lucide-angular';
 
 @Component({
   selector: 'app-add-anime-dialog',
@@ -22,6 +24,8 @@ import { LucideAngularModule, CheckCircle, X } from 'lucide-angular';
 export class AddAnimeDialogComponent {
   readonly CheckCircleIcon = CheckCircle;
   readonly XIcon = X;
+  readonly ExternalLinkIcon = ExternalLink;
+  
   searchQuery = signal('');
   searchResults = signal<JikanAnime[]>([]);
   isSearching = signal(false);
@@ -46,6 +50,12 @@ export class AddAnimeDialogComponent {
   watchDates = signal<Date[]>([]);
   newWatchDate = signal<string>(new Date().toISOString().split('T')[0]);
 
+  // Watch Links Signals
+  watchLinks = signal<AnimeWatchLink[]>([]);
+  sources = signal<WatchSource[]>([]);
+  newLinkSourceId = signal<number | null>(null);
+  newLinkUrl = signal('');
+
   categories = signal<Category[]>([]);
 
   isOpen = signal(false);
@@ -56,10 +66,12 @@ export class AddAnimeDialogComponent {
   constructor(
     private malService: MalService,
     private animeService: AnimeService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private watchSourceService: WatchSourceService
   ) {
     this.initializeSearch();
     this.loadCategories();
+    this.loadSources();
   }
 
   private initializeSearch() {
@@ -97,6 +109,12 @@ export class AddAnimeDialogComponent {
     }
   }
 
+  private loadSources() {
+    this.watchSourceService.getAllSources$().subscribe(sources => {
+      this.sources.set(sources);
+    });
+  }
+
   open() {
     this.isOpen.set(true);
     this.resetForm();
@@ -130,6 +148,7 @@ export class AddAnimeDialogComponent {
     this.releaseYear.set(anime.releaseYear);
     this.notes.set(anime.notes || '');
     this.watchDates.set(anime.watchDates || []);
+    this.watchLinks.set(anime.watchLinks || []);
   }
 
   close() {
@@ -192,6 +211,25 @@ export class AddAnimeDialogComponent {
     this.watchDates.update(dates => dates.filter((_, i) => i !== index));
   }
 
+  addLink() {
+    if (this.newLinkSourceId() && this.newLinkUrl().trim()) {
+      this.watchLinks.update(links => [...links, {
+        sourceId: this.newLinkSourceId()!,
+        url: this.newLinkUrl().trim()
+      }]);
+      this.newLinkUrl.set('');
+      this.newLinkSourceId.set(null);
+    }
+  }
+
+  removeLink(index: number) {
+    this.watchLinks.update(links => links.filter((_, i) => i !== index));
+  }
+
+  getLinkSourceName(id: number): string {
+    return this.sources().find(s => s.id === id)?.name || 'Unknown';
+  }
+
   async save() {
     if (!this.title().trim()) {
       alert('Title is required');
@@ -213,7 +251,8 @@ export class AddAnimeDialogComponent {
         studios: this.studios(),
         releaseYear: this.releaseYear(),
         notes: this.notes(),
-        watchDates: this.watchDates()
+        watchDates: this.watchDates(),
+        watchLinks: this.watchLinks()
       };
 
       if (this.editMode() && this.editingId()) {
@@ -251,6 +290,9 @@ export class AddAnimeDialogComponent {
     this.notes.set('');
     this.watchDates.set([]);
     this.newWatchDate.set(new Date().toISOString().split('T')[0]);
+    this.watchLinks.set([]);
+    this.newLinkSourceId.set(null);
+    this.newLinkUrl.set('');
     
     if (this.categories().length > 0 && this.categories()[0].id) {
         this.selectedCategoryId.set(this.categories()[0].id!);
