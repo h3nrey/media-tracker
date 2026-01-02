@@ -19,9 +19,16 @@
     }
   </div>
   <div class="anime-card-content">
-    @if (anime.coverImage) {
-      <img [src]="anime.coverImage" [alt]="anime.title" class="cover-image" />
-    }
+    <div class="cover-wrapper" (click)="playFirstSource($event)" [class.has-links]="hasSources()">
+      @if (anime.coverImage) {
+        <img [src]="anime.coverImage" [alt]="anime.title" class="cover-image" />
+      }
+      @if (hasSources()) {
+        <div class="play-overlay">
+          <lucide-icon [img]="PlayIcon" [size]="32"></lucide-icon>
+        </div>
+      }
+    </div>
     <div class="anime-info">
       <h3>{{ anime.title }}</h3>
       @if (anime.studios && anime.studios.length > 0) {

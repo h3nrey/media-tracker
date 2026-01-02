@@ -1,8 +1,11 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnInit } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { LucideAngularModule, Star, MoreVertical, Edit2, Trash2, Plus } from 'lucide-angular';
-import { Anime } from '../../../../models/anime.model';
+import { LucideAngularModule, Star, MoreVertical, Edit2, Trash2, Plus, Play } from 'lucide-angular';
+import { Anime, AnimeWatchLink } from '../../../../models/anime.model';
+import { WatchSourceService } from '../../../../services/watch-source.service';
+import { WatchSource } from '../../../../models/watch-source.model';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-anime-card',
@@ -22,8 +25,26 @@ export class AnimeCard {
   readonly EditIcon = Edit2;
   readonly TrashIcon = Trash2;
   readonly PlusIcon = Plus;
+  readonly PlayIcon = Play;
 
   menuOpen = signal(false);
+  hasSources = signal(false);
+
+  constructor(private watchSourceService: WatchSourceService) {}
+
+  ngOnInit() {
+    this.checkSources();
+  }
+
+  async checkSources() {
+    if (this.anime.watchLinks && this.anime.watchLinks.length > 0) {
+      this.hasSources.set(true);
+      return;
+    }
+
+    const globalSources = await this.watchSourceService.getAllSources();
+    this.hasSources.set(globalSources.length > 0);
+  }
 
   toggleMenu(event: Event) {
     event.stopPropagation();
@@ -45,6 +66,27 @@ export class AnimeCard {
   onIncrement(event: Event) {
     event.stopPropagation();
     this.increment.emit(this.anime);
+  }
+
+  async playFirstSource(event: Event) {
+    event.stopPropagation();
+    
+    if (this.anime.watchLinks && this.anime.watchLinks.length > 0) {
+      console.log(this.anime.watchLinks[0].url);
+      console.log(this.anime.title);
+      console.log(this.anime.watchLinks);
+      window.open(this.anime.watchLinks[0].url, '_blank');
+      return;
+    }
+
+    const globalSources = await this.watchSourceService.getAllSources();
+    if (globalSources.length > 0) {
+      const source = globalSources[0];
+      if (source.baseUrl) {
+        const url = source.baseUrl + encodeURIComponent(this.anime.title);
+        window.open(url, '_blank');
+      }
+    }
   }
 
   getScoreColorClass(score: number): string {

@@ -1,90 +1,66 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Anime } from '../models/anime.model';
-
-export interface AnimeFilters {
-  searchQuery: string;
-  genres: string[];
-  releaseYear?: number;
-  watchedYear?: number;
-}
+import { AnimeService, AnimeFilterParams } from './anime.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FilterService {
-  private filters = signal<AnimeFilters>({
-    searchQuery: '',
+  private filters = signal<AnimeFilterParams>({
+    query: '',
     genres: [],
-    releaseYear: undefined,
-    watchedYear: undefined
+    studios: [],
+    year: undefined,
+    sortBy: 'updated',
+    sortOrder: 'desc'
   });
 
   readonly currentFilters = this.filters.asReadonly();
 
+  constructor(private animeService: AnimeService) {}
+
   updateSearchQuery(query: string) {
-    this.filters.update(f => ({ ...f, searchQuery: query }));
+    this.filters.update(f => ({ ...f, query }));
   }
 
   updateGenres(genres: string[]) {
     this.filters.update(f => ({ ...f, genres }));
   }
 
-  updateReleaseYear(year: number | undefined) {
-    this.filters.update(f => ({ ...f, releaseYear: year }));
+  updateStudios(studios: string[]) {
+      this.filters.update(f => ({ ...f, studios }));
   }
 
-  updateWatchedYear(year: number | undefined) {
-    this.filters.update(f => ({ ...f, watchedYear: year }));
+  updateYear(year: number | undefined) {
+    this.filters.update(f => ({ ...f, year }));
+  }
+
+  updateSort(sortBy: 'title' | 'score' | 'updated' | 'releaseYear', sortOrder: 'asc' | 'desc') {
+      this.filters.update(f => ({ ...f, sortBy, sortOrder }));
   }
 
   resetFilters() {
     this.filters.set({
-      searchQuery: '',
+      query: '',
       genres: [],
-      releaseYear: undefined,
-      watchedYear: undefined
+      studios: [],
+      year: undefined,
+      sortBy: 'updated',
+      sortOrder: 'desc'
     });
   }
 
   filterAnime(anime: Anime[]): Anime[] {
-    const filters = this.filters();
-    
-    return anime.filter(item => {
-      if (filters.searchQuery && !item.title.toLowerCase().includes(filters.searchQuery.toLowerCase())) {
-        return false;
-      }
-
-      if (filters.genres.length > 0) {
-        const hasMatchingGenre = filters.genres.some(filterGenre => 
-          item.genres.some(animeGenre => 
-            animeGenre.toLowerCase().includes(filterGenre.toLowerCase())
-          )
-        );
-        if (!hasMatchingGenre) return false;
-      }
-
-      if (filters.releaseYear && item.releaseYear !== filters.releaseYear) {
-        return false;
-      }
-
-      if (filters.watchedYear) {
-        const watchedYear = item.updatedAt ? new Date(item.updatedAt).getFullYear() : undefined;
-        if (watchedYear !== filters.watchedYear) {
-          return false;
-        }
-      }
-
-      return true;
-    });
+    return this.animeService.filterAnimeList(anime, this.filters());
   }
 
   hasActiveFilters(): boolean {
-    const filters = this.filters();
+    const f = this.filters();
     return !!(
-      filters.searchQuery ||
-      filters.genres.length > 0 ||
-      filters.releaseYear ||
-      filters.watchedYear
+      (f.query && f.query.length > 0) ||
+      (f.genres && f.genres.length > 0) ||
+      (f.studios && f.studios.length > 0) ||
+      f.year
     );
   }
 }

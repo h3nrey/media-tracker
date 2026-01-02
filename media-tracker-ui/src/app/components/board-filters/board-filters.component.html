@@ -1,58 +1,79 @@
-<div class="board-toolbar">
-  <div class="search-box">
-    <input
-      type="text"
-      class="search-input"
-      placeholder="Search..."
-      [(ngModel)]="searchQuery"
-      (ngModelChange)="onSearchChange($event)"
-    />
-    @if (searchQuery) {
-      <button class="clear-search-btn" (click)="clearSearch()">
-        <lucide-icon [img]="XIcon" [size]="14"></lucide-icon>
-      </button>
-    }
-  </div>
+<div class="board-filters-container">
+  <div class="board-toolbar">
+      <!-- Search -->
+      <div class="search-box">
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search..."
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange($event)"
+        />
+        @if (searchQuery) {
+          <button class="clear-search-btn" (click)="clearSearch()">
+            <lucide-icon [img]="XIcon" [size]="14"></lucide-icon>
+          </button>
+        }
+      </div>
 
-  <button class="filter-btn" (click)="toggleFilters()" [class.active]="showFilters()">
-    <lucide-icon [img]="SettingsIcon" [size]="16"></lucide-icon>
-    Filters
-    @if (hasActiveFilters()) {
-      <span class="filter-badge">{{ getActiveFilterCount() }}</span>
-    }
-  </button>
+      <!-- Dropdowns -->
+      <select class="filter-select" (change)="onGenreSelect($event)">
+          <option value="" disabled selected>Genre</option>
+          @for(g of availableGenres(); track g) {
+              <option [value]="g">{{ g }}</option>
+          }
+      </select>
+
+      <select class="filter-select" (change)="onStudioSelect($event)">
+          <option value="" disabled selected>Studio</option>
+           @for(s of availableStudios(); track s) {
+              <option [value]="s">{{ s }}</option>
+          }
+      </select>
+      
+      <select class="filter-select" (change)="onYearSelect($event)">
+          <option value="" disabled selected>Year</option>
+           @for(y of availableYears(); track y) {
+              <option [value]="y">{{ y }}</option>
+          }
+      </select>
+
+      <select class="filter-select" (change)="onSortSelect($event)" 
+              [value]="(currentFilters().sortBy || 'updated') + '-' + (currentFilters().sortOrder || 'desc')">
+          <option value="updated-desc">Updated (Newest)</option>
+          <option value="updated-asc">Updated (Oldest)</option>
+          <option value="title-asc">Title (A-Z)</option>
+          <option value="title-desc">Title (Z-A)</option>
+          <option value="score-desc">Score (High-Low)</option>
+          <option value="score-asc">Score (Low-High)</option>
+          <option value="releaseYear-desc">Release (Newest)</option>
+          <option value="releaseYear-asc">Release (Oldest)</option>
+      </select>
+
+      @if (hasActiveFilters()) {
+        <button class="clear-all-btn" (click)="clearAllFilters()">
+           Clean Filters
+        </button>
+      }
+  </div>
 
   @if (hasActiveFilters()) {
-    <button class="clear-all-btn" (click)="clearAllFilters()">
-      Clear filters
-    </button>
+     <div class="active-filters-row">
+         @if (currentFilters().year) {
+            <div class="filter-chip" (click)="selectYear(currentFilters().year!)" title="Remove Year">
+               {{ currentFilters().year }} <lucide-icon [img]="XIcon" [size]="12"></lucide-icon>
+            </div>
+         }
+         @for(g of currentFilters().genres; track g) {
+             <div class="filter-chip" (click)="toggleGenre(g)" title="Remove Genre">
+                {{ g }} <lucide-icon [img]="XIcon" [size]="12"></lucide-icon>
+             </div>
+         }
+         @for(s of currentFilters().studios; track s) {
+             <div class="filter-chip" (click)="toggleStudio(s)" title="Remove Studio">
+                {{ s }} <lucide-icon [img]="XIcon" [size]="12"></lucide-icon>
+             </div>
+         }
+     </div>
   }
 </div>
-
-@if (showFilters()) {
-  <div class="filters-panel">
-    <div class="filter-group">
-      <label>Release Year</label>
-      <input
-        type="number"
-        min="1900"
-        max="2100"
-        placeholder="Any year"
-        [(ngModel)]="releaseYear"
-        (ngModelChange)="onReleaseYearChange($event)"
-      />
-    </div>
-
-    <div class="filter-group">
-      <label>Watched Year</label>
-      <input
-        type="number"
-        min="1900"
-        max="2100"
-        placeholder="Any year"
-        [(ngModel)]="watchedYear"
-        (ngModelChange)="onWatchedYearChange($event)"
-      />
-    </div>
-  </div>
-}
