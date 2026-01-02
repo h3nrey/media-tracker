@@ -7,15 +7,15 @@ import { CategoryService } from '../../services/status.service';
 import { Category } from '../../models/status.model';
 import { LucideAngularModule, Plus } from 'lucide-angular';
 import { MobileAnimeCardComponent } from './mobile-anime-card/mobile-anime-card.component';
-import { MobileTopBarComponent } from './mobile-top-bar/mobile-top-bar.component';
-import { MobileBottomNavComponent } from './mobile-bottom-nav/mobile-bottom-nav.component';
+import { MobileSearchBarComponent } from './mobile-search-bar/mobile-search-bar.component';
+import { MobileNavComponent } from './mobile-nav/mobile-nav.component';
 import { MobileFilterDrawerComponent } from './mobile-filter-drawer/mobile-filter-drawer.component';
 import { AnimeFilterParams } from '../../services/anime.service';
 
 @Component({
   selector: 'app-mobile-library',
   standalone: true,
-  imports: [CommonModule, MobileAnimeCardComponent, MobileTopBarComponent, MobileBottomNavComponent, MobileFilterDrawerComponent, LucideAngularModule],
+  imports: [CommonModule, MobileAnimeCardComponent, MobileSearchBarComponent, MobileNavComponent, MobileFilterDrawerComponent, LucideAngularModule],
   templateUrl: './mobile-library.component.html',
   styleUrl: './mobile-library.component.scss'
 })
@@ -78,7 +78,8 @@ export class MobileLibraryComponent implements OnInit, OnDestroy {
     private categoryService: CategoryService
   ) {}
 
-  // ... (ngOnInit etc)
+
+
 
   ngOnInit() {
     this.sub = combineLatest([
@@ -110,7 +111,7 @@ export class MobileLibraryComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ... (onMoveAnime etc)
+
   getCount(catId: number): number {
     return this.allAnime().filter(a => a.statusId === catId).length;
   }

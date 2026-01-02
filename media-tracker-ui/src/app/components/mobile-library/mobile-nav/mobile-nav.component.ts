@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Library, Layers, Monitor } from 'lucide-angular';
 
 @Component({
-  selector: 'app-mobile-bottom-nav',
+  selector: 'app-mobile-nav',
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
-  templateUrl: './mobile-bottom-nav.component.html',
-  styleUrl: './mobile-bottom-nav.component.scss'
+  templateUrl: './mobile-nav.component.html',
+  styleUrl: './mobile-nav.component.scss'
 })
-export class MobileBottomNavComponent {
+export class MobileNavComponent {
   @Output() manageCategories = new EventEmitter<void>();
   @Output() manageSources = new EventEmitter<void>();
   

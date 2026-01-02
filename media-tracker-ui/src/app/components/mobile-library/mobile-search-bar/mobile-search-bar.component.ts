@@ -4,13 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Search, Filter } from 'lucide-angular';
 
 @Component({
-  selector: 'app-mobile-top-bar',
+  selector: 'app-mobile-search-bar',
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule],
-  templateUrl: './mobile-top-bar.component.html',
-  styleUrl: './mobile-top-bar.component.scss'
+  templateUrl: './mobile-search-bar.component.html',
+  styleUrl: './mobile-search-bar.component.scss'
 })
-export class MobileTopBarComponent {
+export class MobileSearchBarComponent {
   @Output() search = new EventEmitter<string>();
   @Output() filterClick = new EventEmitter<void>();
   
