@@ -1,0 +1,73 @@
+@if (isOpen() && anime()) {
+  <div class="dialog-overlay" (click)="close()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>anime details</h2>
+        <button class="close-btn" (click)="close()">
+          <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        <div class="details-layout">
+          <div class="cover-section">
+            <img 
+              [src]="anime()!.coverImage || 'assets/placeholder-cover.jpg'" 
+              [alt]="anime()!.title" 
+              class="cover-image"
+            />
+          </div>
+          
+          <div class="info-section">
+            <h1 class="anime-title">{{ anime()!.title }}</h1>
+            
+            <div class="meta-tags">
+              <span class="meta-tag">
+                <lucide-icon [img]="PlayCircleIcon" [size]="14"></lucide-icon>
+                {{ anime()!.episodesWatched }} / {{ anime()!.totalEpisodes || '?' }} EPS
+              </span>
+              
+              @if (anime()!.releaseYear) {
+                <span class="meta-tag">
+                  <lucide-icon [img]="CalendarIcon" [size]="14"></lucide-icon>
+                  {{ anime()!.releaseYear }}
+                </span>
+              }
+
+              @if (anime()!.score > 0) {
+                <span class="meta-tag score-tag" [ngClass]="getScoreColorClass(anime()!.score)">
+                  <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
+                  {{ anime()!.score }}/10
+                </span>
+              }
+            </div>
+
+            @if (anime()!.genres.length > 0) {
+              <div class="section">
+                <div class="section-title">
+                  <lucide-icon [img]="TagIcon" [size]="16"></lucide-icon>
+                  Genres
+                </div>
+                <div class="genres-list">
+                  @for (genre of anime()!.genres; track genre) {
+                    <span class="genre-chip">{{ genre }}</span>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (anime()!.notes) {
+              <div class="section">
+                <div class="section-title">
+                  <lucide-icon [img]="FileTextIcon" [size]="16"></lucide-icon>
+                  Notes
+                </div>
+                <p class="notes-text">{{ anime()!.notes }}</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

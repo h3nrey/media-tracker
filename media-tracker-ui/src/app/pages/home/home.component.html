@@ -12,7 +12,11 @@
     </div>
   </header>
 
-  <app-kanban-board (addAnimeToCategory)="openAddDialogWithCategory($event)" />
+  <app-kanban-board 
+    (addAnimeToCategory)="openAddDialogWithCategory($event)" 
+    (animeClick)="openAnimeDetails($event)"
+  />
   <app-add-anime-dialog />
   <app-manage-categories-dialog />
+  <app-anime-details-dialog />
 </div>

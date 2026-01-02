@@ -18,6 +18,7 @@ import { BoardFiltersComponent } from '../board-filters/board-filters.component'
 })
 export class KanbanBoardComponent implements OnInit, OnDestroy {
   @Output() addAnimeToCategory = new EventEmitter<number>();
+  @Output() animeClick = new EventEmitter<Anime>();
   
   columns = signal<AnimeByCategory[]>([]);
   loading = signal(true);
