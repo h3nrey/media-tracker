@@ -1,0 +1,94 @@
+<div class="timeline-page">
+  <div class="timeline-header">
+    <div class="title-section">
+      <lucide-icon [img]="CalendarIcon" [size]="28" class="header-icon"></lucide-icon>
+      <div class="title-text">
+        <h1>Yearly Timeline</h1>
+        <p>Your anime journey through the years</p>
+      </div>
+    </div>
+    <a routerLink="/" class="back-btn">
+      <lucide-icon [img]="ChevronLeftIcon" [size]="18"></lucide-icon>
+      Back to Board
+    </a>
+  </div>
+
+  <div class="timeline-container" #scrollContainer (scroll)="onScroll()">
+    <div class="timeline-track">
+      @for (group of timelineGroups(); track group.year) {
+        <div class="year-section" [attr.data-year]="group.year" [class.active]="activeYear() === group.year">
+          
+          <!-- Sticky Sidebar Year -->
+          <div class="year-sidebar">
+            <div class="sticky-wrapper">
+                <span class="year-text">{{ group.year }}</span>
+            </div>
+          </div>
+
+          <div class="year-content">
+            <!-- Year Hero Arts -->
+            <div class="year-hero">
+                <div class="hero-overlay"></div>
+                
+                @let featured = group.anime.slice(0, 5);
+                @let activeIdx = heroRotation() % (featured.length || 1);
+                @let activeAnime = featured[activeIdx];
+
+                <div class="hero-slideshow">
+                    @for (anime of featured; track anime.id; let i = $index) {
+                        <div class="hero-slide" 
+                             [class.active]="i === activeIdx"
+                             [style.background-image]="'url(' + (anime.bannerImage || anime.coverImage) + ')'">
+                        </div>
+                    }
+                </div>
+
+                <div class="hero-title">
+                    <span class="count">{{ group.anime.length }}</span>
+                    <span class="label">Anime in {{ group.year }}</span>
+                    
+                    @if (activeAnime?.trailerUrl) {
+                        <button class="trailer-button" (click)="openTrailer(activeAnime?.trailerUrl); $event.stopPropagation()">
+                            <lucide-icon [img]="PlayIcon" [size]="16"></lucide-icon>
+                            Watch Trailer: {{ activeAnime?.title }}
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <div class="anime-grid">
+                @for (anime of group.anime; track anime.id) {
+                  <div class="anime-card" (click)="onAnimeClick(anime)">
+                    <div class="cover-wrapper">
+                      <img [src]="anime.coverImage || 'assets/placeholder-cover.jpg'" [alt]="anime.title">
+                      <div class="card-overlay">
+                         <lucide-icon [img]="StarIcon" [size]="16"></lucide-icon>
+                         <span>{{ anime.score }}/10</span>
+                      </div>
+                    </div>
+                    <div class="anime-info">
+                      <h3>{{ anime.title }}</h3>
+                      <div class="meta">
+                        <span class="eps">{{ anime.episodesWatched }} / {{ anime.totalEpisodes || '?' }} ep</span>
+                        <div class="status-dot" [ngClass]="getScoreColorClass(anime.score)"></div>
+                      </div>
+                    </div>
+                  </div>
+                }
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (timelineGroups().length === 0) {
+        <div class="empty-timeline">
+            <lucide-icon [img]="InfoIcon" [size]="48"></lucide-icon>
+            <h2>No historical data found</h2>
+            <p>Make sure your anime have a release year set via metadata sync.</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <app-anime-details-dialog></app-anime-details-dialog>
+</div>

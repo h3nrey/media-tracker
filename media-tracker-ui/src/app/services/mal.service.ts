@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, map, of, debounceTime } from 'rxjs';
+import { Observable, catchError, map, of, debounceTime, firstValueFrom } from 'rxjs';
 import { JikanAnimeSearchResponse, JikanAnime } from '../models/mal-anime.model';
 
 @Injectable({
@@ -48,9 +48,34 @@ export class MalService {
   }
 
   /**
+   * Fetch banner image from AniList using MAL ID
+   */
+  async getBannerFromAnilist(malId: number): Promise<string | null> {
+    const query = `
+      query ($idMal: Int) {
+        Media (idMal: $idMal, type: ANIME) {
+          bannerImage
+        }
+      }
+    `;
+
+    try {
+      const response = await firstValueFrom(this.http.post<any>('https://graphql.anilist.co', {
+        query,
+        variables: { idMal: malId }
+      }));
+      return response.data?.Media?.bannerImage || null;
+    } catch (error) {
+      console.error('Error fetching AniList banner:', error);
+      return null;
+    }
+  }
+
+  /**
    * Convert Jikan anime to our local anime format (helper)
    */
   convertJikanToAnime(jikanAnime: JikanAnime, statusId: number) {
+    // ... logic remains same but we might want to augment it later
     return {
       title: jikanAnime.title_english || jikanAnime.title,
       coverImage: jikanAnime.images.webp.large_image_url || jikanAnime.images.jpg.large_image_url,

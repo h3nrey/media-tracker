@@ -3,6 +3,7 @@ export interface Anime {
   supabaseId?: number;
   title: string;
   coverImage?: string;
+  bannerImage?: string;
   malId?: number;
   episodesWatched: number;
   totalEpisodes: number;
@@ -11,6 +12,7 @@ export interface Anime {
   genres: string[];
   studios: string[];
   releaseYear?: number;
+  trailerUrl?: string;
   notes?: string;
   watchDates?: Date[];
   watchLinks?: AnimeWatchLink[];

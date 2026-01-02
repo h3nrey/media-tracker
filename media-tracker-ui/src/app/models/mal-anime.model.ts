@@ -28,6 +28,11 @@ export interface JikanAnime {
       large_image_url: string;
     };
   };
+  trailer?: {
+    youtube_id?: string;
+    url?: string;
+    embed_url?: string;
+  };
   title: string;
   title_english?: string;
   title_japanese?: string;

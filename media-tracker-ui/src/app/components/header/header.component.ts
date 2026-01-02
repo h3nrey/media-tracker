@@ -1,11 +1,12 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Plus, Monitor, Layers, FileUp, RefreshCw } from 'lucide-angular';
+import { RouterModule } from '@angular/router';
+import { LucideAngularModule, Plus, Monitor, Layers, FileUp, RefreshCw, History } from 'lucide-angular';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, RouterModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
@@ -21,4 +22,5 @@ export class HeaderComponent {
   readonly MonitorIcon = Monitor;
   readonly ImportIcon = FileUp;
   readonly RefreshIcon = RefreshCw;
+  readonly HistoryIcon = History;
 }

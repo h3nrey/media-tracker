@@ -2,10 +2,9 @@ import { Component, Input, Output, EventEmitter, signal, OnInit } from '@angular
 import { CommonModule, NgClass } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { LucideAngularModule, Star, MoreVertical, Edit2, Trash2, Plus, Play } from 'lucide-angular';
-import { Anime, AnimeWatchLink } from '../../../../models/anime.model';
+import { Anime } from '../../../../models/anime.model';
 import { WatchSourceService } from '../../../../services/watch-source.service';
-import { WatchSource } from '../../../../models/watch-source.model';
-import { firstValueFrom } from 'rxjs';
+import { getScoreColorClass } from '../../../../utils/anime-utils';
 
 @Component({
   selector: 'app-anime-card',
@@ -72,9 +71,6 @@ export class AnimeCard {
     event.stopPropagation();
     
     if (this.anime.watchLinks && this.anime.watchLinks.length > 0) {
-      console.log(this.anime.watchLinks[0].url);
-      console.log(this.anime.title);
-      console.log(this.anime.watchLinks);
       window.open(this.anime.watchLinks[0].url, '_blank');
       return;
     }
@@ -90,9 +86,6 @@ export class AnimeCard {
   }
 
   getScoreColorClass(score: number): string {
-    if (score >= 1 && score <= 5) return 'score-red';
-    if (score >= 6 && score <= 10) return 'score-pink';
-    if (score === 11) return 'score-purple';
-    return '';
+    return getScoreColorClass(score);
   }
 }

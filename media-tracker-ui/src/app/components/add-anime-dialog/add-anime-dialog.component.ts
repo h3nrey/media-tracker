@@ -38,6 +38,8 @@ export class AddAnimeDialogComponent {
   
   title = signal('');
   coverImage = signal('');
+  bannerImage = signal('');
+  trailerUrl = signal('');
   malId = signal<number | undefined>(undefined);
   episodesWatched = signal(0);
   totalEpisodes = signal(0);
@@ -136,11 +138,14 @@ export class AddAnimeDialogComponent {
     document.body.style.overflow = 'hidden';
     this.resetForm();
     this.editMode.set(true);
-    this.manualMode.set(true);
+    // Start in matching mode so they can re-fetch or change the anime
+    this.manualMode.set(false);
     this.editingId.set(anime.id!);
 
     this.title.set(anime.title);
     this.coverImage.set(anime.coverImage || '');
+    this.bannerImage.set(anime.bannerImage || '');
+    this.trailerUrl.set(anime.trailerUrl || '');
     this.malId.set(anime.malId);
     this.episodesWatched.set(anime.episodesWatched);
     this.totalEpisodes.set(anime.totalEpisodes || 0);
@@ -165,15 +170,22 @@ export class AddAnimeDialogComponent {
     this.searchSubject.next(query);
   }
 
-  selectAnime(anime: JikanAnime) {
+  async selectAnime(anime: JikanAnime) {
     this.selectedAnime.set(anime);
-    this.manualMode.set(false);
+    this.manualMode.set(true); // Switch to form once selected
     
     this.title.set(anime.title_english || anime.title);
     this.coverImage.set(anime.images.webp.large_image_url || anime.images.jpg.large_image_url);
     this.malId.set(anime.mal_id);
     this.totalEpisodes.set(anime.episodes || 0);
+    this.trailerUrl.set(anime.trailer?.embed_url || '');
     
+    // Fetch Banner from AniList
+    const banner = await this.malService.getBannerFromAnilist(anime.mal_id);
+    if (banner) {
+        this.bannerImage.set(banner);
+    }
+
     // Combine genres, themes, and demographics
     const combinedGenres = [
       ...(anime.genres?.map(g => g.name) || []),
@@ -246,6 +258,8 @@ export class AddAnimeDialogComponent {
       const animeData = {
         title: this.title(),
         coverImage: this.coverImage(),
+        bannerImage: this.bannerImage(),
+        trailerUrl: this.trailerUrl(),
         malId: this.malId(),
         episodesWatched: this.episodesWatched(),
         totalEpisodes: this.totalEpisodes(),
@@ -284,6 +298,8 @@ export class AddAnimeDialogComponent {
     
     this.title.set('');
     this.coverImage.set('');
+    this.bannerImage.set('');
+    this.trailerUrl.set('');
     this.malId.set(undefined);
     this.episodesWatched.set(0);
     this.totalEpisodes.set(0);

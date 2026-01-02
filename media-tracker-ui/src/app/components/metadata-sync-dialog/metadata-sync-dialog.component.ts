@@ -74,9 +74,14 @@ export class MetadataSyncDialogComponent {
             }
 
             if (malData) {
+                // 3. Get banner from AniList (New!)
+                const bannerImage = await this.malService.getBannerFromAnilist(malData.mal_id);
+
                 const updates = {
                     malId: malData.mal_id,
                     coverImage: malData.images.webp.large_image_url || malData.images.jpg.large_image_url,
+                    bannerImage: bannerImage || anime.bannerImage,
+                    trailerUrl: malData.trailer?.embed_url || anime.trailerUrl,
                     totalEpisodes: malData.episodes || anime.totalEpisodes || 0,
                     genres: malData.genres?.map((g: any) => g.name) || anime.genres,
                     studios: malData.studios?.map((s: any) => s.name) || anime.studios,
