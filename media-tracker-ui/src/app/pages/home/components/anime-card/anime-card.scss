@@ -201,6 +201,50 @@
   }
 }
 
+.track-btn {
+  width: calc(100% - 1.5rem); 
+  // Initial state (hidden)
+  max-height: 0;
+  margin: 0 0.75rem 0 0.75rem;
+  padding: 0;
+  opacity: 0;
+  border-width: 0;
+  overflow: hidden;
+  
+  // Style when visible (properties transitioned)
+  background: rgba(139, 92, 246, 0.15);
+  border: 0 solid rgba(139, 92, 246, 0.2); // Start with 0 border
+  border-radius: 6px;
+  color: #C4B5FD;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background: rgba(139, 92, 246, 0.25);
+    color: #F8FAFC;
+    border-color: rgba(139, 92, 246, 0.4);
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.anime-card:hover .track-btn {
+  max-height: 48px; // Enough for padding + font
+  opacity: 1;
+  margin: 0 0.75rem 0.75rem 0.75rem;
+  padding: 0.5rem;
+  border-width: 1px;
+}
+
 .genres {
   display: flex;
   flex-wrap: wrap;

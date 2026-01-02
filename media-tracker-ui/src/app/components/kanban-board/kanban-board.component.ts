@@ -44,6 +44,18 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
     }
   }
 
+  async onIncrement(anime: Anime) {
+    if (!anime.id) return;
+    const current = anime.episodesWatched || 0;
+    const total = anime.totalEpisodes || 0;
+    
+    if (total > 0 && current >= total) return; 
+
+    await this.animeService.updateAnime(anime.id, { 
+      episodesWatched: current + 1 
+    });
+  }
+
   async ngOnInit() {
     await this.loadKanbanData();
   }

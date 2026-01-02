@@ -353,3 +353,36 @@
   border: 1px solid #334155;
   margin: 0;
 }
+
+.episodes-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.details-track-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(139, 92, 246, 0.15);
+  color: #C4B5FD;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(139, 92, 246, 0.25);
+    color: #F8FAFC;
+    border-color: rgba(139, 92, 246, 0.4);
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}

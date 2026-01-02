@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { LucideAngularModule, Star, MoreVertical, Edit2, Trash2 } from 'lucide-angular';
+import { LucideAngularModule, Star, MoreVertical, Edit2, Trash2, Plus } from 'lucide-angular';
 import { Anime } from '../../../../models/anime.model';
 
 @Component({
@@ -15,11 +15,13 @@ export class AnimeCard {
   @Input() anime!: Anime;
   @Output() edit = new EventEmitter<Anime>();
   @Output() delete = new EventEmitter<Anime>();
+  @Output() increment = new EventEmitter<Anime>();
   
   readonly StarIcon = Star;
   readonly MoreVerticalIcon = MoreVertical;
   readonly EditIcon = Edit2;
   readonly TrashIcon = Trash2;
+  readonly PlusIcon = Plus;
 
   menuOpen = signal(false);
 
@@ -38,6 +40,11 @@ export class AnimeCard {
     event.stopPropagation();
     this.menuOpen.set(false);
     this.delete.emit(this.anime);
+  }
+
+  onIncrement(event: Event) {
+    event.stopPropagation();
+    this.increment.emit(this.anime);
   }
 
   getScoreColorClass(score: number): string {

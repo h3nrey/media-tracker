@@ -2,7 +2,7 @@
   <div class="dialog-overlay" (click)="close()">
     <div class="dialog-content" (click)="$event.stopPropagation()">
       <div class="dialog-header">
-        <h2>anime details</h2>
+        <h2>{{ anime()!.title }}</h2>
         <div class="header-actions">
           <button class="action-btn" (click)="onEdit()" title="Edit Anime">
             <lucide-icon [img]="EditIcon" [size]="20"></lucide-icon>
@@ -27,7 +27,7 @@
                 @for (source of sources(); track source.id) {
                   <a [href]="getSourceUrl(source)" target="_blank" class="watch-btn-rounded">
                     <lucide-icon [img]="ExternalLinkIcon" [size]="16"></lucide-icon>
-                    Watch on {{ source.name }}
+                    Assista em {{ source.name }}
                   </a>
                 }
               </div>
@@ -42,16 +42,25 @@
               <div class="meta-block full-width">
                 <div class="meta-label">
                   <lucide-icon [img]="PlayCircleIcon" [size]="14"></lucide-icon>
-                  Episodes
+                  Episódios
                 </div>
                 <div class="meta-content">
-                  <span class="episodes-text">{{ anime()!.episodesWatched }} / {{ anime()!.totalEpisodes || '?' }}</span>
+                  <div class="episodes-row">
+                    <span class="episodes-text">{{ anime()!.episodesWatched }} / {{ anime()!.totalEpisodes || '?' }}</span>
+                  
+                  </div>
                   @if (anime()!.totalEpisodes > 0 && anime()!.episodesWatched < anime()!.totalEpisodes) {
                     <div class="progress-bar-container" title="{{ (anime()!.episodesWatched / anime()!.totalEpisodes) | percent:'1.0-0' }} watched">
                       <div class="progress-bar-fill" [style.width.%]="(anime()!.episodesWatched / anime()!.totalEpisodes) * 100"></div>
                     </div>
                   }
                 </div>
+                @if (!anime()!.totalEpisodes || anime()!.episodesWatched < anime()!.totalEpisodes) {
+                      <button class="details-track-btn" (click)="incrementEpisode()">
+                          <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
+                          Adicionar episódio
+                      </button>
+                    }
               </div>
 
               <!-- Year & Score -->
@@ -60,7 +69,7 @@
                   <div class="meta-block">
                     <div class="meta-label">
                       <lucide-icon [img]="CalendarIcon" [size]="14"></lucide-icon>
-                      Year
+                      Data de lançamento
                     </div>
                     <div class="meta-value">{{ anime()!.releaseYear }}</div>
                   </div>
@@ -70,7 +79,7 @@
                   <div class="meta-block">
                     <div class="meta-label">
                       <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
-                      Score
+                      Nota
                     </div>
                     <span class="score-badge" [ngClass]="getScoreColorClass(anime()!.score)">
                       {{ anime()!.score }}/10
@@ -84,11 +93,11 @@
                 <div class="meta-header">
                   <div class="meta-label">
                     <lucide-icon [img]="ClockIcon" [size]="14"></lucide-icon>
-                    Watch History
+                    Histórico de visualização
                   </div>
                   <button class="add-date-btn" (click)="addWatchDate()">
                     <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon>
-                    Add Date
+                    Adicionar Data
                   </button>
                 </div>
                 <div class="watch-dates-list">
@@ -99,7 +108,6 @@
                       </div>
                     }
                   } @else {
-                     <!-- Show UpdatedAt as fallback if watchDates is empty/undefined -->
                      <div class="watch-date-chip fallback">
                         Updated: {{ anime()!.updatedAt | date:'mediumDate' }}
                      </div>
@@ -128,7 +136,7 @@
               <div class="section">
                 <div class="section-title">
                   <lucide-icon [img]="TagIcon" [size]="16"></lucide-icon>
-                  Genres
+                  Gêneros
                 </div>
                 <div class="genres-list">
                   @for (genre of anime()!.genres; track genre) {
@@ -142,7 +150,7 @@
               <div class="section">
                 <div class="section-title">
                   <lucide-icon [img]="FileTextIcon" [size]="16"></lucide-icon>
-                  Notes
+                  Comentários
                 </div>
                 <p class="notes-text">{{ anime()!.notes }}</p>
               </div>

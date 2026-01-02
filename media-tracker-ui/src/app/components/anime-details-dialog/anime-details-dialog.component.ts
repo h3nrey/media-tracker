@@ -88,6 +88,21 @@ export class AnimeDetailsDialogComponent {
     this.anime.update(a => a ? { ...a, watchDates: updatedDates } : null);
   }
 
+  async incrementEpisode() {
+    const currentAnime = this.anime();
+    if (!currentAnime?.id) return;
+
+    const current = currentAnime.episodesWatched || 0;
+    const total = currentAnime.totalEpisodes || 0;
+    
+    if (total > 0 && current >= total) return; 
+
+    const newCount = current + 1;
+    await this.animeService.updateAnime(currentAnime.id, { episodesWatched: newCount });
+    
+    this.anime.update(a => a ? { ...a, episodesWatched: newCount } : null);
+  }
+
   getScoreColorClass(score: number): string {
     if (score >= 1 && score <= 5) return 'score-red';
     if (score >= 6 && score <= 10) return 'score-pink';

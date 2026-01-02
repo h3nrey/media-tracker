@@ -3,27 +3,24 @@
   display: flex;
   flex-direction: column;
   background: #0F172A;
-  overflow: hidden;
 }
 
 .desktop-only {
   display: block;
-  flex: 1;
-  min-height: 0; // for flex scroll
-  overflow: hidden;
+  min-height: 0;
 }
 
 .mobile-only {
-  display: none;
+  display: none !important;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .desktop-only {
-    display: none;
+    display: none !important;
   }
   
   .mobile-only {
-    display: flex;
+    display: flex !important;
     flex: 1;
     height: 100%;
     overflow: hidden;

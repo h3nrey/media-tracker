@@ -45,4 +45,9 @@
       }
     </div>
   </div>
+  @if (!anime.totalEpisodes || anime.episodesWatched < anime.totalEpisodes) {
+    <button class="track-btn" (click)="onIncrement($event)">
+      <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
+    </button>
+  }
 </div>
