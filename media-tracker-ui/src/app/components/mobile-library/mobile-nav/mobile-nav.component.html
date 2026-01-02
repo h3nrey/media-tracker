@@ -1,16 +1,16 @@
 <nav class="bottom-nav">
-  <button class="nav-item active">
-    <lucide-icon [img]="LibraryIcon" [size]="20"></lucide-icon>
+  <a class="nav-item" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+    <lucide-icon [img]="LibraryIcon"></lucide-icon>
     <span>Library</span>
-  </button>
+  </a>
   
-  <button class="nav-item" (click)="manageCategories.emit()">
-    <lucide-icon [img]="LayersIcon" [size]="20"></lucide-icon>
+  <a class="nav-item" routerLink="/categories" routerLinkActive="active">
+    <lucide-icon [img]="LayersIcon"></lucide-icon>
     <span>Categories</span>
-  </button>
+  </a>
   
-  <button class="nav-item" (click)="manageSources.emit()">
-    <lucide-icon [img]="MonitorIcon" [size]="20"></lucide-icon>
+  <a class="nav-item" routerLink="/sources" routerLinkActive="active">
+    <lucide-icon [img]="MonitorIcon"></lucide-icon>
     <span>Sources</span>
-  </button>
+  </a>
 </nav>

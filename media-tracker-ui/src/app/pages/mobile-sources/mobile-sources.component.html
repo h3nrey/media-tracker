@@ -1,0 +1,57 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Sources</h1>
+  </div>
+
+  <div class="add-section">
+    <div class="input-group">
+        <input type="text" [(ngModel)]="newName" placeholder="Source Name">
+        <input type="text" [(ngModel)]="newUrl" placeholder="Base URL (Optional)" (keyup.enter)="addSource()">
+    </div>
+    <button class="add-btn" (click)="addSource()">
+       <lucide-icon [img]="PlusIcon" [size]="20"></lucide-icon>
+    </button>
+  </div>
+
+  <div class="sources-list">
+    @for (source of sources(); track source.id) {
+      <div class="source-item">
+        @if (editingId() === source.id) {
+            <div class="edit-form">
+                <input class="edit-input" type="text" [(ngModel)]="editName" placeholder="Name">
+                <input class="edit-input" type="text" [(ngModel)]="editUrl" placeholder="URL">
+                <div class="actions">
+                    <button class="save-btn" (click)="saveEdit()">
+                        <lucide-icon [img]="CheckIcon" [size]="18"></lucide-icon>
+                    </button>
+                     <button class="cancel-btn" (click)="cancelEdit()">
+                        Discard
+                    </button>
+                </div>
+            </div>
+        } @else {
+            <div class="source-info">
+                <div class="source-name">{{ source.name }}</div>
+                @if (source.baseUrl) {
+                    <div class="source-url">{{ source.baseUrl }}</div>
+                }
+            </div>
+            
+            <div class="actions">
+                 @if (source.baseUrl) {
+                    <a [href]="source.baseUrl" target="_blank" class="link-btn">
+                        <lucide-icon [img]="ExternalLinkIcon" [size]="18"></lucide-icon>
+                    </a>
+                 }
+                 <button class="edit-btn" (click)="startEdit(source)">
+                    <lucide-icon [img]="EditIcon" [size]="18"></lucide-icon>
+                 </button>
+                 <button class="delete-btn" (click)="deleteSource(source.id!)">
+                    <lucide-icon [img]="TrashIcon" [size]="18"></lucide-icon>
+                 </button>
+            </div>
+        }
+      </div>
+    }
+  </div>
+</div>

@@ -8,14 +8,13 @@ import { Category } from '../../models/status.model';
 import { LucideAngularModule, Plus } from 'lucide-angular';
 import { MobileAnimeCardComponent } from './mobile-anime-card/mobile-anime-card.component';
 import { MobileSearchBarComponent } from './mobile-search-bar/mobile-search-bar.component';
-import { MobileNavComponent } from './mobile-nav/mobile-nav.component';
 import { MobileFilterDrawerComponent } from './mobile-filter-drawer/mobile-filter-drawer.component';
 import { AnimeFilterParams } from '../../services/anime.service';
 
 @Component({
   selector: 'app-mobile-library',
   standalone: true,
-  imports: [CommonModule, MobileAnimeCardComponent, MobileSearchBarComponent, MobileNavComponent, MobileFilterDrawerComponent, LucideAngularModule],
+  imports: [CommonModule, MobileAnimeCardComponent, MobileSearchBarComponent, MobileFilterDrawerComponent, LucideAngularModule],
   templateUrl: './mobile-library.component.html',
   styleUrl: './mobile-library.component.scss'
 })
@@ -23,8 +22,6 @@ export class MobileLibraryComponent implements OnInit, OnDestroy {
   @Output() animeClick = new EventEmitter<Anime>();
   @Output() editAnime = new EventEmitter<Anime>();
   @Output() addAnimeReq = new EventEmitter<number>();
-  @Output() manageCategories = new EventEmitter<void>();
-  @Output() manageSources = new EventEmitter<void>();
   
   readonly PlusIcon = Plus;
   categories = signal<Category[]>([]);

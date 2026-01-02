@@ -1,0 +1,35 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Categories</h1>
+  </div>
+
+  <div class="add-section">
+    <div class="color-picker-wrapper" [style.background-color]="newCategoryColor">
+       <input type="color" [(ngModel)]="newCategoryColor">
+    </div>
+    <input type="text" [(ngModel)]="newCategoryName" placeholder="New Category Name" (keyup.enter)="addCategory()">
+    <button class="add-btn" (click)="addCategory()">
+       <lucide-icon [img]="PlusIcon" [size]="20"></lucide-icon>
+    </button>
+  </div>
+
+  <div class="categories-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
+    @for (cat of categories(); track trackById($index, cat)) {
+      <div class="category-item" cdkDrag>
+        <div class="drag-handle" cdkDragHandle>
+           <lucide-icon [img]="GripVerticalIcon" [size]="20"></lucide-icon>
+        </div>
+        
+        <div class="color-indicator" [style.background-color]="cat.color">
+           <input type="color" [(ngModel)]="cat.color" (change)="updateCategory(cat)">
+        </div>
+
+        <input class="name-input" [(ngModel)]="cat.name" (blur)="updateCategory(cat)">
+
+        <button class="delete-btn" (click)="deleteCategory(cat.id!)">
+           <lucide-icon [img]="Trash2Icon" [size]="18"></lucide-icon>
+        </button>
+      </div>
+    }
+  </div>
+</div>
