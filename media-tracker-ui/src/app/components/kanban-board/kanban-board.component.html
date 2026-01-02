@@ -1,0 +1,57 @@
+<div class="kanban-container">
+  <h1>Anime Tracker</h1>
+
+  @if (loading()) {
+    <div class="loading">Loading...</div>
+  } @else {
+    <div class="kanban-board">
+      @for (column of columns(); track trackByCategoryId($index, column)) {
+        <div class="kanban-column">
+          <div class="column-header" [style.border-color]="column.category.color">
+            <h2>{{ column.category.name }}</h2>
+            <span class="count">{{ column.anime.length }}</span>
+          </div>
+
+          <div
+            class="anime-list"
+            cdkDropList
+            [id]="'column-' + $index"
+            [cdkDropListData]="column.anime"
+            [cdkDropListConnectedTo]="getConnectedLists()"
+            (cdkDropListDropped)="onDrop($event, column.category.id!)"
+          >
+            @for (anime of column.anime; track trackByAnimeId($index, anime)) {
+              <div class="anime-card" cdkDrag>
+                <div class="anime-card-content">
+                  @if (anime.coverImage) {
+                    <img [src]="anime.coverImage" [alt]="anime.title" class="cover-image" />
+                  }
+                  <div class="anime-info">
+                    <h3>{{ anime.title }}</h3>
+                    <div class="meta">
+                      <span>{{ anime.episodesWatched }} / {{ anime.totalEpisodes || '?' }}</span>
+                      @if (anime.score > 0) {
+                        <span class="score">⭐ {{ anime.score }}/10</span>
+                      }
+                    </div>
+                    @if (anime.genres.length > 0) {
+                      <div class="genres">
+                        @for (genre of anime.genres.slice(0, 3); track genre) {
+                          <span class="genre-tag">{{ genre }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-column">
+                <p>No anime in this category</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

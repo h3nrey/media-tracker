@@ -1,0 +1,183 @@
+@if (isOpen()) {
+  <div class="dialog-overlay" (click)="close()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>Add Anime</h2>
+        <button class="close-btn" (click)="close()">&times;</button>
+      </div>
+
+      <div class="dialog-body">
+        @if (!manualMode() && !selectedAnime()) {
+          <div class="search-section">
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Search MyAnimeList..."
+              [value]="searchQuery()"
+              (input)="onSearchInput($any($event.target).value)"
+              autofocus
+            />
+
+            @if (isSearching()) {
+              <div class="searching">Searching...</div>
+            }
+
+            @if (searchResults().length > 0) {
+              <div class="search-results">
+                @for (anime of searchResults(); track anime.mal_id) {
+                  <div class="search-result-item" (click)="selectAnime(anime)">
+                    <img
+                      [src]="anime.images.webp.small_image_url || anime.images.jpg.small_image_url"
+                      [alt]="anime.title"
+                      class="result-image"
+                    />
+                    <div class="result-info">
+                      <div class="result-title">{{ anime.title }}</div>
+                      <div class="result-meta">
+                        {{ anime.type }} • {{ anime.episodes || '?' }} eps
+                        @if (anime.year) {
+                          • {{ anime.year }}
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <button class="manual-btn" (click)="enableManualMode()">
+              Or add manually
+            </button>
+          </div>
+        }
+
+        @if (manualMode() || selectedAnime()) {
+          <div class="form-section">
+            @if (selectedAnime()) {
+              <div class="selected-anime-preview">
+                <img
+                  [src]="coverImage()"
+                  [alt]="title()"
+                  class="preview-image"
+                />
+                <div>
+                  <strong>{{ title() }}</strong>
+                  <button class="change-btn" (click)="enableManualMode()">
+                    Change
+                  </button>
+                </div>
+              </div>
+            }
+
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label>Title *</label>
+                <input
+                  type="text"
+                  [value]="title()"
+                  (input)="title.set($any($event.target).value)"
+                  required
+                />
+              </div>
+
+              <div class="form-group full-width">
+                <label>Cover Image URL</label>
+                <input
+                  type="text"
+                  [value]="coverImage()"
+                  (input)="coverImage.set($any($event.target).value)"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Episodes Watched</label>
+                <input
+                  type="number"
+                  min="0"
+                  [value]="episodesWatched()"
+                  (input)="episodesWatched.set(+$any($event.target).value)"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Total Episodes</label>
+                <input
+                  type="number"
+                  min="0"
+                  [value]="totalEpisodes()"
+                  (input)="totalEpisodes.set(+$any($event.target).value)"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Category</label>
+                <select
+                  [value]="selectedCategoryId()"
+                  (change)="selectedCategoryId.set(+$any($event.target).value)"
+                >
+                  @for (category of categories(); track category.id) {
+                    <option [value]="category.id">{{ category.name }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Score (0-10)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="10"
+                  [value]="score()"
+                  (input)="score.set(+$any($event.target).value)"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Release Year</label>
+                <input
+                  type="number"
+                  min="1900"
+                  max="2100"
+                  [value]="releaseYear()"
+                  (input)="releaseYear.set(+$any($event.target).value || undefined)"
+                />
+              </div>
+
+              <div class="form-group full-width">
+                <label>Genres (comma-separated)</label>
+                <input
+                  type="text"
+                  [value]="genres().join(', ')"
+                  (input)="onGenresInput($any($event.target).value)"
+                  placeholder="Action, Adventure, Fantasy"
+                />
+              </div>
+
+              <div class="form-group full-width">
+                <label>Notes</label>
+                <textarea
+                  rows="3"
+                  [value]="notes()"
+                  (input)="notes.set($any($event.target).value)"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="dialog-footer">
+        <button class="cancel-btn" (click)="close()" [disabled]="isSaving()">
+          Cancel
+        </button>
+        <button
+          class="save-btn"
+          (click)="save()"
+          [disabled]="isSaving() || !title().trim()"
+        >
+          {{ isSaving() ? 'Saving...' : 'Save' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
