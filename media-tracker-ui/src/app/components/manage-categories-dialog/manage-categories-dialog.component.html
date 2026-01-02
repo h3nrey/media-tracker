@@ -1,0 +1,81 @@
+@if (isOpen()) {
+  <div class="dialog-overlay" (click)="close()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>Manage Categories</h2>
+        <button class="close-btn" (click)="close()">
+          <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        <!-- Add New Category -->
+        <div class="add-category-section">
+          <h3>Add New Category</h3>
+          <div class="add-form">
+            <input
+              type="text"
+              class="category-name-input"
+              placeholder="Category name"
+              [(ngModel)]="newCategoryName"
+              (keyup.enter)="addCategory()"
+            />
+            <input
+              type="color"
+              class="color-picker"
+              [(ngModel)]="newCategoryColor"
+            />
+            <button class="add-btn" (click)="addCategory()">
+              <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
+              Add
+            </button>
+          </div>
+        </div>
+
+        <!-- Categories List -->
+        <div class="categories-section">
+          <h3>Categories (Drag to reorder)</h3>
+          <div
+            class="categories-list"
+            cdkDropList
+            (cdkDropListDropped)="onDrop($event)"
+          >
+            @for (category of categories(); track trackById($index, category)) {
+              <div class="category-item" cdkDrag>
+                <div class="drag-handle" cdkDragHandle>
+                  <lucide-icon [img]="GripVerticalIcon" [size]="18"></lucide-icon>
+                </div>
+
+                <input
+                  type="color"
+                  class="color-picker small"
+                  [(ngModel)]="category.color"
+                  (change)="updateCategory(category)"
+                />
+
+                <input
+                  type="text"
+                  class="category-name-input inline"
+                  [(ngModel)]="category.name"
+                  (blur)="updateCategory(category)"
+                />
+
+                <button class="delete-btn" (click)="deleteCategory(category.id!)">
+                  <lucide-icon [img]="Trash2Icon" [size]="16"></lucide-icon>
+                </button>
+              </div>
+            } @empty {
+              <div class="empty-state">
+                <p>No categories yet. Add one above!</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog-footer">
+        <button class="done-btn" (click)="close()">Done</button>
+      </div>
+    </div>
+  </div>
+}

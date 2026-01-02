@@ -8,7 +8,10 @@
       <div class="meta">
         <span>{{ anime.episodesWatched }} / {{ anime.totalEpisodes || '?' }}</span>
         @if (anime.score > 0) {
-          <span class="score">⭐ {{ anime.score }}/10</span>
+          <span class="score" [ngClass]="getScoreColorClass(anime.score)">
+            <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
+            {{ anime.score }}/10
+          </span>
         }
       </div>
       @if (anime.genres.length > 0) {

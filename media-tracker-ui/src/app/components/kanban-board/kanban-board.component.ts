@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
-import { Subscription } from 'rxjs';
+import { Subscription, combineLatest } from 'rxjs';
 import { Anime } from '../../models/anime.model';
 import { AnimeService, AnimeByCategory } from '../../services/anime.service';
 import { CategoryService } from '../../services/status.service';
@@ -22,7 +22,6 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
   columns = signal<AnimeByCategory[]>([]);
   loading = signal(true);
   private subscription?: Subscription;
-  private categories: any[] = [];
 
   constructor(
     private animeService: AnimeService,
@@ -41,23 +40,27 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
   private async loadKanbanData() {
     try {
       this.loading.set(true);
-      this.categories = await this.categoryService.getAllCategories();
       
-      this.subscription = this.animeService
-        .getFilteredAnimeGroupedByCategory$(
-          this.categories,
-          (anime) => this.filterService.filterAnime(anime)
-        )
-        .subscribe({
-          next: (columns) => {
-            this.columns.set(columns);
-            this.loading.set(false);
-          },
-          error: (error) => {
-            console.error('Error loading kanban data:', error);
-            this.loading.set(false);
-          }
-        });
+      this.subscription = combineLatest([
+        this.categoryService.getAllCategories$(),
+        this.animeService.getAllAnime$(),
+        this.animeService['filterUpdate$']
+      ]).subscribe({
+        next: ([categories, allAnime]) => {
+          const filteredAnime = this.filterService.filterAnime(allAnime);
+          const columns: AnimeByCategory[] = categories.map(category => ({
+            category,
+            anime: filteredAnime.filter(anime => anime.statusId === category.id)
+          }));
+          
+          this.columns.set(columns);
+          this.loading.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading kanban data:', error);
+          this.loading.set(false);
+        }
+      });
     } catch (error) {
       console.error('Error loading categories:', error);
       this.loading.set(false);

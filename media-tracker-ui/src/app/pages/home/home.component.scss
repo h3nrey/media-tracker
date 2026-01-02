@@ -25,6 +25,34 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  .header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+}
+
+.manage-btn {
+  padding: 0.75rem 1.5rem;
+  background: #334155;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  color: #F1F5F9;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #475569;
+    border-color: #64748B;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .add-btn {
