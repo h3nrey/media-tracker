@@ -1,0 +1,21 @@
+<div class="ui-select-container" [class]="variant" [class.full-rounded]="rounding === 'full'" [class.is-open]="isOpen()">
+    <button class="ui-select-trigger" (click)="toggle()" type="button">
+        <span class="trigger-text" [class.is-placeholder]="!value">{{ getSelectedLabel() }}</span>
+        <lucide-icon [img]="ChevronIcon" [size]="variant === 'prominent' ? 18 : 16" class="chevron"></lucide-icon>
+    </button>
+
+    @if (isOpen()) {
+        <div class="ui-select-dropdown" [class.align-right]="align === 'right'">
+            @for (opt of options; track opt.value) {
+                <div class="ui-select-option" 
+                     [class.selected]="isSelected(opt.value)"
+                     (click)="selectOption(opt.value)">
+                    <span class="option-label">{{ opt.label }}</span>
+                    @if (isSelected(opt.value)) {
+                        <lucide-icon [img]="CheckIcon" [size]="14" class="check-icon"></lucide-icon>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

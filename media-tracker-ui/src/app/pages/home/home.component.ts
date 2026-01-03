@@ -1,7 +1,7 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KanbanBoardComponent } from '../../components/kanban-board/kanban-board.component';
-import { AddAnimeDialogComponent } from '../../components/add-anime-dialog/add-anime-dialog.component';
+import { DialogService } from '../../services/dialog.service';
 import { ManageCategoriesDialogComponent } from '../../components/manage-categories-dialog/manage-categories-dialog.component';
 import { ManageSourcesDialogComponent } from '../../components/manage-sources-dialog/manage-sources-dialog.component';
 import { AnimeDetailsDialogComponent } from '../../components/anime-details-dialog/anime-details-dialog.component';
@@ -18,7 +18,6 @@ import { Anime } from '../../models/anime.model';
     CommonModule, 
     KanbanBoardComponent, 
     MobileLibraryComponent, 
-    AddAnimeDialogComponent, 
     ManageCategoriesDialogComponent, 
     ManageSourcesDialogComponent, 
     AnimeDetailsDialogComponent, 
@@ -30,7 +29,8 @@ import { Anime } from '../../models/anime.model';
   styleUrl: './home.component.scss'
 })
 export class HomeComponent {
-  @ViewChild(AddAnimeDialogComponent) addDialog!: AddAnimeDialogComponent;
+  private dialogService = inject(DialogService);
+
   @ViewChild(ManageCategoriesDialogComponent) manageCategoriesDialog!: ManageCategoriesDialogComponent;
   @ViewChild(ManageSourcesDialogComponent) manageSourcesDialog!: ManageSourcesDialogComponent;
   @ViewChild(AnimeDetailsDialogComponent) animeDetailsDialog!: AnimeDetailsDialogComponent;
@@ -38,11 +38,11 @@ export class HomeComponent {
   @ViewChild(MetadataSyncDialogComponent) metadataSyncDialog!: MetadataSyncDialogComponent;
 
   openAddDialog() {
-    this.addDialog.open();
+    this.dialogService.openAddAnime();
   }
 
   openAddDialogWithCategory(categoryId: number) {
-    this.addDialog.openWithCategory(categoryId);
+    this.dialogService.openAddAnime(categoryId);
   }
 
   openManageCategoriesDialog() {
@@ -66,6 +66,6 @@ export class HomeComponent {
   }
 
   openEditAnime(anime: Anime) {
-    this.addDialog.openForEdit(anime);
+    this.dialogService.openEditAnime(anime);
   }
 }

@@ -1,15 +1,18 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Settings, X, RotateCcw } from 'lucide-angular';
+import { LucideAngularModule, Settings, X, RotateCcw, SortAsc, SortDesc, FunnelX } from 'lucide-angular';
+import { combineLatest } from 'rxjs';
 import { FilterService } from '../../services/filter.service';
 import { AnimeService } from '../../services/anime.service';
 import { Anime, AnimeFilterParams } from '../../models/anime.model';
+import { SelectComponent } from '../ui/select/select';
+import { SearchBarComponent } from '../ui/search-bar/search-bar';
 
 @Component({
   selector: 'app-board-filters',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, SelectComponent, SearchBarComponent],
   templateUrl: './board-filters.component.html',
   styleUrl: './board-filters.component.scss'
 })
@@ -19,6 +22,7 @@ export class BoardFiltersComponent implements OnInit {
   availableGenres = signal<string[]>([]);
   availableStudios = signal<string[]>([]);
   availableYears = signal<number[]>([]);
+  availableActivityYears = signal<number[]>([]);
   
   currentFilters;
 
@@ -26,6 +30,9 @@ export class BoardFiltersComponent implements OnInit {
   readonly SettingsIcon = Settings;
   readonly XIcon = X;
   readonly ResetIcon = RotateCcw;
+  readonly SortAscIcon = SortAsc;
+  readonly SortDescIcon = SortDesc;
+  readonly FunnelXIcon = FunnelX;
 
   constructor(
     private filterService: FilterService,
@@ -35,9 +42,34 @@ export class BoardFiltersComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.animeService.getAllAnime$().subscribe(all => {
-      this.calculateOptions(all);
+    combineLatest([
+      this.animeService.getAllAnime$(),
+      this.animeService.filterUpdate$
+    ]).subscribe(([all]: [Anime[], number]) => {
+      // Always calculate all available activity years once or from the full list
+      const allActivityYears = this.getActivityYears(all);
+      this.availableActivityYears.set(allActivityYears);
+
+      // Filter list by activity year for other options
+      const filteredByYear = this.animeService.filterAnimeList(all, { 
+        activityYear: this.currentFilters().activityYear 
+      });
+      
+      this.calculateOptions(filteredByYear);
     });
+  }
+
+  private getActivityYears(all: Anime[]): number[] {
+    const activityYears = new Set<number>();
+    all.forEach(anime => {
+      if (anime.createdAt) {
+        activityYears.add(new Date(anime.createdAt).getFullYear());
+      }
+      anime.watchDates?.forEach(d => {
+        activityYears.add(new Date(d).getFullYear());
+      });
+    });
+    return [...activityYears].sort((a, b) => b - a);
   }
 
   private calculateOptions(all: Anime[]) {
@@ -67,39 +99,15 @@ export class BoardFiltersComponent implements OnInit {
     this.animeService.triggerFilterUpdate();
   }
   
-  onGenreSelect(event: Event) {
-      const select = event.target as HTMLSelectElement;
-      const val = select.value;
-      if (val) {
-          this.toggleGenre(val); // Adds it
-          select.value = ''; // Reset to placeholder
-      }
+  onSortChange(sortBy: any) {
+      this.filterService.updateSort(sortBy, this.currentFilters().sortOrder || 'desc');
+      this.animeService.triggerFilterUpdate();
   }
 
-  onStudioSelect(event: Event) {
-      const select = event.target as HTMLSelectElement;
-      const val = select.value;
-      if (val) {
-          this.toggleStudio(val);
-          select.value = '';
-      }
-  }
-
-  onYearSelect(event: Event) {
-      const select = event.target as HTMLSelectElement;
-      const val = parseInt(select.value, 10);
-      if (!isNaN(val)) {
-          this.selectYear(val);
-          select.value = '';
-      }
-  }
-
-  onSortSelect(event: Event) {
-      const select = event.target as HTMLSelectElement;
-      const val = select.value;
-      const [by, order] = val.split('-');
-      // Cast to valid types
-      this.filterService.updateSort(by as any, order as any);
+  toggleSortOrder() {
+      const currentOrder = this.currentFilters().sortOrder || 'desc';
+      const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+      this.filterService.updateSort(this.currentFilters().sortBy || 'updated', newOrder);
       this.animeService.triggerFilterUpdate();
   }
 
@@ -132,6 +140,15 @@ export class BoardFiltersComponent implements OnInit {
       this.animeService.triggerFilterUpdate();
   }
 
+  toggleActivityYear(year: number | undefined) {
+    if (this.currentFilters().activityYear === year) {
+        this.filterService.updateActivityYear(undefined);
+    } else {
+        this.filterService.updateActivityYear(year);
+    }
+    this.animeService.triggerFilterUpdate();
+  }
+
   hasActiveFilters(): boolean {
     return this.filterService.hasActiveFilters();
   }
@@ -143,6 +160,7 @@ export class BoardFiltersComponent implements OnInit {
     if (f.genres?.length) count += f.genres.length;
     if (f.studios?.length) count += f.studios.length;
     if (f.year) count++;
+    if (f.activityYear) count++;
     return count;
   }
 
@@ -150,5 +168,30 @@ export class BoardFiltersComponent implements OnInit {
     this.searchQuery = '';
     this.filterService.resetFilters();
     this.animeService.triggerFilterUpdate();
+  }
+
+  getGenreOptions() {
+    return this.availableGenres().map(g => ({ value: g, label: g }));
+  }
+
+  getStudioOptions() {
+    return this.availableStudios().map(s => ({ value: s, label: s }));
+  }
+
+  getReleaseYearOptions() {
+    return this.availableYears().map(y => ({ value: y, label: y.toString() }));
+  }
+
+  getWatchedYearOptions() {
+    return this.availableActivityYears().map(y => ({ value: y, label: y.toString() }));
+  }
+
+  getSortOptions() {
+    return [
+      { value: 'updated', label: 'Updated' },
+      { value: 'title', label: 'Title' },
+      { value: 'score', label: 'Score' },
+      { value: 'releaseYear', label: 'Release' },
+    ];
   }
 }

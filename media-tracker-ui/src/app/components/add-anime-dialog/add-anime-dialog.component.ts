@@ -1,10 +1,11 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { JikanAnime } from '../../models/mal-anime.model';
 import { MalService } from '../../services/mal.service';
 import { AnimeService } from '../../services/anime.service';
+import { DialogService } from '../../services/dialog.service';
 import { CategoryService } from '../../services/status.service';
 import { WatchSourceService } from '../../services/watch-source.service';
 import { Category } from '../../models/status.model';
@@ -59,21 +60,65 @@ export class AddAnimeDialogComponent {
   newLinkUrl = signal('');
 
   categories = signal<Category[]>([]);
-
-  isOpen = signal(false);
   isSaving = signal(false);
+
+  private malService = inject(MalService);
+  private animeService = inject(AnimeService);
+  private categoryService = inject(CategoryService);
+  private watchSourceService = inject(WatchSourceService);
+  private dialogService = inject(DialogService);
+
+  isOpen = this.dialogService.isAddAnimeOpen;
 
   dialogTitle = computed(() => this.editMode() ? 'Edit Anime' : 'Add Anime');
 
-  constructor(
-    private malService: MalService,
-    private animeService: AnimeService,
-    private categoryService: CategoryService,
-    private watchSourceService: WatchSourceService
-  ) {
+  constructor() {
     this.initializeSearch();
     this.loadCategories();
     this.loadSources();
+
+    effect(() => {
+      const isOpen = this.dialogService.isAddAnimeOpen();
+      const animeToEdit = this.dialogService.animeToEdit();
+      const categoryToSet = this.dialogService.categoryToSet();
+
+      if (isOpen) {
+        document.body.style.overflow = 'hidden';
+        if (animeToEdit) {
+          this.initializeEdit(animeToEdit);
+        } else {
+          this.resetForm();
+          if (categoryToSet !== undefined) {
+            this.selectedCategoryId.set(categoryToSet);
+          }
+        }
+      } else {
+        document.body.style.overflow = '';
+      }
+    });
+  }
+
+  private initializeEdit(anime: Anime) {
+    this.resetForm();
+    this.editMode.set(true);
+    this.manualMode.set(false);
+    this.editingId.set(anime.id!);
+
+    this.title.set(anime.title);
+    this.coverImage.set(anime.coverImage || '');
+    this.bannerImage.set(anime.bannerImage || '');
+    this.trailerUrl.set(anime.trailerUrl || '');
+    this.malId.set(anime.malId);
+    this.episodesWatched.set(anime.episodesWatched);
+    this.totalEpisodes.set(anime.totalEpisodes || 0);
+    this.selectedCategoryId.set(anime.statusId);
+    this.score.set(anime.score);
+    this.genres.set(anime.genres);
+    this.studios.set(anime.studios || []);
+    this.releaseYear.set(anime.releaseYear);
+    this.notes.set(anime.notes || '');
+    this.watchDates.set(anime.watchDates || []);
+    this.watchLinks.set(anime.watchLinks || []);
   }
 
   private initializeSearch() {
@@ -112,57 +157,13 @@ export class AddAnimeDialogComponent {
   }
 
   private loadSources() {
-    this.watchSourceService.getAllSources$().subscribe(sources => {
+    this.watchSourceService.getAllSources$().subscribe((sources: WatchSource[]) => {
       this.sources.set(sources);
     });
   }
 
-  open() {
-    this.isOpen.set(true);
-    document.body.style.overflow = 'hidden';
-    this.resetForm();
-    if (this.categories().length > 0 && this.categories()[0].id) {
-      this.selectedCategoryId.set(this.categories()[0].id!);
-    }
-  }
-
-  openWithCategory(categoryId: number) {
-    this.isOpen.set(true);
-    document.body.style.overflow = 'hidden';
-    this.resetForm();
-    this.selectedCategoryId.set(categoryId);
-  }
-
-  openForEdit(anime: Anime) {
-    this.isOpen.set(true);
-    document.body.style.overflow = 'hidden';
-    this.resetForm();
-    this.editMode.set(true);
-    // Start in matching mode so they can re-fetch or change the anime
-    this.manualMode.set(false);
-    this.editingId.set(anime.id!);
-
-    this.title.set(anime.title);
-    this.coverImage.set(anime.coverImage || '');
-    this.bannerImage.set(anime.bannerImage || '');
-    this.trailerUrl.set(anime.trailerUrl || '');
-    this.malId.set(anime.malId);
-    this.episodesWatched.set(anime.episodesWatched);
-    this.totalEpisodes.set(anime.totalEpisodes || 0);
-    this.selectedCategoryId.set(anime.statusId);
-    this.score.set(anime.score);
-    this.genres.set(anime.genres);
-    this.studios.set(anime.studios || []);
-    this.releaseYear.set(anime.releaseYear);
-    this.notes.set(anime.notes || '');
-    this.watchDates.set(anime.watchDates || []);
-    this.watchLinks.set(anime.watchLinks || []);
-  }
-
   close() {
-    this.isOpen.set(false);
-    document.body.style.overflow = '';
-    this.resetForm();
+    this.dialogService.closeAddAnime();
   }
 
   onSearchInput(query: string) {

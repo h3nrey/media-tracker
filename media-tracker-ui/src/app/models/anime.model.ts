@@ -34,4 +34,5 @@ export interface AnimeFilterParams {
   genres?: string[];
   studios?: string[];
   year?: number;
+  activityYear?: number;
 }

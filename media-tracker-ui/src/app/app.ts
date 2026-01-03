@@ -4,9 +4,11 @@ import { MobileNavComponent } from './components/mobile-library/mobile-nav/mobil
 import { CategoryService } from './services/status.service';
 import { SyncService } from './services/sync.service';
 
+import { AddAnimeDialogComponent } from './components/add-anime-dialog/add-anime-dialog.component';
+
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MobileNavComponent],
+  imports: [RouterOutlet, MobileNavComponent, AddAnimeDialogComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

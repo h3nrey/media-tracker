@@ -1,28 +1,42 @@
-import { Component, OnInit, inject, signal, computed, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ViewChild, ElementRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Calendar, ChevronLeft, ChevronRight, Info, Star, Play } from 'lucide-angular';
+import { LucideAngularModule, Calendar, ChevronLeft, ChevronRight, Info, Star, Play, Plus } from 'lucide-angular';
 import { AnimeService } from '../../services/anime.service';
 import { Anime } from '../../models/anime.model';
 import { HeaderComponent } from '../../components/header/header.component';
 import { AnimeDetailsDialogComponent } from '../../components/anime-details-dialog/anime-details-dialog.component';
+import { DialogService } from '../../services/dialog.service';
 import { getScoreColorClass } from '../../utils/anime-utils';
+import { TimelineYearSectionComponent } from './components/timeline-year-section/timeline-year-section';
 
 @Component({
   selector: 'app-timeline',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule, HeaderComponent, AnimeDetailsDialogComponent],
+  imports: [CommonModule, RouterModule, LucideAngularModule, HeaderComponent, AnimeDetailsDialogComponent, TimelineYearSectionComponent],
   templateUrl: './timeline.component.html',
   styleUrl: './timeline.component.scss'
 })
 export class TimelineComponent implements OnInit {
   private animeService = inject(AnimeService);
+  private dialogService = inject(DialogService);
   @ViewChild(AnimeDetailsDialogComponent) detailsDialog!: AnimeDetailsDialogComponent;
   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
+  @ViewChild('sidebarContainer') sidebarContainer!: ElementRef;
   
   allAnime = signal<Anime[]>([]);
   activeYear = signal<number | null>(null);
   heroRotation = signal(0);
+
+  constructor() {
+    // Effect to sync sidebar scroll when active year changes
+    effect(() => {
+      const year = this.activeYear();
+      if (year && this.sidebarContainer) {
+        this.syncSidebar(year);
+      }
+    });
+  }
 
   onScroll() {
     this.updateActiveYear();
@@ -31,26 +45,54 @@ export class TimelineComponent implements OnInit {
   private updateActiveYear() {
     if (!this.scrollContainer) return;
     const container = this.scrollContainer.nativeElement;
-    const containerHeight = container.offsetHeight;
-
     const sections = container.querySelectorAll('.year-section');
-    let closestYear = null;
-    let minDistance = Infinity;
+    
+    // Find section that occupies the 'focus' point (roughly 30% from the top of the container)
+    const containerRect = container.getBoundingClientRect();
+    const focusPoint = containerRect.top + (containerRect.height * 0.3);
 
-    sections.forEach((col: any) => {
-      const year = parseInt(col.getAttribute('data-year'), 10);
-      const rect = col.getBoundingClientRect();
-      const colCenterY = rect.top + rect.height / 2;
-      const distance = Math.abs((containerHeight / 2) - colCenterY);
+    let currentActive = null;
 
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestYear = year;
-      }
-    });
+    for (let i = 0; i < sections.length; i++) {
+        const section = sections[i] as HTMLElement;
+        const rect = section.getBoundingClientRect();
+        
+        // If the focus point is within this section's bounds
+        if (focusPoint >= rect.top && focusPoint <= rect.bottom) {
+            currentActive = parseInt(section.getAttribute('data-year') || '0', 10);
+            break;
+        }
+    }
 
-    if (closestYear !== this.activeYear()) {
-      this.activeYear.set(closestYear);
+    if (currentActive && currentActive !== this.activeYear()) {
+      this.activeYear.set(currentActive);
+    }
+  }
+
+  private syncSidebar(year: number) {
+    if (!this.sidebarContainer) return;
+    const sidebar = this.sidebarContainer.nativeElement;
+    const activeEl = sidebar.querySelector(`.nav-year[data-year="${year}"]`) as HTMLElement;
+    
+    if (activeEl) {
+      // Calculate scroll to center the element
+      const containerHeight = sidebar.clientHeight;
+      const elementOffset = activeEl.offsetTop;
+      const elementHeight = activeEl.offsetHeight;
+      
+      const targetScroll = elementOffset - (containerHeight / 2) + (elementHeight / 2);
+      
+      sidebar.scrollTo({
+        top: targetScroll,
+        behavior: 'smooth'
+      });
+    }
+  }
+
+  scrollToYear(year: number) {
+    const element = document.getElementById(`year-${year}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 
@@ -60,6 +102,7 @@ export class TimelineComponent implements OnInit {
   readonly InfoIcon = Info;
   readonly StarIcon = Star;
   readonly PlayIcon = Play;
+  readonly PlusIcon = Plus;
 
   openTrailer(url: string | undefined) {
     if (url) window.open(url, '_blank');
@@ -67,8 +110,6 @@ export class TimelineComponent implements OnInit {
 
   timelineGroups = computed(() => {
     const groups: Map<number, Anime[]> = new Map();
-    
-    // To prevent same anime repeating in the SAME year section
     const seenInYear = new Map<number, Set<string>>();
 
     this.allAnime().forEach(anime => {
@@ -79,16 +120,14 @@ export class TimelineComponent implements OnInit {
         if (isNaN(date.getTime())) return;
         
         const year = date.getFullYear();
-        if (year < 1900) return; // Basic sanity check
+        if (year < 1900) return;
 
         if (!groups.has(year)) {
           groups.set(year, []);
           seenInYear.set(year, new Set());
         }
 
-        // Unique key for deduplication within the year: malId or id or title
         const uniqueKey = anime.malId ? `mal-${anime.malId}` : (anime.id ? `id-${anime.id}` : anime.title);
-
         if (seenInYear.get(year)!.has(uniqueKey)) return;
         seenInYear.get(year)!.add(uniqueKey);
 
@@ -99,7 +138,7 @@ export class TimelineComponent implements OnInit {
     return Array.from(groups.entries())
       .map(([year, anime]) => ({ 
         year, 
-        anime: anime.sort((a, b) => (b.score || 0) - (a.score || 0)) // Sort by score within year
+        anime: anime.sort((a, b) => (b.score || 0) - (a.score || 0))
       }))
       .sort((a, b) => b.year - a.year);
   });
@@ -110,7 +149,6 @@ export class TimelineComponent implements OnInit {
       setTimeout(() => this.updateActiveYear(), 100);
     });
 
-    // Slideshow interval
     setInterval(() => {
       this.heroRotation.update(n => n + 1);
     }, 6000);

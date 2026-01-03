@@ -1,0 +1,17 @@
+<div class="ui-search-bar-container" [class.full-rounded]="rounding === 'full'">
+    <div class="search-icon-wrapper">
+        <lucide-icon [img]="SearchIcon" [size]="18"></lucide-icon>
+    </div>
+    <input
+        type="text"
+        class="ui-search-input"
+        [placeholder]="placeholder"
+        [(ngModel)]="query"
+        (ngModelChange)="onInput($event)"
+    />
+    @if (query) {
+        <button class="ui-clear-btn" (click)="onClear()">
+            <lucide-icon [img]="XIcon" [size]="14"></lucide-icon>
+        </button>
+    }
+</div>

@@ -15,7 +15,7 @@
   background: rgba(6, 9, 20, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  z-index: 100;
+  z-index: 1000;
 
   .title-section {
     display: flex;
@@ -45,274 +45,104 @@
   }
 }
 
+.timeline-layout {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
 .timeline-container {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   background: #060914;
   scroll-behavior: smooth;
-  scroll-snap-type: y mandatory;
+  padding-right: 220px; /* Space for the floating years navigation */
   
+  &::-webkit-scrollbar { 
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    &:hover { background: rgba(255, 255, 255, 0.1); }
+  }
+}
+
+.years-sidebar {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 300px; /* Wider to prevent cropping */
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; 
+  padding: 45vh 0; 
+  gap: 1rem;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  pointer-events: none;
+  background: linear-gradient(to left, rgba(6, 9, 20, 0.9) 30%, transparent);
+
   &::-webkit-scrollbar { display: none; }
   -ms-overflow-style: none;
   scrollbar-width: none;
+
+  .nav-year {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 5rem; /* More space from screen edge */
+    height: 60px;
+    width: 100%;
+    letter-spacing: 0.1em;
+    pointer-events: auto;
+    position: relative;
+    overflow: visible; /* Prevent text cropping */
+    white-space: nowrap;
+
+    &:hover {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    &.active {
+      color: #a78bfa;
+      font-size: 5rem; /* Larger font */
+      font-weight: 1000;
+      opacity: 1;
+      text-shadow: 0 0 40px rgba(167, 139, 250, 0.3);
+      letter-spacing: -2px;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        right: 1.5rem;
+        width: 6px;
+        height: 6px;
+        background: #a78bfa;
+        border-radius: 50%;
+        box-shadow: 0 0 20px #a78bfa;
+      }
+    }
+  }
 }
 
 .timeline-track {
   display: flex;
   flex-direction: column;
   width: 100%;
-}
-
-.year-section {
-  display: flex;
-  min-height: 100vh;
-  position: relative;
-  scroll-snap-align: start;
-}
-
-.year-sidebar {
-  width: 160px;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 50;
-  border-right: 1px solid rgba(255, 255, 255, 0.03);
-
-  .sticky-wrapper {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    .year-text {
-      font-size: 7rem;
-      font-weight: 950;
-      color: white;
-      writing-mode: vertical-lr;
-      transform: rotate(180deg);
-      letter-spacing: 0.1em;
-      opacity: 0.02;
-      transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
-    }
-  }
-
-  .active & {
-    .year-text {
-        opacity: 0.5;
-        color: #3b82f6;
-        text-shadow: 0 0 60px rgba(59, 130, 246, 0.5);
-        transform: rotate(180deg) scale(1.1);
-    }
-  }
-}
-
-.year-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.year-hero {
-  height: 400px;
-  position: relative;
-  display: flex;
-  overflow: hidden;
-  background: #000;
-
-  .hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, transparent, #060914);
-    z-index: 10;
-  }
-
-  .hero-slideshow {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-
-    .hero-slide {
-        position: absolute;
-        inset: 0;
-        background-size: cover;
-        background-position: center;
-        opacity: 0;
-        transition: opacity 1.5s cubic-bezier(0.19, 1, 0.22, 1), transform 6s linear;
-        filter: brightness(0.3) saturate(0.5);
-        transform: scale(1.1);
-
-        &.active {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-  }
-
-  .hero-title {
-    position: absolute;
-    bottom: 3rem;
-    left: 4rem;
-    z-index: 20;
-    display: flex;
-    flex-direction: column;
-    width: calc(100% - 8rem);
-
-    .count {
-        font-size: 6rem;
-        font-weight: 950;
-        color: white;
-        line-height: 0.8;
-        opacity: 0.9;
-    }
-
-    .label {
-        font-size: 1rem;
-        color: #3b82f6;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.4em;
-        margin-top: 1rem;
-        margin-left: 0.5rem;
-    }
-
-    .trailer-button {
-        margin-top: 2rem;
-        align-self: flex-start;
-        background: rgba(59, 130, 246, 0.2);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(59, 130, 246, 0.4);
-        border-radius: 14px;
-        padding: 0.75rem 1.5rem;
-        color: white;
-        font-weight: 800;
-        font-size: 0.9rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
-        max-width: 80%;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-
-        lucide-icon { color: #3b82f6; }
-
-        &:hover {
-            background: #3b82f6;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
-            border-color: transparent;
-            
-            lucide-icon { color: white; }
-        }
-    }
-  }
-}
-
-.anime-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 3rem;
-  padding: 0 4rem 6rem 4rem;
-  margin-top: -3rem;
-  position: relative;
-  z-index: 30;
-}
-
-.anime-card {
-  cursor: pointer;
-  background: rgba(20, 30, 50, 0.4);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 24px;
-  overflow: hidden;
-  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-
-  &:hover {
-    transform: translateY(-15px);
-    background: rgba(30, 41, 59, 0.7);
-    border-color: rgba(59, 130, 246, 0.4);
-    box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.7);
-
-    .cover-wrapper img {
-        transform: scale(1.1);
-        filter: brightness(1.1);
-    }
-  }
-
-  .cover-wrapper {
-    position: relative;
-    aspect-ratio: 2/3;
-    overflow: hidden;
-    
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: all 0.8s ease;
-    }
-
-    .card-overlay {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: rgba(10, 15, 30, 0.8);
-        backdrop-filter: blur(10px);
-        padding: 8px 12px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.85rem;
-        font-weight: 900;
-        color: #fbbf24;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-  }
-
-  .anime-info {
-    padding: 2rem;
-    
-    h3 {
-      margin: 0;
-      font-size: 1.15rem;
-      font-weight: 800;
-      line-height: 1.4;
-      color: white;
-      margin-bottom: 1.25rem;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .meta {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        .eps {
-            font-size: 0.9rem;
-            color: #64748b;
-            font-weight: 600;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #334155;
-            &.score-red { background: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.6); }
-            &.score-pink { background: #ec4899; box-shadow: 0 0 15px rgba(236, 72, 153, 0.6); }
-            &.score-purple { background: #8b5cf6; box-shadow: 0 0 15px rgba(139, 92, 246, 0.6); }
-        }
-    }
-  }
 }
 
 .empty-timeline {

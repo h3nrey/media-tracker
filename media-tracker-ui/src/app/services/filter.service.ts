@@ -11,6 +11,7 @@ export class FilterService {
     genres: [],
     studios: [],
     year: undefined,
+    activityYear: new Date().getFullYear(),
     sortBy: 'updated',
     sortOrder: 'desc'
   });
@@ -45,9 +46,14 @@ export class FilterService {
       genres: [],
       studios: [],
       year: undefined,
+      activityYear: new Date().getFullYear(),
       sortBy: 'updated',
       sortOrder: 'desc'
     });
+  }
+
+  updateActivityYear(activityYear: number | undefined) {
+    this.filters.update(f => ({ ...f, activityYear }));
   }
 
   filterAnime(anime: Anime[]): Anime[] {
@@ -60,7 +66,8 @@ export class FilterService {
       (f.query && f.query.length > 0) ||
       (f.genres && f.genres.length > 0) ||
       (f.studios && f.studios.length > 0) ||
-      f.year
+      f.year ||
+      f.activityYear
     );
   }
 }

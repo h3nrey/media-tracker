@@ -1,10 +1,12 @@
-import { Component, signal, Output, EventEmitter } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, X, Calendar, Star, PlayCircle, Tag, FileText, Monitor, Edit, Clock, Plus, ExternalLink } from 'lucide-angular';
 import { Anime } from '../../models/anime.model';
 import { AnimeService } from '../../services/anime.service';
 import { WatchSourceService } from '../../services/watch-source.service';
 import { WatchSource } from '../../models/watch-source.model';
+import { DialogService } from '../../services/dialog.service';
+import { getScoreColorClass } from '../../utils/anime-utils';
 
 @Component({
   selector: 'app-anime-details-dialog',
@@ -14,10 +16,10 @@ import { WatchSource } from '../../models/watch-source.model';
   styleUrl: './anime-details-dialog.component.scss'
 })
 export class AnimeDetailsDialogComponent {
+  private dialogService = inject(DialogService);
   isOpen = signal(false);
   anime = signal<Anime | null>(null);
   sources = signal<WatchSource[]>([]);
-  @Output() edit = new EventEmitter<Anime>();
   
   // Lucide icons
   readonly XIcon = X;
@@ -68,8 +70,9 @@ export class AnimeDetailsDialogComponent {
   }
 
   onEdit() {
-    if (this.anime()) {
-      this.edit.emit(this.anime()!);
+    const currentAnime = this.anime();
+    if (currentAnime) {
+      this.dialogService.openEditAnime(currentAnime);
       this.close(); // Close details when opening edit
     }
   }
@@ -104,9 +107,6 @@ export class AnimeDetailsDialogComponent {
   }
 
   getScoreColorClass(score: number): string {
-    if (score >= 1 && score <= 5) return 'score-red';
-    if (score >= 6 && score <= 10) return 'score-pink';
-    if (score === 11) return 'score-purple';
-    return '';
+    return getScoreColorClass(score);
   }
 }

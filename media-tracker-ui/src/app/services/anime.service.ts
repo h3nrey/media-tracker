@@ -151,6 +151,27 @@ export class AnimeService {
       result = result.filter(a => a.releaseYear === params.year);
     }
 
+    // Activity Year Filtering
+    if (params.activityYear) {
+      const targetYear = params.activityYear;
+      result = result.filter(a => {
+        const createdDate = a.createdAt ? new Date(a.createdAt) : null;
+        const addedInYear = createdDate && createdDate.getFullYear() === targetYear;
+        
+        const hasWatchDates = a.watchDates && a.watchDates.length > 0;
+        if (!hasWatchDates) {
+          return !!addedInYear;
+        }
+
+        const watchedInYear = a.watchDates!.some(d => {
+          const dDate = new Date(d);
+          return dDate.getFullYear() === targetYear;
+        });
+        
+        return watchedInYear;
+      });
+    }
+
     // Sort
     if (params.sortBy) {
       const mult = params.sortOrder === 'asc' ? 1 : -1;
