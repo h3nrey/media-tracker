@@ -1,40 +1,49 @@
 @if (isOpen()) {
   <div class="dialog-overlay" (click)="close()">
     <div class="dialog-content" (click)="$event.stopPropagation()">
-      <div class="dialog-header">
+      <header class="dialog-header">
         <h2>Manage Categories</h2>
         <button class="close-btn" (click)="close()">
           <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
         </button>
-      </div>
+      </header>
 
       <div class="dialog-body">
         <!-- Add New Category -->
-        <div class="add-category-section">
-          <h3>Add New Category</h3>
+        <section class="add-category-section">
+          <h3>Create New Category</h3>
           <div class="add-form">
+            <div 
+                class="color-preview-btn" 
+                [style.background]="newCategoryColor"
+                [(colorPicker)]="newCategoryColor"
+                [cpPosition]="'bottom'"
+                [cpOutputFormat]="'hex'"
+                [cpAlphaChannel]="'disabled'"
+            >
+                <div class="inner-color" [style.background]="newCategoryColor"></div>
+            </div>
+            
             <input
               type="text"
               class="category-name-input"
-              placeholder="Category name"
+              placeholder="e.g., Currently Watching"
               [(ngModel)]="newCategoryName"
               (keyup.enter)="addCategory()"
             />
-            <input
-              type="color"
-              class="color-picker"
-              [(ngModel)]="newCategoryColor"
-            />
+            
             <button class="add-btn" (click)="addCategory()">
-              <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
-              Add
+              <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
+              <span>Add</span>
             </button>
           </div>
-        </div>
+        </section>
 
         <!-- Categories List -->
-        <div class="categories-section">
-          <h3>Categories (Drag to reorder)</h3>
+        <section class="categories-section">
+          <h3>Active Categories</h3>
+          <p class="subtitle">Drag the handle to reorder the status flow.</p>
+          
           <div
             class="categories-list"
             cdkDropList
@@ -42,40 +51,46 @@
           >
             @for (category of categories(); track trackById($index, category)) {
               <div class="category-item" cdkDrag>
-                <div class="drag-handle" cdkDragHandle>
-                  <lucide-icon [img]="GripVerticalIcon" [size]="18"></lucide-icon>
+                <div class="drag-handle" cdkDragHandle title="Drag to reorder">
+                  <lucide-icon [img]="GripVerticalIcon" [size]="20"></lucide-icon>
                 </div>
 
-                <input
-                  type="color"
-                  class="color-picker small"
-                  [(ngModel)]="category.color"
-                  (change)="updateCategory(category)"
-                />
+                <div 
+                    class="color-preview-btn small" 
+                    [style.background]="category.color"
+                    [(colorPicker)]="category.color"
+                    (colorPickerChange)="updateCategory(category)"
+                    [cpPosition]="'bottom'"
+                    [cpOutputFormat]="'hex'"
+                    [cpAlphaChannel]="'disabled'"
+                >
+                    <div class="inner-color" [style.background]="category.color"></div>
+                </div>
 
                 <input
                   type="text"
                   class="category-name-input inline"
                   [(ngModel)]="category.name"
                   (blur)="updateCategory(category)"
+                  (keyup.enter)="$event.target.blur()"
                 />
 
-                <button class="delete-btn" (click)="deleteCategory(category.id!)">
-                  <lucide-icon [img]="Trash2Icon" [size]="16"></lucide-icon>
+                <button class="delete-btn" (click)="deleteCategory(category.id!)" title="Delete category">
+                  <lucide-icon [img]="Trash2Icon" [size]="18"></lucide-icon>
                 </button>
               </div>
             } @empty {
               <div class="empty-state">
-                <p>No categories yet. Add one above!</p>
+                <p>No categories found. Start by adding one above.</p>
               </div>
             }
           </div>
-        </div>
+        </section>
       </div>
 
-      <div class="dialog-footer">
-        <button class="done-btn" (click)="close()">Done</button>
-      </div>
+      <footer class="dialog-footer">
+        <button class="done-btn" (click)="close()">Save & Close</button>
+      </footer>
     </div>
   </div>
 }

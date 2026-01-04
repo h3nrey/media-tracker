@@ -1,0 +1,159 @@
+@if (isOpen()) {
+  <div class="dialog-overlay" (click)="close()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <header class="dialog-header">
+        <div class="title-with-icon">
+          <lucide-icon [img]="PaletteIcon" [size]="20"></lucide-icon>
+          <h2>UI Customization</h2>
+        </div>
+        <button class="close-btn" (click)="close()">
+          <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+        </button>
+      </header>
+
+      <div class="form-body">
+        <div class="settings-grid">
+          <!-- Colors Section -->
+          <section class="settings-section">
+            <div class="section-title">
+                <lucide-icon [img]="CursorIcon" [size]="16"></lucide-icon>
+                <span>Accents & Branding</span>
+            </div>
+            
+            <div class="form-group">
+                <label>Primary Accent</label>
+                <div class="color-picker-wrapper">
+                  <div 
+                    class="color-input" 
+                    [(colorPicker)]="settings.primaryColor"
+                    [cpPosition]="'bottom'"
+                    [style.background]="settings.primaryColor"
+                  ></div>
+                  <input type="text" [(ngModel)]="settings.primaryColor" class="form-input hex-input" placeholder="#64f65c">
+                </div>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <div class="section-title">
+                <lucide-icon [img]="LayoutIcon" [size]="16"></lucide-icon>
+                <span>Interface Colors</span>
+            </div>
+            
+            <div class="color-grid">
+                <div class="form-group">
+                    <label>Background</label>
+                    <div class="color-picker-mini">
+                      <div 
+                        class="color-swatch-mini" 
+                        [(colorPicker)]="settings.backgroundColor"
+                        [cpPosition]="'bottom'"
+                        [style.background]="settings.backgroundColor"
+                      ></div>
+                      <input type="text" [(ngModel)]="settings.backgroundColor" class="form-input hex-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Surface</label>
+                    <div class="color-picker-mini">
+                      <div 
+                        class="color-swatch-mini" 
+                        [(colorPicker)]="settings.surfaceColor"
+                        [cpPosition]="'bottom'"
+                        [style.background]="settings.surfaceColor"
+                      ></div>
+                      <input type="text" [(ngModel)]="settings.surfaceColor" class="form-input hex-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Border</label>
+                    <div class="color-picker-mini">
+                      <div 
+                        class="color-swatch-mini" 
+                        [(colorPicker)]="settings.borderColor"
+                        [cpPosition]="'bottom'"
+                        [style.background]="settings.borderColor"
+                      ></div>
+                      <input type="text" [(ngModel)]="settings.borderColor" class="form-input hex-input">
+                    </div>
+                </div>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <div class="section-title">
+                <lucide-icon [img]="TypeIcon" [size]="16"></lucide-icon>
+                <span>Typography & Content</span>
+            </div>
+
+            <div class="color-grid">
+                <div class="form-group">
+                    <label>Text Primary</label>
+                    <div class="color-picker-mini">
+                      <div 
+                        class="color-swatch-mini" 
+                        [(colorPicker)]="settings.textColorPrimary"
+                        [cpPosition]="'bottom'"
+                        [style.background]="settings.textColorPrimary"
+                      ></div>
+                      <input type="text" [(ngModel)]="settings.textColorPrimary" class="form-input hex-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Text Secondary</label>
+                    <div class="color-picker-mini">
+                      <div 
+                        class="color-swatch-mini" 
+                        [(colorPicker)]="settings.textColorSecondary"
+                        [cpPosition]="'bottom'"
+                        [style.background]="settings.textColorSecondary"
+                      ></div>
+                      <input type="text" [(ngModel)]="settings.textColorSecondary" class="form-input hex-input">
+                    </div>
+                </div>
+            </div>
+
+            <div class="font-settings">
+                <div class="form-group">
+                    <label>Main Font</label>
+                    <select [(ngModel)]="settings.mainFont" class="form-select">
+                        @for (font of popularFonts; track font) {
+                            <option [value]="font">{{ font }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Emphasis Font</label>
+                    <select [(ngModel)]="settings.emphasisFont" class="form-select">
+                        @for (font of popularFonts; track font) {
+                            <option [value]="font">{{ font }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="preview-card" [style.--p-color]="settings.primaryColor" [style.--b-color]="settings.backgroundColor" [style.--s-color]="settings.surfaceColor" [style.--t-color]="settings.textColorPrimary">
+            <label>Live Theme Preview</label>
+            <div class="preview-content">
+               <h3 [style.font-family]="settings.emphasisFont">Custom Title Example</h3>
+               <p [style.font-family]="settings.mainFont">This is how your application will feel with the current settings.</p>
+               <div class="preview-elements">
+                   <button class="preview-btn">Active Button</button>
+                   <div class="preview-chip">Badge</div>
+               </div>
+            </div>
+        </div>
+      </div>
+
+      <footer class="dialog-footer">
+        <button class="btn-reset" (click)="reset()">Reset Defaults</button>
+        <div class="main-actions">
+            <button class="btn-cancel" (click)="close()">Cancel</button>
+            <button class="btn-save" (click)="save()">Save Changes</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+}

@@ -6,10 +6,12 @@ import { LucideAngularModule, GripVertical, Plus, Trash2, X } from 'lucide-angul
 import { CategoryService } from '../../services/status.service';
 import { Category } from '../../models/status.model';
 
+import { ColorPickerDirective } from 'ngx-color-picker';
+
 @Component({
   selector: 'app-manage-categories-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, DragDropModule, LucideAngularModule, ColorPickerDirective],
   templateUrl: './manage-categories-dialog.component.html',
   styleUrl: './manage-categories-dialog.component.scss'
 })

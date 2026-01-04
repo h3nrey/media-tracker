@@ -12,6 +12,7 @@ import { ManageSourcesDialogComponent } from './components/manage-sources-dialog
 import { BulkImportDialogComponent } from './components/bulk-import-dialog/bulk-import-dialog.component';
 import { MetadataSyncDialogComponent } from './components/metadata-sync-dialog/metadata-sync-dialog.component';
 import { AnimeDetailsDialogComponent } from './components/anime-details-dialog/anime-details-dialog.component';
+import { ThemeSettingsDialogComponent } from './components/theme-settings-dialog/theme-settings-dialog.component';
 
 @Component({
   selector: 'app-root',
@@ -25,7 +26,8 @@ import { AnimeDetailsDialogComponent } from './components/anime-details-dialog/a
     ManageSourcesDialogComponent,
     BulkImportDialogComponent,
     MetadataSyncDialogComponent,
-    AnimeDetailsDialogComponent
+    AnimeDetailsDialogComponent,
+    ThemeSettingsDialogComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
@@ -40,6 +42,7 @@ export class App implements OnInit {
   @ViewChild(ManageSourcesDialogComponent) manageSourcesDialog!: ManageSourcesDialogComponent;
   @ViewChild(BulkImportDialogComponent) bulkImportDialog!: BulkImportDialogComponent;
   @ViewChild(MetadataSyncDialogComponent) metadataSyncDialog!: MetadataSyncDialogComponent;
+  @ViewChild(ThemeSettingsDialogComponent) themeSettingsDialog!: ThemeSettingsDialogComponent;
   
   async ngOnInit() {
     await this.syncService.sync(); // Initial sync first to pull existing categories
@@ -64,5 +67,9 @@ export class App implements OnInit {
 
   openMetadataSyncDialog() {
     this.metadataSyncDialog.open();
+  }
+
+  openThemeSettingsDialog() {
+    this.themeSettingsDialog.open();
   }
 }

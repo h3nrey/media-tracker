@@ -1,7 +1,7 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Plus, Monitor, Layers, FileUp, RefreshCw, History } from 'lucide-angular';
+import { LucideAngularModule, Plus, Monitor, Layers, FileUp, RefreshCw, History, Settings, ChevronDown, Package } from 'lucide-angular';
 
 @Component({
   selector: 'app-header',
@@ -16,6 +16,9 @@ export class HeaderComponent {
   @Output() manageSources = new EventEmitter<void>();
   @Output() bulkImport = new EventEmitter<void>();
   @Output() refreshMetadata = new EventEmitter<void>();
+  @Output() openThemeSettings = new EventEmitter<void>();
+
+  showToolsDropdown = signal(false);
 
   readonly PlusIcon = Plus;
   readonly LayersIcon = Layers;
@@ -23,4 +26,11 @@ export class HeaderComponent {
   readonly ImportIcon = FileUp;
   readonly RefreshIcon = RefreshCw;
   readonly HistoryIcon = History;
+  readonly SettingsIcon = Settings;
+  readonly ChevronDownIcon = ChevronDown;
+  readonly ToolsIcon = Package;
+
+  toogleTools() {
+    this.showToolsDropdown.update(v => !v);
+  }
 }

@@ -10,7 +10,6 @@ import { RecapStatsSlideComponent } from './slides/stats/recap-stats-slide';
 import { RecapGenresSlideComponent } from './slides/genres/recap-genres-slide';
 import { RecapStudiosSlideComponent } from './slides/studios/recap-studios-slide';
 import { RecapAnimeTopSlideComponent } from './slides/anime-top/recap-anime-top-slide';
-import { RecapHighlightSlideComponent } from './slides/highlight/recap-highlight-slide';
 import { RecapSplitSlideComponent } from './slides/split/recap-split-slide';
 import { RecapShareSlideComponent } from './slides/share/recap-share-slide';
 
@@ -25,7 +24,6 @@ import { RecapShareSlideComponent } from './slides/share/recap-share-slide';
     RecapGenresSlideComponent,
     RecapStudiosSlideComponent,
     RecapAnimeTopSlideComponent,
-    RecapHighlightSlideComponent,
     RecapSplitSlideComponent,
     RecapShareSlideComponent
   ],

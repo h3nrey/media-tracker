@@ -2,6 +2,6 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #0F172A;
-  min-height: 0;
+  background: var(--app-bg);
+  min-height: calc(100vh - 64px); // Adjust based on header height
 }

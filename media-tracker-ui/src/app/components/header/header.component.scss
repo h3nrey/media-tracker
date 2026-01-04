@@ -3,20 +3,29 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: #1E293B;
-  border-bottom: 1px solid #334155;
+  background: var(--app-surface);
+  border-bottom: 1px solid var(--app-border);
   position: sticky;
   top: 0;
-  z-index: 100;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   height: auto;
 
-  h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #F8FAFC;
-    letter-spacing: -0.025em;
+  .logo {
+    a {
+      text-decoration: none;
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+      letter-spacing: -0.05em;
+      transition: color 0.2s;
+
+      &:hover {
+        color: var(--app-primary);
+      }
+    }
   }
 }
 
@@ -26,28 +35,87 @@
   gap: 0.75rem;
 }
 
+.dropdown-wrapper {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--app-surface-light);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  min-width: 200px;
+  padding: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--app-text-primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--app-surface-hover);
+      color: var(--app-primary);
+    }
+
+    lucide-icon {
+      color: var(--app-primary);
+    }
+  }
+
+  .dropdown-divider {
+    height: 1px;
+    background: var(--app-border);
+    margin: 0.4rem 0.5rem;
+  }
+}
+
 .nav-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   padding: 0.6rem 1rem;
-  background: transparent;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  color: #94A3B8;
-  font-weight: 500;
-  font-size: 0.9375rem;
+  background: var(--app-surface-light);
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  color: var(--app-text-secondary);
+  font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+
+  &.active {
+    background: var(--app-surface-hover);
+    border-color: var(--app-primary);
+    color: var(--app-text-primary);
+  }
 
   &:hover {
-    background: #334155;
-    color: #F1F5F9;
-    border-color: #475569;
+    background: var(--app-surface-hover);
+    color: var(--app-text-primary);
+    border-color: var(--app-primary);
+    transform: translateY(-1px);
   }
   
   lucide-icon {
-      color: #8B5CF6;
+      color: var(--app-primary);
   }
 }
 

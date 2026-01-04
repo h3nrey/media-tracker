@@ -1,8 +1,8 @@
 .board-filters-container {
     display: flex;
     flex-direction: column;
-    background: #0F172A;
-    border-bottom: 1px solid #334155;
+    background: var(--app-bg);
+    border-bottom: 1px solid var(--app-border);
 }
 
 .board-toolbar {
@@ -16,7 +16,7 @@
 .divider {
     width: 1px;
     height: 24px;
-    background: #334155;
+    background: var(--app-border);
     margin: 0 0.5rem;
 }
 
@@ -27,27 +27,29 @@
     padding: 0 0.5rem;
 
     .selector-label {
-        color: #64748B;
-        font-size: 0.8125rem;
-        font-weight: 600;
+        color: var(--app-text-muted);
+        font-size: 0.75rem;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.025em;
+        letter-spacing: 0.05em;
         white-space: nowrap;
+        font-family: var(--app-font-emphasis);
     }
 }
 
 .sort-selector {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
 
     .selector-label {
-        color: #64748B;
-        font-size: 0.8125rem;
-        font-weight: 600;
+        color: var(--app-text-muted);
+        font-size: 0.75rem;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.025em;
+        letter-spacing: 0.05em;
         white-space: nowrap;
+        font-family: var(--app-font-emphasis);
     }
 
     .sort-wrapper {
@@ -57,25 +59,24 @@
     }
 
     .order-toggle-btn {
-        background: #1E293B;
-        border: 1px solid #334155;
-        border-radius: 6px;
-        color: #8B5CF6;
+        background: var(--app-surface-light);
+        border: 1px solid var(--app-border);
+        border-radius: 8px;
+        color: var(--app-primary);
         padding: 0.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         height: 38px;
         width: 38px;
 
         &:hover {
-            border-color: #8B5CF6;
-            background-color: #26334a;
-            color: #C1A5FF;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border-color: var(--app-primary);
+            background-color: var(--app-surface-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--app-primary-glow);
         }
 
         &:active {
@@ -85,22 +86,22 @@
 }
 
 .clear-all-btn {
-  padding: 0.5rem 0.875rem;
+  padding: 0.5rem 1rem;
   background: transparent;
-  border: 1px solid #334155;
-  border-radius: 4px;
-  color: #94A3B8;
-  font-size: 0.875rem;
-  font-weight: 500;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  color: var(--app-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   height: 38px;
   margin-left: auto;
 
   &:hover {
-    background: #1E293B;
-    color: #CBD5E1;
-    border-color: #475569;
+    background: var(--app-surface-light);
+    color: var(--app-text-primary);
+    border-color: var(--app-primary);
   }
 }
 
@@ -114,29 +115,30 @@
 .filter-chip {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.25rem 0.75rem;
-    background: rgba(139, 92, 246, 0.2);
-    border: 1px solid rgba(139, 92, 246, 0.3);
-    color: #C4B5FD;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    border-radius: 9999px;
+    gap: 0.5rem;
+    padding: 0.35rem 0.875rem;
+    background: var(--app-primary-glow);
+    border: 1px solid var(--app-primary);
+    color: var(--app-text-primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 20px;
     cursor: pointer;
     transition: all 0.2s;
     user-select: none;
     
     lucide-icon {
-        color: #A78BFA;
+        color: var(--app-primary);
     }
     
     &:hover {
-        background: rgba(139, 92, 246, 0.3);
-        border-color: rgba(139, 92, 246, 0.5);
-        color: #F8FAFC;
+        background: var(--app-primary);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px var(--app-primary-glow);
         
         lucide-icon {
-            color: #E2E8F0;
+            color: white;
         }
     }
 }

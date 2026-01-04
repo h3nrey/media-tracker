@@ -4,28 +4,47 @@
   </div>
   <div class="header-actions">
     <a class="nav-btn" routerLink="/timeline" title="Yearly Timeline">
-      <lucide-icon [img]="HistoryIcon" [size]="18"></lucide-icon>
-      Timeline
+      <lucide-icon [name]="HistoryIcon" [size]="18"></lucide-icon>
+      <span>Timeline</span>
     </a>
     <a class="nav-btn" routerLink="/lists" title="Anime Lists">
-      <lucide-icon [img]="LayersIcon" [size]="18"></lucide-icon>
-      Lists
+      <lucide-icon [name]="LayersIcon" [size]="18"></lucide-icon>
+      <span>Lists</span>
     </a>
-    <button class="nav-btn" (click)="refreshMetadata.emit()" title="Sync Metadata">
-      <lucide-icon [img]="RefreshIcon" [size]="18"></lucide-icon>
-      Refetch
-    </button>
-    <button class="nav-btn" (click)="bulkImport.emit()" title="Bulk Import">
-      <lucide-icon [img]="ImportIcon" [size]="18"></lucide-icon>
-      Import
-    </button>
+
+    <div class="dropdown-wrapper">
+      <button class="nav-btn" (click)="toogleTools()" [class.active]="showToolsDropdown()">
+        <lucide-icon [name]="ToolsIcon" [size]="18"></lucide-icon>
+        <span>Tools</span>
+        <lucide-icon [name]="ChevronDownIcon" [size]="14"></lucide-icon>
+      </button>
+
+      @if (showToolsDropdown()) {
+        <div class="dropdown-menu" (click)="showToolsDropdown.set(false)">
+          <button class="dropdown-item" (click)="refreshMetadata.emit()">
+            <lucide-icon [name]="RefreshIcon" [size]="16"></lucide-icon>
+            Refetch Metadata
+          </button>
+          <button class="dropdown-item" (click)="bulkImport.emit()">
+            <lucide-icon [name]="ImportIcon" [size]="16"></lucide-icon>
+            Bulk Import
+          </button>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" (click)="openThemeSettings.emit()">
+            <lucide-icon [name]="SettingsIcon" [size]="16"></lucide-icon>
+            UI Customization
+          </button>
+        </div>
+      }
+    </div>
+
     <button class="nav-btn" (click)="manageSources.emit()" title="Manage Sources">
-      <lucide-icon [img]="MonitorIcon" [size]="18"></lucide-icon>
-      Sources
+      <lucide-icon [name]="MonitorIcon" [size]="18"></lucide-icon>
+      <span>Sources</span>
     </button>
     <button class="nav-btn" (click)="manageCategories.emit()" title="Manage Categories">
-      <lucide-icon [img]="LayersIcon" [size]="18"></lucide-icon>
-      Categories
+      <lucide-icon [name]="LayersIcon" [size]="18"></lucide-icon>
+      <span>Categories</span>
     </button>
   </div>
 </header>

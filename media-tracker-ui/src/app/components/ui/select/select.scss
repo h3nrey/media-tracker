@@ -15,10 +15,10 @@
         align-items: center;
         justify-content: space-between;
         gap: 0.75rem;
-        background: #1E293B;
-        border: 1px solid #334155;
+        background: var(--app-surface);
+        border: 1px solid var(--app-border);
         border-radius: 6px;
-        color: #F1F5F9;
+        color: var(--app-text-primary);
         font-size: 0.875rem;
         padding: 0.5rem 1rem;
         cursor: pointer;
@@ -29,8 +29,8 @@
         text-align: left;
 
         &:hover {
-            border-color: #8B5CF6;
-            background-color: #26334a;
+            border-color: var(--app-primary);
+            background-color: var(--app-surface-hover);
         }
 
         .trigger-text {
@@ -40,24 +40,24 @@
             text-overflow: ellipsis;
 
             &.is-placeholder {
-                color: #94A3B8;
+                color: var(--app-text-muted);
             }
         }
 
         .chevron {
-            color: #94A3B8;
+            color: var(--app-text-muted);
             transition: transform 0.2s;
         }
     }
 
     &.is-open {
         .ui-select-trigger {
-            border-color: #8B5CF6;
-            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+            border-color: var(--app-primary);
+            box-shadow: 0 0 0 2px rgba(var(--app-primary), 0.2);
             
             .chevron {
                 transform: rotate(180deg);
-                color: #8B5CF6;
+                color: var(--app-primary);
             }
         }
     }
@@ -73,8 +73,8 @@
             left: auto;
             right: 0;
         }
-        background: #0F172A;
-        border: 1px solid #334155;
+        background: var(--app-surface);
+        border: 1px solid var(--app-border);
         border-radius: 8px;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
         z-index: 100;
@@ -87,7 +87,7 @@
             width: 4px;
         }
         &::-webkit-scrollbar-thumb {
-            background: #334155;
+            background: var(--app-border);
             border-radius: 10px;
         }
     }
@@ -99,24 +99,24 @@
         gap: 1.5rem;
         padding: 0.5rem 1rem 0.5rem 0.75rem;
         border-radius: 4px;
-        color: #94A3B8;
+        color: var(--app-text-primary);
         font-size: 0.875rem;
         cursor: pointer;
         transition: all 0.15s;
 
         &:hover {
-            background: #1E293B;
-            color: #F1F5F9;
+            background: var(--app-surface-hover);
+            color: var(--app-text-primary);
         }
 
         &.selected {
-            background: rgba(139, 92, 246, 0.1);
-            color: #C4B5FD;
+            background: rgba(var(--app-primary), 0.1);
+            color: var(--app-primary);
             font-weight: 500;
         }
 
         .check-icon {
-            color: #8B5CF6;
+            color: var(--app-primary);
         }
     }
 
@@ -129,17 +129,17 @@
             border-width: 1px;
             
             .trigger-text {
-                color: #F1F5F9;
+                color: var(--app-text-primary);
             }
 
             .chevron {
-                color: #8B5CF6;
+                color: var(--app-primary);
                 stroke-width: 3px;
             }
         }
 
         .ui-select-dropdown {
-            border-color: #334155;
+            border-color: var(--app-border);
         }
 
         .ui-select-option {
