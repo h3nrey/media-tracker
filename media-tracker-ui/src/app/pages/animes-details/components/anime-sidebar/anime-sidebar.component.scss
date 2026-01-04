@@ -34,10 +34,134 @@
         }
     }
 
+    .score-rating {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+        .stars {
+            display: flex;
+            gap: 0.15rem;
+            align-items: center;
+            height: 32px;
+
+            .star-btn {
+                background: none;
+                border: none;
+                padding: 2px;
+                cursor: pointer;
+                color: var(--app-text-secondary);
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0.6;
+
+                &:hover {
+                    color: var(--app-primary);
+                    transform: scale(1.2);
+                    opacity: 1;
+                }
+
+                &.filled {
+                    color: #ffd700;
+                    opacity: 1;
+                    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
+                }
+
+                &.special-star {
+                    color: #ff4d4d;
+                    animation: starAppear 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    
+                    &.filled {
+                        color: #ff4d4d;
+                        filter: drop-shadow(0 0 6px rgba(255, 77, 77, 0.5));
+                    }
+                }
+            }
+        }
+
+        .score-label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--app-text-secondary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            height: 1rem;
+            line-height: 1rem;
+            transition: all 0.2s;
+        }
+
+        &:hover {
+            .score-label {
+                color: var(--app-primary);
+            }
+        }
+    }
+
+    @keyframes starAppear {
+        from {
+            opacity: 0;
+            transform: scale(0) rotate(-45deg);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) rotate(0);
+        }
+    }
+
     .side-actions {
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
+        gap: 1.25rem;
+
+        .episode-progress {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+
+            .progress-info {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 0.8rem;
+                font-weight: 700;
+                color: var(--app-text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+
+                .count {
+                    color: var(--app-text-primary);
+                }
+            }
+
+            .progress-bar-container {
+                width: 100%;
+                height: 8px;
+                background: var(--app-surface-hover);
+                border-radius: 4px;
+                overflow: hidden;
+                border: 1px solid var(--app-border);
+
+                .progress-bar {
+                    height: 100%;
+                    background: var(--app-primary);
+                    border-radius: 4px;
+                    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: 0 0 10px rgba(var(--app-primary), 0.3);
+                }
+            }
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
 
         button, .btn-primary, .btn-outline {
             display: flex;
@@ -51,15 +175,24 @@
             cursor: pointer;
             transition: all 0.2s;
             text-decoration: none;
-            width: 100%;
             border: none;
+
+            &:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+                filter: grayscale(1);
+            }
+        }
+
+        .full-width {
+            width: 100%;
         }
 
         .btn-primary {
             background: var(--app-primary);
             color: var(--app-bg);
 
-            &:hover {
+            &:hover:not(:disabled) {
                 transform: translateY(-2px);
                 background: var(--app-primary-hover);
                 color: #fff;
@@ -71,9 +204,10 @@
             color: var(--app-text-primary);
             border: 1px solid var(--app-border);
 
-            &:hover {
+            &:hover:not(:disabled) {
                 background: var(--app-surface-hover);
                 border-color: var(--app-primary);
+                color: var(--app-primary);
             }
         }
     }

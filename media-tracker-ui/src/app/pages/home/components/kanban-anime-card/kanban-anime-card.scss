@@ -3,7 +3,7 @@
   border-radius: 8px;
   margin-bottom: 0.875rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  cursor: move;
+  cursor: pointer;
   transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
   border: 1px solid var(--app-border);
   will-change: transform;

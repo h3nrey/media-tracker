@@ -10,11 +10,6 @@
     <div class="meta-info">
       <span class="year">{{ anime()?.releaseYear }}</span>
       <span class="separator">•</span>
-      <span class="score">
-        <lucide-icon [img]="StarIcon" [size]="16"></lucide-icon>
-        {{ anime()?.score | number:'1.1-1' }}
-      </span>
-      <span class="separator">•</span>
       <span class="studios">
         @for (studio of anime()?.studios; track studio; let last = $last) {
           <span>{{ studio }}{{ !last ? ', ' : '' }}</span>

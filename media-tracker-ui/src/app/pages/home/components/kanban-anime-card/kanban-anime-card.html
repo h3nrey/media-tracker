@@ -1,4 +1,4 @@
-<div class="anime-card" cdkDrag>
+<div class="anime-card" cdkDrag [routerLink]="['/anime', anime.id]">
   <div class="card-actions">
     <button class="menu-btn" (click)="toggleMenu($event)">
       <lucide-icon [img]="MoreVerticalIcon" [size]="16"></lucide-icon>

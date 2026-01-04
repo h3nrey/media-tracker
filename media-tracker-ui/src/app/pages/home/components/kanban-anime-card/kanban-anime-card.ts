@@ -5,11 +5,12 @@ import { LucideAngularModule, Star, MoreVertical, Edit2, Trash2, Plus, Play } fr
 import { Anime } from '../../../../models/anime.model';
 import { WatchSourceService } from '../../../../services/watch-source.service';
 import { getScoreColorClass } from '../../../../utils/anime-utils';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-kanban-anime-card',
   standalone: true,
-  imports: [CommonModule, DragDropModule, LucideAngularModule, NgClass],
+  imports: [CommonModule, DragDropModule, LucideAngularModule, NgClass, RouterLink],
   templateUrl: './kanban-anime-card.html',
   styleUrl: './kanban-anime-card.scss'
 })

@@ -1,0 +1,22 @@
+<div class="toast-container">
+  @for (toast of toasts(); track toast.id) {
+    <div class="toast-item" [class]="toast.type">
+      <div class="toast-icon">
+        <lucide-icon [img]="getIcon(toast.type)" [size]="20"></lucide-icon>
+      </div>
+      
+      <div class="toast-content">
+        <p class="toast-message">{{ toast.message }}</p>
+        @if (toast.action) {
+          <button class="toast-action" (click)="handleAction(toast)">
+            {{ toast.action.label }}
+          </button>
+        }
+      </div>
+
+      <button class="toast-close" (click)="remove(toast.id)">
+        <lucide-icon [img]="XIcon" [size]="16"></lucide-icon>
+      </button>
+    </div>
+  }
+</div>

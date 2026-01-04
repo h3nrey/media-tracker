@@ -13,6 +13,7 @@ import { BulkImportDialogComponent } from './components/bulk-import-dialog/bulk-
 import { MetadataSyncDialogComponent } from './components/metadata-sync-dialog/metadata-sync-dialog.component';
 import { AnimeDetailsDialogComponent } from './components/anime-details-dialog/anime-details-dialog.component';
 import { ThemeSettingsDialogComponent } from './components/theme-settings-dialog/theme-settings-dialog.component';
+import { ToastComponent } from './components/ui/toast/toast.component';
 
 @Component({
   selector: 'app-root',
@@ -27,7 +28,8 @@ import { ThemeSettingsDialogComponent } from './components/theme-settings-dialog
     BulkImportDialogComponent,
     MetadataSyncDialogComponent,
     AnimeDetailsDialogComponent,
-    ThemeSettingsDialogComponent
+    ThemeSettingsDialogComponent,
+    ToastComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'

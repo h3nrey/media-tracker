@@ -1,18 +1,94 @@
 <section class="details-card side-card">
   <div class="section-header">
-    <lucide-icon [img]="ExternalLinkIcon" [size]="18"></lucide-icon>
-    <h2>Watch Links</h2>
+    <div class="header-left">
+      <lucide-icon [img]="ExternalLinkIcon" [size]="18"></lucide-icon>
+      <h2>Watch Links</h2>
+    </div>
+    <button class="add-btn" (click)="toggleAddForm()" title="Add Custom Link">
+      <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
+    </button>
   </div>
+
+  @if (showAddForm()) {
+    <div class="add-link-form">
+      <div class="form-title">
+        {{ editingIndex() !== null ? 'Edit Source' : 'New Source' }}
+      </div>
+      
+      <div class="form-group custom-select">
+        <select [ngModel]="selectedSourceId()" (change)="onSourceSelect($event)">
+          <option [value]="null" disabled selected>Pick a predefined source</option>
+          @for (source of availableSources(); track source.id) {
+            <option [value]="source.id">{{ source.name }}</option>
+          }
+          <option [value]="-1">Custom / Manual</option>
+        </select>
+        <lucide-icon [img]="ChevronDownIcon" [size]="14" class="select-arrow"></lucide-icon>
+      </div>
+
+      <div class="form-group">
+        <input 
+          type="text" 
+          placeholder="Source Name" 
+          [ngModel]="newLinkName()"
+          (ngModelChange)="newLinkName.set($event)"
+          (keyup.enter)="onAddLink()"
+        >
+      </div>
+      
+      <div class="form-group">
+        <input 
+          type="text" 
+          placeholder="URL" 
+          [ngModel]="newLinkUrl()"
+          (ngModelChange)="newLinkUrl.set($event)"
+          (keyup.enter)="onAddLink()"
+        >
+      </div>
+      
+      <div class="form-actions">
+        <button class="btn-cancel" (click)="toggleAddForm()">Cancel</button>
+        <button class="btn-save" (click)="onAddLink()">
+          {{ editingIndex() !== null ? 'Update' : 'Add' }}
+        </button>
+      </div>
+    </div>
+  }
+
   <div class="links-list">
-    @for (link of watchLinks(); track link.url) {
-      <a [href]="link.url" target="_blank" class="watch-link">
-        <lucide-icon [img]="ExternalLinkIcon" [size]="14"></lucide-icon>
-        <span>View on Source</span>
-      </a>
+    @for (source of availableSources(); track source.id) {
+      @let link = getLinkForSource(source.name);
+      <div class="watch-link-wrapper" [class.not-configured]="!link">
+        @if (link) {
+          <a [href]="link.url" target="_blank" class="watch-link">
+            <lucide-icon [img]="ExternalLinkIcon" [size]="14"></lucide-icon>
+            <span>{{ source.name }}</span>
+          </a>
+          <div class="link-actions">
+            <button (click)="onEditLink(link)" title="Edit link">
+              <lucide-icon [img]="EditIcon" [size]="14"></lucide-icon>
+            </button>
+            <button (click)="onDeleteLinkByName(source.name)" class="delete" title="Remove link">
+              <lucide-icon [img]="TrashIcon" [size]="14"></lucide-icon>
+            </button>
+          </div>
+        } @else {
+          <div class="watch-link disabled" (click)="onAddForSource(source)">
+            <lucide-icon [img]="ExternalLinkIcon" [size]="14"></lucide-icon>
+            <span>{{ source.name }}</span>
+          </div>
+          <div class="link-actions always-visible">
+            <button (click)="onAddForSource(source)" title="Configure link">
+              <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon>
+            </button>
+          </div>
+        }
+      </div>
     }
-    @if (!watchLinks()?.length) {
+
+    @if (!availableSources().length) {
       <div class="empty-state">
-        No links available.
+        No default sources configured in settings.
       </div>
     }
   </div>

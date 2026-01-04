@@ -10,7 +10,12 @@
           [anime]="anime()" 
           [category]="category()" 
           (edit)="onEdit()" 
-          (incrementEpisode)="incrementEpisode()">
+          (incrementEpisode)="incrementEpisode()"
+          (decrementEpisode)="decrementEpisode()"
+          (resetEpisodes)="resetEpisodes()"
+          (completeEpisodes)="completeEpisodes()"
+          (updateScore)="onUpdateScore($event)"
+          (saveLinks)="onSaveLinks($event)">
         </app-anime-sidebar>
 
         <div class="main-column-wrapper">

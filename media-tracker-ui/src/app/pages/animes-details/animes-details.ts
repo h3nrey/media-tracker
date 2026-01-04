@@ -5,6 +5,7 @@ import { AnimeService } from '../../services/anime.service';
 import { CategoryService } from '../../services/status.service';
 import { ListService } from '../../services/list.service';
 import { DialogService } from '../../services/dialog.service';
+import { ToastService } from '../../services/toast.service';
 import { Anime } from '../../models/anime.model';
 import { Category } from '../../models/status.model';
 import { List } from '../../models/list.model';
@@ -39,6 +40,7 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
   private categoryService = inject(CategoryService);
   private listService = inject(ListService);
   private dialogService = inject(DialogService);
+  private toastService = inject(ToastService);
 
   anime = signal<Anime | null>(null);
   category = signal<Category | null>(null);
@@ -94,6 +96,55 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
         episodesWatched: newCount
       });
       this.anime.update(a => a ? { ...a, episodesWatched: newCount } : null);
+      
+      if (total && newCount === total) {
+        this.toastService.success(`You've finished ${currentAnime.title}!`, {
+          label: 'Log Date',
+          action: () => this.onAddLog()
+        });
+      }
+    }
+  }
+
+  async decrementEpisode() {
+    const currentAnime = this.anime();
+    if (!currentAnime || !currentAnime.id) return;
+
+    const current = currentAnime.episodesWatched || 0;
+    if (current > 0) {
+      const newCount = current - 1;
+      await this.animeService.updateAnime(currentAnime.id, {
+        episodesWatched: newCount
+      });
+      this.anime.update(a => a ? { ...a, episodesWatched: newCount } : null);
+    }
+  }
+
+  async resetEpisodes() {
+    const currentAnime = this.anime();
+    if (!currentAnime || !currentAnime.id) return;
+
+    await this.animeService.updateAnime(currentAnime.id, {
+      episodesWatched: 0
+    });
+    this.anime.update(a => a ? { ...a, episodesWatched: 0 } : null);
+  }
+
+  async completeEpisodes() {
+    const currentAnime = this.anime();
+    if (!currentAnime || !currentAnime.id) return;
+
+    const total = currentAnime.totalEpisodes;
+    if (total && currentAnime.episodesWatched !== total) {
+      await this.animeService.updateAnime(currentAnime.id, {
+        episodesWatched: total
+      });
+      this.anime.update(a => a ? { ...a, episodesWatched: total } : null);
+
+      this.toastService.success(`You've finished ${currentAnime.title}!`, {
+        label: 'Log Date',
+        action: () => this.onAddLog()
+      });
     }
   }
 
@@ -141,5 +192,21 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
 
     await this.animeService.updateAnime(currentAnime.id, { watchDates });
     this.anime.update(a => a ? { ...a, watchDates } : null);
+  }
+
+  async onUpdateScore(score: number) {
+    const currentAnime = this.anime();
+    if (!currentAnime || !currentAnime.id) return;
+
+    await this.animeService.updateAnime(currentAnime.id, { score });
+    this.anime.update(a => a ? { ...a, score } : null);
+  }
+
+  async onSaveLinks(watchLinks: any[]) {
+    const currentAnime = this.anime();
+    if (!currentAnime || !currentAnime.id) return;
+
+    await this.animeService.updateAnime(currentAnime.id, { watchLinks });
+    this.anime.update(a => a ? { ...a, watchLinks } : null);
   }
 }
