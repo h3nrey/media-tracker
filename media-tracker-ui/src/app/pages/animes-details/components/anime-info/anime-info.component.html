@@ -1,0 +1,38 @@
+<div class="main-column">
+  <header class="anime-header">
+    <button class="back-link" [routerLink]="['/']">
+      <lucide-icon [img]="ChevronLeftIcon" [size]="18"></lucide-icon>
+      <span>Back to Library</span>
+    </button>
+    
+    <h1 class="title">{{ anime()?.title }}</h1>
+    
+    <div class="meta-info">
+      <span class="year">{{ anime()?.releaseYear }}</span>
+      <span class="separator">•</span>
+      <span class="score">
+        <lucide-icon [img]="StarIcon" [size]="16"></lucide-icon>
+        {{ anime()?.score | number:'1.1-1' }}
+      </span>
+      <span class="separator">•</span>
+      <span class="studios">
+        @for (studio of anime()?.studios; track studio; let last = $last) {
+          <span>{{ studio }}{{ !last ? ', ' : '' }}</span>
+        }
+      </span>
+    </div>
+  </header>
+
+  <section class="overview">
+    @if (tagline()) {
+      <h3 class="tagline">{{ tagline() }}</h3>
+    }
+    <p class="synopsis">{{ anime()?.notes }}</p>
+  </section>
+
+  <div class="genres-section">
+    @for (genre of anime()?.genres; track genre) {
+      <span class="genre-tag">{{ genre }}</span>
+    }
+  </div>
+</div>

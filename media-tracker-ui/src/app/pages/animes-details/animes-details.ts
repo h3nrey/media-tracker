@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { LucideAngularModule, Star, Clock, Calendar, Hash, Tag, List as ListIcon, ChevronLeft, Play, ExternalLink, Edit2, Plus } from 'lucide-angular';
 import { AnimeService } from '../../services/anime.service';
 import { CategoryService } from '../../services/status.service';
 import { ListService } from '../../services/list.service';
@@ -11,10 +10,26 @@ import { Category } from '../../models/status.model';
 import { List } from '../../models/list.model';
 import { take, Subscription } from 'rxjs';
 
+import { AnimeListsComponent } from './components/anime-lists/anime-lists.component';
+import { AnimeHistoryComponent } from './components/anime-history/anime-history.component';
+import { AnimeLinksComponent } from './components/anime-links/anime-links.component';
+import { AnimeSidebarComponent } from './components/anime-sidebar/anime-sidebar.component';
+import { AnimeInfoComponent } from './components/anime-info/anime-info.component';
+import { LucideAngularModule } from 'lucide-angular';
+
 @Component({
   selector: 'app-animes-details',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, RouterLink],
+  imports: [
+    CommonModule,
+    RouterLink,
+    AnimeListsComponent,
+    AnimeHistoryComponent,
+    AnimeLinksComponent,
+    AnimeSidebarComponent,
+    AnimeInfoComponent,
+    LucideAngularModule
+  ],
   templateUrl: './animes-details.html',
   styleUrl: './animes-details.scss',
 })
@@ -30,19 +45,6 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
   lists = signal<List[]>([]);
   isLoading = signal(true);
   private sub = new Subscription();
-
-  // Icons
-  readonly StarIcon = Star;
-  readonly ClockIcon = Clock;
-  readonly CalendarIcon = Calendar;
-  readonly HashIcon = Hash;
-  readonly TagIcon = Tag;
-  readonly ListIcon = ListIcon;
-  readonly ChevronLeftIcon = ChevronLeft;
-  readonly PlayIcon = Play;
-  readonly ExternalLinkIcon = ExternalLink;
-  readonly EditIcon = Edit2;
-  readonly PlusIcon = Plus;
 
   async ngOnInit() {
     this.route.params.subscribe(params => {
@@ -65,13 +67,11 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
         if (animeData) {
           this.anime.set(animeData);
           
-          // Load category (could also be reactive but one-time is fine here if categories don't change often)
           if (animeData.statusId) {
             const cat = await this.categoryService.getCategoryById(animeData.statusId);
             this.category.set(cat || null);
           }
 
-          // Load lists
           this.listService.getListsContainingAnime$(id).pipe(take(1)).subscribe(listsData => {
               this.lists.set(listsData);
           });
@@ -79,17 +79,6 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
         this.isLoading.set(false);
       })
     );
-  }
-
-  getScoreColor(score: number): string {
-    if (score >= 8) return 'var(--app-success)';
-    if (score >= 6) return 'var(--app-accent-yellow)';
-    return 'var(--app-danger)';
-  }
-
-  formatDate(date: any): string {
-    if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString();
   }
 
   async incrementEpisode() {
@@ -108,10 +97,49 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
+  getTagline() {
+    const notes = this.anime()?.notes;
+    if (!notes || notes.length < 15) return '';
+    const firstSentence = notes.split(/[.!?]/)[0];
+    // Only return as tagline if it's short and punchy (between 10 and 80 chars)
+    return (firstSentence.length > 10 && firstSentence.length < 80) ? firstSentence.toUpperCase() : '';
+  }
+
   onEdit() {
     const currentAnime = this.anime();
     if (currentAnime) {
       this.dialogService.openEditAnime(currentAnime);
     }
+  }
+
+  async onAddLog() {
+    const currentAnime = this.anime();
+    if (!currentAnime || !currentAnime.id) return;
+
+    const watchDates = [...(currentAnime.watchDates || []), new Date()];
+    await this.animeService.updateAnime(currentAnime.id, { watchDates });
+    this.anime.update(a => a ? { ...a, watchDates } : null);
+  }
+
+  async onRemoveLog(index: number) {
+    const currentAnime = this.anime();
+    if (!currentAnime || !currentAnime.id || !currentAnime.watchDates) return;
+
+    const watchDates = [...currentAnime.watchDates];
+    watchDates.splice(index, 1);
+    
+    await this.animeService.updateAnime(currentAnime.id, { watchDates });
+    this.anime.update(a => a ? { ...a, watchDates } : null);
+  }
+
+  async onUpdateLog(event: { index: number, date: Date }) {
+    const currentAnime = this.anime();
+    if (!currentAnime || !currentAnime.id || !currentAnime.watchDates) return;
+
+    const watchDates = [...currentAnime.watchDates];
+    watchDates[event.index] = event.date;
+
+    await this.animeService.updateAnime(currentAnime.id, { watchDates });
+    this.anime.update(a => a ? { ...a, watchDates } : null);
   }
 }

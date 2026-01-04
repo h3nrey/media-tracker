@@ -1,0 +1,46 @@
+<section class="details-card side-card">
+  <div class="section-header">
+    <div class="header-left">
+      <lucide-icon [img]="ClockIcon" [size]="18"></lucide-icon>
+      <h2>Watch History ({{ watchDates()?.length }})</h2>
+    </div>
+    <button class="add-btn" (click)="onAddLog()" title="Add new log">
+      <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
+    </button>
+  </div>
+  
+  <div class="history-list">
+    @for (date of watchDates(); track $index; let i = $index) {
+      <div class="history-item" (click)="togglePicker(i)" [class.picker-open]="activePickerIndex() === i">
+        <div class="item-content">
+          <div class="dot"></div>
+          <div class="info">
+            <span class="label">Watched on</span>
+            <span class="date-value">{{ formatDate(date) }}</span>
+          </div>
+        </div>
+        
+        <div class="actions">
+          <button class="remove-btn" (click)="onRemoveLog(i); $event.stopPropagation()" title="Remove log">
+            <lucide-icon [img]="TrashIcon" [size]="14"></lucide-icon>
+          </button>
+        </div>
+
+        @if (activePickerIndex() === i) {
+          <div class="picker-overlay" (click)="$event.stopPropagation()">
+            <app-date-picker 
+              [selectedDate]="date" 
+              (dateChange)="handlePickerChange(i, $event)"
+              (close)="activePickerIndex.set(null)"
+            ></app-date-picker>
+          </div>
+        }
+      </div>
+    }
+    @if (!watchDates()?.length) {
+      <div class="empty-state">
+        No history recorded yet.
+      </div>
+    }
+  </div>
+</section>

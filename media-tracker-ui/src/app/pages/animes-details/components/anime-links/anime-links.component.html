@@ -1,0 +1,19 @@
+<section class="details-card side-card">
+  <div class="section-header">
+    <lucide-icon [img]="ExternalLinkIcon" [size]="18"></lucide-icon>
+    <h2>Watch Links</h2>
+  </div>
+  <div class="links-list">
+    @for (link of watchLinks(); track link.url) {
+      <a [href]="link.url" target="_blank" class="watch-link">
+        <lucide-icon [img]="ExternalLinkIcon" [size]="14"></lucide-icon>
+        <span>View on Source</span>
+      </a>
+    }
+    @if (!watchLinks()?.length) {
+      <div class="empty-state">
+        No links available.
+      </div>
+    }
+  </div>
+</section>

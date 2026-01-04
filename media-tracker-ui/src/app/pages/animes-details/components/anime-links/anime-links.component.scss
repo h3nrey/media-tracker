@@ -1,0 +1,65 @@
+.details-card {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+
+    &.side-card {
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--app-border);
+        padding-bottom: 1rem;
+
+        lucide-icon {
+            color: var(--app-primary);
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    }
+}
+
+.links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .watch-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: var(--app-bg);
+        border: 1px solid var(--app-border);
+        border-radius: 10px;
+        color: var(--app-text-primary);
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.2s;
+
+        &:hover {
+            border-color: var(--app-primary);
+            padding-left: 1.25rem;
+            background: var(--app-surface-hover);
+        }
+    }
+}
+
+.empty-state {
+    color: var(--app-text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 1rem 0;
+}

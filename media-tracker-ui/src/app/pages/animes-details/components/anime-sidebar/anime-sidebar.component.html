@@ -1,0 +1,31 @@
+<aside class="side-column">
+  <div class="main-poster">
+    <img [src]="anime()?.coverImage" [alt]="anime()?.title">
+    @if (category()) {
+      <div class="category-pill" [style.background-color]="category()?.color">
+        {{ category()?.name }}
+      </div>
+    }
+  </div>
+
+  <div class="side-actions">
+    @if (anime()?.trailerUrl) {
+      <a [href]="anime()?.trailerUrl" target="_blank" class="btn-primary">
+        <lucide-icon [img]="PlayIcon" [size]="18"></lucide-icon>
+        <span>Watch Trailer</span>
+      </a>
+    }
+    <button class="btn-outline" (click)="onEdit()">
+      <lucide-icon [img]="EditIcon" [size]="18"></lucide-icon>
+      <span>Edit Anime</span>
+    </button>
+    <button class="btn-outline" (click)="onIncrementEpisode()">
+      <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
+      <span>Episode {{ (anime()?.episodesWatched || 0) + 1 }}</span>
+    </button>
+  </div>
+
+  <div class="side-links">
+    <app-anime-links [watchLinks]="anime()?.watchLinks"></app-anime-links>
+  </div>
+</aside>

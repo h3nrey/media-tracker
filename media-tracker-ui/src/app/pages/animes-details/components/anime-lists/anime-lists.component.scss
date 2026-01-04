@@ -1,0 +1,82 @@
+.details-card {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--app-border);
+        padding-bottom: 1rem;
+
+        lucide-icon {
+            color: var(--app-primary);
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    }
+}
+
+.lists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+
+    .list-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--app-bg);
+        border: 1px solid var(--app-border);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+            border-color: var(--app-primary);
+            background: var(--app-surface-hover);
+            transform: translateY(-2px);
+        }
+
+        .list-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(var(--app-primary), 0.1);
+            color: var(--app-primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .list-info {
+            h3 {
+                font-size: 0.9rem;
+                margin: 0;
+                font-weight: 600;
+            }
+            span {
+                font-size: 0.75rem;
+                color: var(--app-text-muted);
+            }
+        }
+    }
+}
+
+.empty-state {
+    color: var(--app-text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 1rem 0;
+}

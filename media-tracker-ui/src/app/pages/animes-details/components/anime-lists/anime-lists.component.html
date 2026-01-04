@@ -1,0 +1,24 @@
+<section class="details-card">
+  <div class="section-header">
+    <lucide-icon [img]="ListIcon" [size]="18"></lucide-icon>
+    <h2>Associated Lists</h2>
+  </div>
+  <div class="lists-grid">
+    @for (list of lists(); track list.id) {
+      <div class="list-item" [routerLink]="['/list-details', list.id]">
+        <div class="list-icon">
+          <lucide-icon [img]="ListIcon" [size]="16"></lucide-icon>
+        </div>
+        <div class="list-info">
+          <h3>{{ list.name }}</h3>
+          <span>{{ list.animeIds.length }} Animes</span>
+        </div>
+      </div>
+    }
+    @if (lists().length === 0) {
+      <div class="empty-state">
+        Not part of any custom lists.
+      </div>
+    }
+  </div>
+</section>

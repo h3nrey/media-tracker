@@ -1,0 +1,70 @@
+<div class="calendar-container">
+  <div class="calendar-header">
+    <div class="header-main">
+      <button class="nav-btn" (click)="prevMonth()">
+        <lucide-icon [img]="ChevronLeftIcon" [size]="16"></lucide-icon>
+      </button>
+
+      <div class="selectors">
+        <button class="selector-btn" (click)="showMonthPicker.set(!showMonthPicker()); showYearPicker.set(false)">
+          {{ monthName() }}
+        </button>
+        <button class="selector-btn" (click)="showYearPicker.set(!showYearPicker()); showMonthPicker.set(false)">
+          {{ yearValue() }}
+        </button>
+      </div>
+
+      <button class="nav-btn" (click)="nextMonth()">
+        <lucide-icon [img]="ChevronRightIcon" [size]="16"></lucide-icon>
+      </button>
+    </div>
+
+    <button class="close-btn" (click)="close.emit()">
+      <lucide-icon [img]="CloseIcon" [size]="16"></lucide-icon>
+    </button>
+  </div>
+
+  <div class="calendar-body">
+    <!-- Month Picker -->
+    @if (showMonthPicker()) {
+      <div class="picker-overlay-grid">
+        @for (month of months; track month; let i = $index) {
+          <button class="picker-item" (click)="selectMonth(i)">
+            {{ month.substring(0, 3) }}
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Year Picker -->
+    @if (showYearPicker()) {
+      <div class="picker-overlay-grid years-grid">
+        @for (year of years(); track year) {
+          <button class="picker-item" [id]="'year-' + year" (click)="selectYear(year)">
+            {{ year }}
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Calendar View -->
+    @if (!showMonthPicker() && !showYearPicker()) {
+      <div class="calendar-grid weekdays">
+        <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+      </div>
+
+      <div class="calendar-grid days">
+        @for (day of daysInMonth(); track day) {
+          <button 
+            [class.other-month]="!day.currentMonth"
+            [class.today]="isToday(day)"
+            [class.selected]="isSelected(day)"
+            (click)="selectDay(day)"
+          >
+            {{ day.day }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+</div>
