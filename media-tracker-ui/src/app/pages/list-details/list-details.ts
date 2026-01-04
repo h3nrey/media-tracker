@@ -1,4 +1,4 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { ListService } from '../../services/list.service';
@@ -6,17 +6,20 @@ import { CommonModule } from '@angular/common';
 import { map, switchMap } from 'rxjs';
 
 import { AnimeCard } from '../../components/cards/anime-card/anime-card';
+import { ListFormComponent } from '../lists/components/list-form/list-form.component';
 
 @Component({
   selector: 'app-list-details',
   standalone: true,
-  imports: [CommonModule, AnimeCard],
+  imports: [CommonModule, AnimeCard, ListFormComponent],
   templateUrl: './list-details.html',
   styleUrl: './list-details.scss',
 })
 export class ListDetailsComponent {
   private readonly listService = inject(ListService);
   private readonly route = inject(ActivatedRoute);
+  
+  listForm = viewChild(ListFormComponent);
 
   list = toSignal(
     this.route.paramMap.pipe(
@@ -38,4 +41,8 @@ export class ListDetailsComponent {
     
     return { ...stats, percentage };
   });
+
+  openEditForm() {
+    this.listForm()?.open(this.list());
+  }
 }

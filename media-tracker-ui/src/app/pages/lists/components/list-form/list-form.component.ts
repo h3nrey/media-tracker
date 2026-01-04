@@ -25,6 +25,7 @@ export class ListFormComponent {
   name = signal('');
   selectedFolderId = signal<number | undefined>(undefined);
   selectedAnimeIds = signal<number[]>([]);
+  editingListId = signal<number | undefined>(undefined);
   
   folders = signal<Folder[]>([]);
   allAnime = signal<Anime[]>([]);
@@ -35,10 +36,19 @@ export class ListFormComponent {
   readonly PlusIcon = Plus;
   readonly TrashIcon = Trash2;
 
-  async open(folderId?: number) {
-    this.name.set('');
-    this.selectedFolderId.set(folderId);
-    this.selectedAnimeIds.set([]);
+  async open(list?: any, folderId?: number) {
+    if (list) {
+      this.editingListId.set(list.id);
+      this.name.set(list.name);
+      this.selectedFolderId.set(list.folderId);
+      this.selectedAnimeIds.set([...(list.animeIds || [])]);
+    } else {
+      this.editingListId.set(undefined);
+      this.name.set('');
+      this.selectedFolderId.set(folderId);
+      this.selectedAnimeIds.set([]);
+    }
+    
     this.searchQuery.set('');
     
     // Explicitly fetch folders from the service
@@ -85,12 +95,19 @@ export class ListFormComponent {
   async save() {
     if (!this.name()) return;
 
-    await this.listService.addList({
-      name: this.name(),
-      folderId: this.selectedFolderId(),
-      animeIds: this.selectedAnimeIds(),
-      // isDeleted: false
-    });
+    if (this.editingListId()) {
+      await this.listService.updateList(this.editingListId()!, {
+        name: this.name(),
+        folderId: this.selectedFolderId(),
+        animeIds: this.selectedAnimeIds(),
+      });
+    } else {
+      await this.listService.addList({
+        name: this.name(),
+        folderId: this.selectedFolderId(),
+        animeIds: this.selectedAnimeIds(),
+      });
+    }
 
     this.saved.emit();
     this.closeDialog();

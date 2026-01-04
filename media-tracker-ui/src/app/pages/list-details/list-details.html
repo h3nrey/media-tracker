@@ -28,7 +28,7 @@
                 </div>
             </div>
             <div class="actions">
-                <button class="add-button">
+                <button class="add-button" (click)="openEditForm()">
                     <span>Adicionar Anime</span>
                 </button>
             </div>
@@ -50,4 +50,6 @@
             </div>
         </div>
     </div>
+
+    <app-list-form></app-list-form>
 }

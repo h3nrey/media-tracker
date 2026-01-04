@@ -2,7 +2,7 @@
   <div class="dialog-overlay" (click)="closeDialog()">
     <div class="dialog-content" (click)="$event.stopPropagation()">
       <header class="dialog-header">
-        <h2>Create New List</h2>
+        <h2>{{ editingListId() ? 'Edit List' : 'Create New List' }}</h2>
         <button class="close-btn" (click)="closeDialog()">
           <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
         </button>
@@ -81,7 +81,7 @@
           (click)="save()"
           [disabled]="!name()"
         >
-          Create List
+          {{ editingListId() ? 'Save Changes' : 'Create List' }}
         </button>
       </footer>
     </div>

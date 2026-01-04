@@ -5,6 +5,10 @@
       <div class="score" *ngIf="anime().score">
         <span class="star">★</span> {{ anime().score }}
       </div>
+      
+      <button class="increment-btn" (click)="incrementEpisode($event)" title="Add Episode">
+        <lucide-icon [name]="PlusIcon" [size]="20"></lucide-icon>
+      </button>
     </div>
   </div>
   <div class="info">
