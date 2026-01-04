@@ -1,0 +1,30 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h3>Folders</h3>
+    <button class="icon-btn" (click)="createNewFolder()">
+      <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
+    </button>
+  </div>
+
+  <nav class="folder-nav">
+    <div 
+      class="nav-item" 
+      [class.active]="selectedFolderId === 'all'"
+      (click)="folderSelect.emit('all')"
+    >
+      <lucide-icon [img]="LayersIcon" [size]="20"></lucide-icon>
+      <span>All Lists</span>
+    </div>
+
+    @for (folder of folders; track folder.id) {
+      <div 
+        class="nav-item" 
+        [class.active]="selectedFolderId === folder.id"
+        (click)="folderSelect.emit(folder.id!)"
+      >
+        <div class="folder-id">{{ folder.id }}</div>
+        <span>{{ folder.name }}</span>
+      </div>
+    }
+  </nav>
+</aside>

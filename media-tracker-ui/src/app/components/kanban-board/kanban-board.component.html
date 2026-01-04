@@ -33,13 +33,13 @@
             (cdkDropListDropped)="onDrop($event, column.category.id!)"
           >
             @for (anime of column.anime; track trackByAnimeId($index, anime)) {
-              <app-anime-card 
+              <app-kanban-anime-card 
                 [anime]="anime"
                 (click)="animeClick.emit(anime)"
                 (edit)="onEdit($event)"
                 (delete)="onDelete($event)"
                 (increment)="onIncrement($event)"
-              ></app-anime-card>
+              ></app-kanban-anime-card>
             } @empty {
               <div class="empty-column">
                 <p>No anime in this category</p>

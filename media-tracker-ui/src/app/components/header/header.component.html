@@ -1,11 +1,15 @@
 <header class="app-header">
   <div class="logo">
-    <h1>🎌 Anime Tracker</h1>
+    <a routerLink="/">🎌 Anime</a>
   </div>
   <div class="header-actions">
     <a class="nav-btn" routerLink="/timeline" title="Yearly Timeline">
       <lucide-icon [img]="HistoryIcon" [size]="18"></lucide-icon>
       Timeline
+    </a>
+    <a class="nav-btn" routerLink="/lists" title="Anime Lists">
+      <lucide-icon [img]="LayersIcon" [size]="18"></lucide-icon>
+      Lists
     </a>
     <button class="nav-btn" (click)="refreshMetadata.emit()" title="Sync Metadata">
       <lucide-icon [img]="RefreshIcon" [size]="18"></lucide-icon>

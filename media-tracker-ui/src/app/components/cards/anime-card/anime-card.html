@@ -1,0 +1,16 @@
+<div class="anime-card" [routerLink]="['/anime', anime().id]">
+  <div class="cover-wrapper">
+    <img [src]="anime().coverImage" [alt]="anime().title" loading="lazy">
+    <div class="overlay">
+      <div class="score" *ngIf="anime().score">
+        <span class="star">★</span> {{ anime().score }}
+      </div>
+    </div>
+  </div>
+  <div class="info">
+    <h3 class="title">{{ anime().title }}</h3>
+    <div class="meta">
+      <span class="episodes">{{ anime().episodesWatched }}/{{ anime().totalEpisodes || '?' }} eps</span>
+    </div>
+  </div>
+</div>

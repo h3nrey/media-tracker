@@ -1,13 +1,4 @@
 <div class="home-container">
-  <app-header 
-    class="desktop-only"
-    (addAnime)="openAddDialog()" 
-    (manageCategories)="openManageCategoriesDialog()"
-    (manageSources)="openManageSourcesDialog()"
-    (bulkImport)="openBulkImportDialog()"
-    (refreshMetadata)="openMetadataSyncDialog()"
-  ></app-header>
-
   <app-kanban-board 
     class="desktop-only"
     (addAnimeToCategory)="openAddDialogWithCategory($event)" 
@@ -21,9 +12,4 @@
     (editAnime)="openEditAnime($event)"
     (addAnimeReq)="openAddDialogWithCategory($event)"
   ></app-mobile-library>
-  <app-manage-categories-dialog />
-  <app-manage-sources-dialog />
-  <app-bulk-import-dialog />
-  <app-metadata-sync-dialog />
-  <app-anime-details-dialog></app-anime-details-dialog>
 </div>

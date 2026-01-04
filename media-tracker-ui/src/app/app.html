@@ -1,3 +1,18 @@
+<app-header 
+  class="desktop-only"
+  (addAnime)="openAddDialog()" 
+  (manageCategories)="openManageCategoriesDialog()"
+  (manageSources)="openManageSourcesDialog()"
+  (bulkImport)="openBulkImportDialog()"
+  (refreshMetadata)="openMetadataSyncDialog()"
+></app-header>
+
 <router-outlet />
+
 <app-mobile-nav class="mobile-only"></app-mobile-nav>
 <app-add-anime-dialog></app-add-anime-dialog>
+<app-manage-categories-dialog />
+<app-manage-sources-dialog />
+<app-bulk-import-dialog />
+<app-metadata-sync-dialog />
+<app-anime-details-dialog></app-anime-details-dialog>

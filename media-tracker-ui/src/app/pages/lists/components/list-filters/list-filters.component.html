@@ -1,0 +1,51 @@
+<div class="filters-bar">
+  <ui-search-bar 
+    [(query)]="searchQuery" 
+    (queryChange)="onSearchChange($event)"
+    (clear)="clearSearch()">
+  </ui-search-bar>
+
+  <div class="divider"></div>
+
+  <ui-select 
+    [options]="getGenreOptions()"
+    [value]="currentFilters().genres"
+    (valueChange)="toggleGenre($event)"
+    placeholder="Genre">
+  </ui-select>
+
+  <ui-select 
+    [options]="getStudioOptions()"
+    [value]="currentFilters().studios"
+    (valueChange)="toggleStudio($event)"
+    placeholder="Studio">
+  </ui-select>
+
+  <div class="divider"></div>
+
+  <div class="sort-selector">
+    <span class="selector-label">ORDERAR POR:</span>
+    <div class="sort-wrapper">
+      <ui-select 
+        [options]="getSortOptions()"
+        [value]="currentFilters().sortBy || 'updated'"
+        (valueChange)="onSortChange($event)"
+        placeholder="Sort By">
+      </ui-select>
+
+      <button class="order-toggle-btn" (click)="toggleSortOrder()">
+        @if (currentFilters().sortOrder === 'asc') {
+          <lucide-icon [img]="SortAscIcon" [size]="18"></lucide-icon>
+        } @else {
+          <lucide-icon [img]="SortDescIcon" [size]="18"></lucide-icon>
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (hasActiveFilters()) {
+    <button class="clear-all-btn" (click)="clearAllFilters()">
+      <lucide-icon [img]="FunnelXIcon" [size]="18"></lucide-icon>
+    </button>
+  }
+</div>

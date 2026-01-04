@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, X, Calendar, Star, PlayCircle, Tag, FileText, Monitor, Edit, Clock, Plus, ExternalLink } from 'lucide-angular';
 import { Anime } from '../../models/anime.model';
@@ -17,6 +17,9 @@ import { getScoreColorClass } from '../../utils/anime-utils';
 })
 export class AnimeDetailsDialogComponent {
   private dialogService = inject(DialogService);
+  private animeService = inject(AnimeService);
+  private watchSourceService = inject(WatchSourceService);
+
   isOpen = signal(false);
   anime = signal<Anime | null>(null);
   sources = signal<WatchSource[]>([]);
@@ -34,11 +37,18 @@ export class AnimeDetailsDialogComponent {
   readonly PlusIcon = Plus;
   readonly ExternalLinkIcon = ExternalLink;
 
-  constructor(
-    private animeService: AnimeService,
-    private watchSourceService: WatchSourceService
-  ) {
+  constructor() {
     this.loadSources();
+    
+    // React to global dialog service
+    effect(() => {
+      const details = this.dialogService.animeDetails();
+      if (details) {
+        this.open(details);
+      } else {
+        this.closeLocal();
+      }
+    });
   }
 
   private loadSources() {
@@ -57,16 +67,20 @@ export class AnimeDetailsDialogComponent {
     return source.baseUrl + encodeURIComponent(currentAnime.title);
   }
 
-  open(anime: Anime) {
+  private open(anime: Anime) {
     this.anime.set(anime);
     this.isOpen.set(true);
     document.body.style.overflow = 'hidden';
   }
 
-  close() {
+  private closeLocal() {
     this.isOpen.set(false);
     this.anime.set(null);
     document.body.style.overflow = '';
+  }
+
+  close() {
+    this.dialogService.closeAnimeDetails();
   }
 
   onEdit() {

@@ -5,7 +5,6 @@ import { LucideAngularModule, Calendar, ChevronLeft, ChevronRight, Info, Star, P
 import { AnimeService } from '../../services/anime.service';
 import { Anime } from '../../models/anime.model';
 import { HeaderComponent } from '../../components/header/header.component';
-import { AnimeDetailsDialogComponent } from '../../components/anime-details-dialog/anime-details-dialog.component';
 import { DialogService } from '../../services/dialog.service';
 import { getScoreColorClass } from '../../utils/anime-utils';
 import { TimelineYearSectionComponent } from './components/timeline-year-section/timeline-year-section';
@@ -14,14 +13,13 @@ import { YearRecapComponent } from '../../components/year-recap/year-recap.compo
 @Component({
   selector: 'app-timeline',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule, HeaderComponent, AnimeDetailsDialogComponent, TimelineYearSectionComponent, YearRecapComponent],
+  imports: [CommonModule, RouterModule, LucideAngularModule, TimelineYearSectionComponent, YearRecapComponent],
   templateUrl: './timeline.component.html',
   styleUrl: './timeline.component.scss'
 })
 export class TimelineComponent implements OnInit {
   private animeService = inject(AnimeService);
   private dialogService = inject(DialogService);
-  @ViewChild(AnimeDetailsDialogComponent) detailsDialog!: AnimeDetailsDialogComponent;
   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
   @ViewChild('sidebarContainer') sidebarContainer!: ElementRef;
   
@@ -159,7 +157,7 @@ export class TimelineComponent implements OnInit {
   }
 
   onAnimeClick(anime: Anime) {
-    this.detailsDialog.open(anime);
+    this.dialogService.openAnimeDetails(anime);
   }
 
   openRecap(year: number) {

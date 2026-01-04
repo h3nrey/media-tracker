@@ -1,0 +1,22 @@
+<a class="list-card" routerLink="/list-details/{{ list.id }}">
+  <div class="cover-stack">
+    @for (cover of list.covers; track cover; let i = $index) {
+      <div 
+        class="cover-item" 
+        [style.z-index]="5 - i"
+        [style.transform]="'translateX(' + (i * 25) + 'px)'"
+      >
+        <img [src]="cover" [alt]="list.name">
+      </div>
+    }
+    @if (list.covers.length === 0) {
+      <div class="empty-stack">
+        <lucide-icon [img]="FolderIcon" [size]="48"></lucide-icon>
+      </div>
+    }
+  </div>
+  <div class="list-info">
+    <h3 class="list-name">{{ list.name }}</h3>
+    <span class="anime-count">{{ list.animeCount }} Animes</span>
+  </div>
+</a>

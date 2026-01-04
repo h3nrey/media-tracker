@@ -22,6 +22,14 @@ export const routes: Routes = [
     component: MobileSourcesComponent
   },
   {
+    path: 'lists',
+    loadComponent: () => import('./pages/lists/lists').then(m => m.Lists)
+  },
+  {
+    path: 'list-details/:id',
+    loadComponent: () => import('./pages/list-details/list-details').then(m => m.ListDetailsComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }

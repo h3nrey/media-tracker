@@ -6,13 +6,13 @@ import { Anime } from '../../models/anime.model';
 import { AnimeService, AnimeByCategory } from '../../services/anime.service';
 import { CategoryService } from '../../services/status.service';
 import { FilterService } from '../../services/filter.service';
-import { AnimeCard } from '../../pages/home/components/anime-card/anime-card';
+import { KanbanAnimeCard } from '../../pages/home/components/kanban-anime-card/kanban-anime-card';
 import { BoardFiltersComponent } from '../board-filters/board-filters.component';
 
 @Component({
   selector: 'app-kanban-board',
   standalone: true,
-  imports: [CommonModule, DragDropModule, AnimeCard, BoardFiltersComponent],
+  imports: [CommonModule, DragDropModule, KanbanAnimeCard, BoardFiltersComponent],
   templateUrl: './kanban-board.component.html',
   styleUrl: './kanban-board.component.scss'
 })

@@ -4,6 +4,7 @@ import { db } from './database.service';
 import { Anime } from '../models/anime.model';
 import { Category } from '../models/status.model';
 import { WatchSource } from '../models/watch-source.model';
+import { List, Folder } from '../models/list.model';
 import { from, firstValueFrom, BehaviorSubject } from 'rxjs';
 
 @Injectable({
@@ -25,6 +26,8 @@ export class SyncService {
       await this.syncCategories();
       await this.syncWatchSources();
       await this.syncAnime();
+      await this.syncFolders();
+      await this.syncLists();
       console.log('Sync completed successfully');
     } catch (error) {
       console.error('Sync failed:', error);
@@ -302,6 +305,159 @@ export class SyncService {
           updatedAt: new Date(remote.updated_at),
           lastSyncedAt: new Date()
         } as Anime);
+      }
+    }
+  }
+  private async syncFolders() {
+    console.log('Syncing folders...');
+    const localFolders = await db.folders.toArray();
+    const { data: remoteFolders, error } = await this.supabase
+      .from('folders')
+      .select('*');
+    
+    if (error) throw error;
+
+    for (const local of localFolders) {
+      const remote = remoteFolders?.find(r => r.id === local.supabaseId);
+      
+      const supabaseData = {
+        name: local.name,
+        order: local.order,
+        is_deleted: !!local.isDeleted,
+        updated_at: local.updatedAt.toISOString()
+      };
+
+      if (!remote) {
+        if (!local.isDeleted) {
+          const { data, error: insertError } = await this.supabase
+            .from('folders')
+            .insert([{ ...supabaseData, created_at: local.createdAt.toISOString() }])
+            .select()
+            .single();
+
+          if (insertError) console.error('Error inserting folder:', insertError);
+          else {
+            await db.folders.update(local.id!, { 
+              supabaseId: data.id, 
+              lastSyncedAt: new Date() 
+            });
+          }
+        }
+      } else {
+        const remoteUpdatedAt = new Date(remote.updated_at);
+        if (local.updatedAt > remoteUpdatedAt && (!local.lastSyncedAt || local.updatedAt > local.lastSyncedAt)) {
+          await this.supabase.from('folders').update(supabaseData).eq('id', local.supabaseId);
+          await db.folders.update(local.id!, { lastSyncedAt: new Date() });
+        } else if (remoteUpdatedAt > (local.lastSyncedAt || local.updatedAt)) {
+          await db.folders.update(local.id!, {
+            name: remote.name,
+            order: remote.order,
+            isDeleted: remote.is_deleted,
+            updatedAt: remoteUpdatedAt,
+            lastSyncedAt: new Date()
+          });
+        }
+      }
+    }
+
+    for (const remote of remoteFolders || []) {
+      const local = localFolders.find(l => l.supabaseId === remote.id);
+      if (!local) {
+        await db.folders.add({
+          supabaseId: remote.id,
+          name: remote.name,
+          order: remote.order,
+          isDeleted: remote.is_deleted,
+          createdAt: new Date(remote.created_at),
+          updatedAt: new Date(remote.updated_at),
+          lastSyncedAt: new Date()
+        } as Folder);
+      }
+    }
+  }
+
+  private async syncLists() {
+    console.log('Syncing lists...');
+    const localLists = await db.lists.toArray();
+    const { data: remoteLists, error } = await this.supabase
+      .from('lists')
+      .select('*');
+    
+    if (error) throw error;
+
+    const folders = await db.folders.toArray();
+    const anime = await db.anime.toArray();
+    
+    const mapLocalToSupabaseFolder = (localId?: number) => localId ? folders.find(f => f.id === localId)?.supabaseId : null;
+    const mapSupabaseToLocalFolder = (supabaseId?: number) => supabaseId ? folders.find(f => f.supabaseId === supabaseId)?.id : undefined;
+
+    const mapLocalToSupabaseAnimeIds = (localIds: number[]) => 
+      localIds.map(id => anime.find(a => a.id === id)?.supabaseId).filter(id => !!id);
+    
+    const mapSupabaseToLocalAnimeIds = (supabaseIds: number[]) => 
+      supabaseIds.map(id => anime.find(a => a.supabaseId === id)?.id).filter(id => !!id) as number[];
+
+    for (const local of localLists) {
+      const remote = remoteLists?.find(r => r.id === local.supabaseId);
+      
+      const supabaseData = {
+        name: local.name,
+        description: local.description,
+        folder_id: mapLocalToSupabaseFolder(local.folderId),
+        anime_ids: mapLocalToSupabaseAnimeIds(local.animeIds || []),
+        is_deleted: !!local.isDeleted,
+        updated_at: local.updatedAt.toISOString()
+      };
+
+      if (!remote) {
+        if (!local.isDeleted) {
+          const { data, error: insertError } = await this.supabase
+            .from('lists')
+            .insert([{ ...supabaseData, created_at: local.createdAt.toISOString() }])
+            .select()
+            .single();
+
+          if (insertError) console.error('Error inserting list:', insertError);
+          else {
+            await db.lists.update(local.id!, { 
+              supabaseId: data.id, 
+              lastSyncedAt: new Date() 
+            });
+          }
+        }
+      } else {
+        const remoteUpdatedAt = new Date(remote.updated_at);
+        if (local.updatedAt > remoteUpdatedAt && (!local.lastSyncedAt || local.updatedAt > local.lastSyncedAt)) {
+          await this.supabase.from('lists').update(supabaseData).eq('id', local.supabaseId);
+          await db.lists.update(local.id!, { lastSyncedAt: new Date() });
+        } else if (remoteUpdatedAt > (local.lastSyncedAt || local.updatedAt)) {
+          await db.lists.update(local.id!, {
+            name: remote.name,
+            description: remote.description,
+            folderId: mapSupabaseToLocalFolder(remote.folder_id),
+            animeIds: mapSupabaseToLocalAnimeIds(remote.anime_ids || []),
+            isDeleted: remote.is_deleted,
+            updatedAt: remoteUpdatedAt,
+            lastSyncedAt: new Date()
+          });
+        }
+      }
+    }
+
+    for (const remote of remoteLists || []) {
+      const local = localLists.find(l => l.supabaseId === remote.id);
+      if (!local) {
+        await db.lists.add({
+          supabaseId: remote.id,
+          name: remote.name,
+          description: remote.description,
+          folderId: mapSupabaseToLocalFolder(remote.folder_id),
+          animeIds: mapSupabaseToLocalAnimeIds(remote.anime_ids || []),
+          isDeleted: remote.is_deleted,
+          createdAt: new Date(remote.created_at),
+          updatedAt: new Date(remote.updated_at),
+          lastSyncedAt: new Date()
+        } as List);
       }
     }
   }

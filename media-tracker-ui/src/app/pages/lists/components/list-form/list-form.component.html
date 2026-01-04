@@ -1,0 +1,89 @@
+@if (isOpen()) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <header class="dialog-header">
+        <h2>Create New List</h2>
+        <button class="close-btn" (click)="closeDialog()">
+          <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+        </button>
+      </header>
+
+      <div class="form-body">
+        <div class="form-group">
+          <label>List Name</label>
+          <input 
+            type="text" 
+            [(ngModel)]="name" 
+            placeholder="Enter list name..."
+            class="form-input"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Folder (Optional)</label>
+          <select [(ngModel)]="selectedFolderId" class="form-select">
+            <option [ngValue]="undefined">No Folder</option>
+            @for (folder of folders(); track folder.id) {
+              <option [ngValue]="folder.id">{{ folder.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Add Anime</label>
+          <div class="search-container">
+            <lucide-icon [img]="SearchIcon" [size]="18" class="search-icon"></lucide-icon>
+            <input 
+              type="text" 
+              [(ngModel)]="searchQuery" 
+              placeholder="Search anime to add..."
+              class="form-input search-input"
+            >
+            @if (filteredAnime.length > 0) {
+              <div class="search-results">
+                @for (anime of filteredAnime; track anime.id) {
+                  <div class="search-item" (click)="addAnime(anime.id!)">
+                    <img [src]="anime.coverImage" [alt]="anime.title" class="item-thumb">
+                    <span>{{ anime.title }}</span>
+                    <lucide-icon [img]="PlusIcon" [size]="16" class="add-icon"></lucide-icon>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="selected-animes">
+          <label>Selected Anime ({{ selectedAnimes.length }})</label>
+          <div class="anime-list">
+            @for (anime of selectedAnimes; track anime.id) {
+              <div class="anime-chip">
+                <img [src]="anime.coverImage" [alt]="anime.title">
+                <span class="anime-title">{{ anime.title }}</span>
+                <button class="remove-btn" (click)="removeAnime(anime.id!)">
+                  <lucide-icon [img]="TrashIcon" [size]="14"></lucide-icon>
+                </button>
+              </div>
+            }
+            @if (selectedAnimes.length === 0) {
+              <div class="empty-selection">
+                No anime added to this list yet.
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <footer class="dialog-footer">
+        <button class="btn-cancel" (click)="closeDialog()">Cancel</button>
+        <button 
+          class="btn-save" 
+          (click)="save()"
+          [disabled]="!name()"
+        >
+          Create List
+        </button>
+      </footer>
+    </div>
+  </div>
+}

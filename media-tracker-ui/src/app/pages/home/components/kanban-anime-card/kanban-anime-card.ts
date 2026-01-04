@@ -7,13 +7,13 @@ import { WatchSourceService } from '../../../../services/watch-source.service';
 import { getScoreColorClass } from '../../../../utils/anime-utils';
 
 @Component({
-  selector: 'app-anime-card',
+  selector: 'app-kanban-anime-card',
   standalone: true,
   imports: [CommonModule, DragDropModule, LucideAngularModule, NgClass],
-  templateUrl: './anime-card.html',
-  styleUrl: './anime-card.scss'
+  templateUrl: './kanban-anime-card.html',
+  styleUrl: './kanban-anime-card.scss'
 })
-export class AnimeCard {
+export class KanbanAnimeCard {
   @Input() anime!: Anime;
   @Output() edit = new EventEmitter<Anime>();
   @Output() delete = new EventEmitter<Anime>();
