@@ -36,16 +36,47 @@
             <input 
               type="text" 
               [(ngModel)]="searchQuery" 
-              placeholder="Search anime to add..."
+              (ngModelChange)="onSearchChange($event)"
+              placeholder="Search local library or Jikan API..."
               class="form-input search-input"
             >
-            @if (filteredAnime.length > 0) {
+            @if (isSearching()) {
+              <div class="search-loader">
+                <div class="spinner"></div>
+              </div>
+            }
+            
+            @if (filteredLocalAnime.length > 0 || filteredApiAnime.length > 0) {
               <div class="search-results">
-                @for (anime of filteredAnime; track anime.id) {
-                  <div class="search-item" (click)="addAnime(anime.id!)">
-                    <img [src]="anime.coverImage" [alt]="anime.title" class="item-thumb">
-                    <span>{{ anime.title }}</span>
-                    <lucide-icon [img]="PlusIcon" [size]="16" class="add-icon"></lucide-icon>
+                @if (filteredLocalAnime.length > 0) {
+                  <div class="results-section">
+                    <div class="section-label">Your Library</div>
+                    @for (anime of filteredLocalAnime; track anime.id) {
+                      <div class="search-item" (click)="addAnime(anime.id!)">
+                        <img [src]="anime.coverImage" [alt]="anime.title" class="item-thumb">
+                        <div class="item-info">
+                          <span class="title">{{ anime.title }}</span>
+                          <span class="meta">{{ anime.releaseYear }} • {{ anime.totalEpisodes }} Eps</span>
+                        </div>
+                        <lucide-icon [img]="PlusIcon" [size]="16" class="add-icon"></lucide-icon>
+                      </div>
+                    }
+                  </div>
+                }
+
+                @if (filteredApiAnime.length > 0) {
+                  <div class="results-section">
+                    <div class="section-label">Global Search (Add to Library)</div>
+                    @for (anime of filteredApiAnime; track anime.mal_id) {
+                      <div class="search-item api-item" (click)="addAnimeFromApi(anime)">
+                        <img [src]="anime.images.webp.small_image_url || anime.images.jpg.small_image_url" [alt]="anime.title" class="item-thumb">
+                        <div class="item-info">
+                          <span class="title">{{ anime.title_english || anime.title }}</span>
+                          <span class="meta">{{ anime.year || '?' }} • {{ anime.episodes || '?' }} Eps</span>
+                        </div>
+                        <lucide-icon [img]="PlusIcon" [size]="16" class="add-icon"></lucide-icon>
+                      </div>
+                    }
                   </div>
                 }
               </div>

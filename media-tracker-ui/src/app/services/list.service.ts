@@ -136,4 +136,11 @@ export class ListService {
     });
     this.syncService.sync();
   }
+
+  getListsContainingAnime$(animeId: number): Observable<List[]> {
+    return from(liveQuery(async () => {
+      const allLists = await db.lists.toArray();
+      return allLists.filter(l => !l.isDeleted && l.animeIds.includes(animeId));
+    }));
+  }
 }

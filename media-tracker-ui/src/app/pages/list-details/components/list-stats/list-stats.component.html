@@ -1,0 +1,23 @@
+<div class="stats-container">
+    <div class="stat-card progress-stat">
+        <div class="stat-header">
+            <span class="label">Total Completion</span>
+            <span class="value">{{ percentage() }}%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="fill" [style.width.%]="percentage()"></div>
+        </div>
+        <p class="stat-desc">Overall viewing progress across this collection.</p>
+    </div>
+
+    <div class="stat-horizontal">
+        <div class="mini-stat">
+            <span class="label">Episodes</span>
+            <span class="value">{{ watchedEpisodes() }} <small>/ {{ totalEpisodes() }}</small></span>
+        </div>
+        <div class="mini-stat">
+            <span class="label">Anime Count</span>
+            <span class="value">{{ animeCount() }}</span>
+        </div>
+    </div>
+</div>

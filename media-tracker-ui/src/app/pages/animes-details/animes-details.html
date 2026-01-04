@@ -1,0 +1,145 @@
+@if(!isLoading()) {
+  <div class="details-container">
+    <div class="hero-section" [style.background-image]="'url(' + (anime()?.bannerImage || anime()?.coverImage) + ')'">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <button class="back-btn" [routerLink]="['/']">
+          <lucide-icon [img]="ChevronLeftIcon" [size]="20"></lucide-icon>
+          <span>Back to Library</span>
+        </button>
+  
+        <div class="anime-header">
+          <div class="cover-art">
+            <img [src]="anime()?.coverImage" [alt]="anime()?.title">
+            <div class="status-badge" [style.background-color]="category()?.color">
+              {{ category()?.name }}
+            </div>
+          </div>
+  
+          <div class="main-info">
+            <div class="title-row">
+              <h1>{{ anime()?.title }}</h1>
+              <div class="score-badge" [style.border-color]="getScoreColor(anime()?.score || 0)">
+                <lucide-icon [img]="StarIcon" [size]="18"></lucide-icon>
+                <span>{{ anime()?.score | number:'1.1-1' }}</span>
+              </div>
+            </div>
+  
+            <div class="meta-row">
+              <div class="meta-item">
+                <lucide-icon [img]="CalendarIcon" [size]="16"></lucide-icon>
+                <span>{{ anime()?.releaseYear || 'Unknown' }}</span>
+              </div>
+              <div class="meta-item">
+                <lucide-icon [img]="ClockIcon" [size]="16"></lucide-icon>
+                <span>{{ anime()?.episodesWatched }}/{{ anime()?.totalEpisodes || '?' }} Episodes</span>
+                <button class="quick-add-btn" (click)="incrementEpisode()" *ngIf="!anime()?.totalEpisodes || (anime()?.episodesWatched ?? 0) < (anime()?.totalEpisodes ?? 0)">
+                  <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon>
+                </button>
+              </div>
+              <div class="meta-item">
+                <lucide-icon [img]="TagIcon" [size]="16"></lucide-icon>
+                <div class="studios">
+                  <span *ngFor="let studio of anime()?.studios">{{ studio }}</span>
+                </div>
+              </div>
+            </div>
+  
+            <div class=" genres-list">
+              <span class="genre-tag" *ngFor="let genre of anime()?.genres">{{ genre }}</span>
+            </div>
+  
+            <div class="action-buttons">
+              <button class="play-btn" *ngIf="anime()?.trailerUrl" (click)="$event.stopPropagation()">
+                <lucide-icon [img]="PlayIcon" [size]="20"></lucide-icon>
+                <span>Watch Trailer</span>
+              </button>
+              <button class="edit-btn" (click)="onEdit()">
+                <lucide-icon [img]="EditIcon" [size]="20"></lucide-icon>
+                <span>Edit Details</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <div class="details-grid">
+      <div class="content-left">
+        <section class="details-card">
+          <div class="section-header">
+            <lucide-icon [img]="HashIcon" [size]="18"></lucide-icon>
+            <h2>Synopsis & Notes</h2>
+          </div>
+          <div class="notes-content">
+            <p *ngIf="anime()?.notes; else noNotes">{{ anime()?.notes }}</p>
+            <ng-template #noNotes>
+              <span class="empty-state">No notes added for this anime.</span>
+            </ng-template>
+          </div>
+        </section>
+  
+        <section class="details-card">
+          <div class="section-header">
+            <lucide-icon [img]="ListIcon" [size]="18"></lucide-icon>
+            <h2>Associated Lists</h2>
+          </div>
+          <div class="lists-grid">
+            <div class="list-item" *ngFor="let list of lists()" [routerLink]="['/list-details', list.id]">
+              <div class="list-icon">
+                <lucide-icon [img]="ListIcon" [size]="16"></lucide-icon>
+              </div>
+              <div class="list-info">
+                <h3>{{ list.name }}</h3>
+                <span>{{ list.animeIds.length }} Animes</span>
+              </div>
+            </div>
+            <div class="empty-state" *ngIf="lists().length === 0">
+              Not part of any custom lists.
+            </div>
+          </div>
+        </section>
+      </div>
+  
+      <div class="content-right">
+        <section class="details-card side-card">
+          <div class="section-header">
+            <lucide-icon [img]="ClockIcon" [size]="18"></lucide-icon>
+            <h2>Watch History</h2>
+          </div>
+          <div class="history-list">
+            <div class="history-item" *ngFor="let date of anime()?.watchDates">
+              <div class="dot"></div>
+              <span>Watched on {{ formatDate(date) }}</span>
+            </div>
+            <div class="empty-state" *ngIf="!anime()?.watchDates?.length">
+              No history recorded.
+            </div>
+          </div>
+        </section>
+  
+        <section class="details-card side-card">
+          <div class="section-header">
+            <lucide-icon [img]="ExternalLinkIcon" [size]="18"></lucide-icon>
+            <h2>Watch Links</h2>
+          </div>
+          <div class="links-list">
+            <a [href]="link.url" target="_blank" class="watch-link" *ngFor="let link of anime()?.watchLinks">
+              <lucide-icon [img]="ExternalLinkIcon" [size]="14"></lucide-icon>
+              <span>View on Source</span>
+            </a>
+            <div class="empty-state" *ngIf="!anime()?.watchLinks?.length">
+              No links available.
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+}
+@else {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading anime details...</p>
+  </div>
+}

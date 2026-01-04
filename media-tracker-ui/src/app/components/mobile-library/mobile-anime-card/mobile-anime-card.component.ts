@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { LucideAngularModule, Star, MoreVertical, Edit2, Trash2 } from 'lucide-angular';
 import { Anime } from '../../../models/anime.model';
 import { Category } from '../../../models/status.model';
@@ -7,7 +8,7 @@ import { Category } from '../../../models/status.model';
 @Component({
   selector: 'app-mobile-anime-card',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, RouterLink],
   templateUrl: './mobile-anime-card.component.html',
   styleUrl: './mobile-anime-card.component.scss'
 })

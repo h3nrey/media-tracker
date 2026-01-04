@@ -5,13 +5,23 @@ import { ListService } from '../../services/list.service';
 import { CommonModule } from '@angular/common';
 import { map, switchMap } from 'rxjs';
 
-import { AnimeCard } from '../../components/cards/anime-card/anime-card';
 import { ListFormComponent } from '../lists/components/list-form/list-form.component';
+import { ListHeroComponent } from './components/list-hero/list-hero.component';
+import { ListHeaderComponent } from './components/list-header/list-header.component';
+import { ListStatsComponent } from './components/list-stats/list-stats.component';
+import { ListAnimesComponent } from './components/list-animes/list-animes.component';
 
 @Component({
   selector: 'app-list-details',
   standalone: true,
-  imports: [CommonModule, AnimeCard, ListFormComponent],
+  imports: [
+    CommonModule, 
+    ListFormComponent, 
+    ListHeroComponent, 
+    ListHeaderComponent, 
+    ListStatsComponent, 
+    ListAnimesComponent
+  ],
   templateUrl: './list-details.html',
   styleUrl: './list-details.scss',
 })

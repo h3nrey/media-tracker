@@ -74,6 +74,10 @@ export class AnimeService {
     return await db.anime.get(id);
   }
 
+  getAnimeById$(id: number): Observable<Anime | undefined> {
+    return from(liveQuery(() => db.anime.get(id)));
+  }
+
   async addAnime(anime: Omit<Anime, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();
     const id = await db.anime.add({

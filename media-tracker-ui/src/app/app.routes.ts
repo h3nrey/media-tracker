@@ -30,6 +30,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/list-details/list-details').then(m => m.ListDetailsComponent)
   },
   {
+    path: 'anime/:id',
+    loadComponent: () => import('./pages/animes-details/animes-details').then(m => m.AnimesDetailsComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }

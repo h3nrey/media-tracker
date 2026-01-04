@@ -1,229 +1,55 @@
 .list-details-container {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
   min-height: 100vh;
-
-  .list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 3rem;
-    gap: 2rem;
-
-    .header-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-
-      .title-section {
-        h1 {
-          font-size: 3rem;
-          font-weight: 800;
-          margin: 0;
-          color: var(--app-text-primary);
-          letter-spacing: -0.03em;
-        }
-
-        .description {
-          font-size: 1.15rem;
-          color: var(--app-text-secondary);
-          max-width: 700px;
-          margin-top: 0.75rem;
-          line-height: 1.6;
-        }
-      }
-
-      .list-stats-card {
-        background: var(--app-surface);
-        padding: 1.75rem;
-        border-radius: 20px;
-        border: 1px solid var(--app-border);
-        max-width: 500px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-
-        .stats-info {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 1.25rem;
-
-          .stat-item {
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-
-            .label {
-              font-size: 0.7rem;
-              text-transform: uppercase;
-              letter-spacing: 0.1em;
-              color: var(--app-text-muted);
-              font-weight: 700;
-            }
-
-            .value {
-              font-size: 1.5rem;
-              font-weight: 800;
-              color: var(--app-text-primary);
-
-              small {
-                font-size: 0.9rem;
-                color: var(--app-text-muted);
-                font-weight: 500;
-              }
-            }
-          }
-        }
-
-        .progress-wrapper {
-          .progress-track {
-            height: 12px;
-            background: var(--app-bg);
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid var(--app-border);
-
-            .progress-fill {
-              height: 100%;
-              background: linear-gradient(90deg, var(--app-primary), #A78BFA);
-              border-radius: 10px;
-              transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-              box-shadow: 0 0 10px var(--app-primary-glow);
-            }
-          }
-        }
-      }
-    }
-
-    .actions {
-      .add-button {
-        background: var(--app-primary);
-        color: white;
-        border: none;
-        padding: 1rem 2rem;
-        border-radius: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        box-shadow: 0 4px 14px var(--app-primary-glow);
-
-        &:hover {
-          background: var(--app-primary-hover);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px var(--app-primary-glow);
-        }
-
-        &:active {
-          transform: translateY(0);
-        }
-      }
-    }
-  }
-
-  .animes-section {
-    .section-header {
-      margin-bottom: 2rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-
-      h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--app-text-primary);
-        margin: 0;
-      }
-
-      .count-badge {
-        background: var(--app-surface-light);
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--app-primary);
-        border: 1px solid var(--app-border);
-      }
-    }
-
-    .animes-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 2rem;
-      align-items: stretch;
-    }
-
-    .empty-state {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 6rem 2rem;
-      background: var(--app-surface);
-      border: 2px dashed var(--app-border);
-      border-radius: 24px;
-      color: var(--app-text-secondary);
-      font-size: 1.1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.5rem;
-      transition: all 0.3s ease;
-
-      &:hover {
-        border-color: var(--app-primary);
-        background: var(--app-surface-light);
-      }
-
-      p {
-        margin: 0;
-        font-weight: 500;
-      }
-    }
-  }
+  background: var(--app-bg);
+  color: var(--app-text-primary);
+  font-family: var(--app-font-main);
+  padding-bottom: 5rem;
 }
 
-@media (max-width: 1024px) {
-  .list-details-container {
-    .animes-grid {
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 1.5rem;
+.list-main-content {
+  max-width: 1400px;
+  margin: -4rem auto 0; // Subtle overlap, controlled
+  padding: 0 4rem;
+  position: relative;
+  z-index: 100;
+}
+
+.content-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 4rem;
+  margin-top: 1rem;
+  align-items: start;
+}
+
+.main-column {
+  min-width: 0;
+}
+
+.sidebar-column {
+  width: 340px;
+}
+
+@media (max-width: 1200px) {
+    .list-main-content {
+        padding: 0 2rem;
     }
-  }
+    
+    .content-layout {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+    }
+
+    .sidebar-column {
+        width: 100%;
+        order: -1; // Specific choice: show stats above grid on smaller screens? 
+        // Or keep them below? Usually stats are better seen first or they can be side-by-side.
+        // User said "alongside", so I'll keep them side by side as long as possible.
+    }
 }
 
 @media (max-width: 768px) {
-  .list-details-container {
-    padding: 1.5rem;
-
-    .list-header {
-      flex-direction: column;
-      gap: 2rem;
-      margin-bottom: 2rem;
-
-      .header-content {
-        .title-section h1 {
-          font-size: 2.25rem;
-        }
-        
-        .list-stats-card {
-           width: 100%;
-           max-width: none;
-        }
-      }
-
-      .actions {
-        width: 100%;
-        .add-button {
-          width: 100%;
-          justify-content: center;
-        }
-      }
+    .list-main-content {
+        padding: 0 1.5rem;
     }
-
-    .animes-grid {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 1rem;
-    }
-  }
 }

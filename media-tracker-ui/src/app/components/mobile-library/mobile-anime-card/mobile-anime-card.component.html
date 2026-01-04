@@ -1,4 +1,4 @@
-<div class="mobile-card">
+<div class="mobile-card" [routerLink]="['/anime', anime.id]">
   <div class="cover-wrapper">
     <img [src]="anime.coverImage || 'assets/placeholder-cover.jpg'" [alt]="anime.title" loading="lazy" />
     

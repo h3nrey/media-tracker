@@ -78,3 +78,13 @@
     }
   }
 }
+
+:host-context(.filters-inline) {
+  .filters-bar {
+    padding: 0;
+    background: transparent;
+    border: none;
+    
+    .divider, .clear-all-btn { display: none; }
+  }
+}

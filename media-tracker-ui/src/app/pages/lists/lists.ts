@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Plus, Folder as FolderIcon, Layers } from 'lucide-angular';
+import { LucideAngularModule, Plus, Folder as FolderIcon, Layers, List as ListIcon } from 'lucide-angular';
 import { ListService } from '../../services/list.service';
 import { AnimeService } from '../../services/anime.service';
 import { FilterService } from '../../services/filter.service';
@@ -37,6 +37,7 @@ export class Lists implements OnInit {
 
   readonly PlusIcon = Plus;
   readonly FolderIcon = FolderIcon;
+  readonly ListIcon = ListIcon;
 
   availableGenres = signal<string[]>([]);
   availableStudios = signal<string[]>([]);

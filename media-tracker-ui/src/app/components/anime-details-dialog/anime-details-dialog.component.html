@@ -4,8 +4,13 @@
       <div class="dialog-header">
         <h2>{{ anime()!.title }}</h2>
         <div class="header-actions">
-          <button class="action-btn" (click)="onEdit()" title="Edit Anime">
-            <lucide-icon [img]="EditIcon" [size]="20"></lucide-icon>
+          <button class="header-quick-add" (click)="incrementEpisode()" title="Quick Add Episode" *ngIf="!anime()!.totalEpisodes || anime()!.episodesWatched < anime()!.totalEpisodes">
+            <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
+            <span>+1 Ep</span>
+          </button>
+          <button class="header-edit-btn" (click)="onEdit()">
+            <lucide-icon [img]="EditIcon" [size]="18"></lucide-icon>
+            <span>Edit</span>
           </button>
           <button class="close-btn" (click)="close()">
             <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>

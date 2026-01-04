@@ -6,41 +6,62 @@
   ></app-list-sidebar>
 
   <main class="content">
-    <app-list-filters
-      [availableGenres]="availableGenres()"
-      [availableStudios]="availableStudios()"
-    ></app-list-filters>
-
-    <header class="content-header">
-      <div class="header-left">
-        @if (enrichedLists$ | async; as lists) {
-          <h2 class="list-count">
-            {{ lists.length }} Lists
-          </h2>
-        }
-      </div>
-      <div class="header-right">
-        <button class="add-list-btn" (click)="openCreateListDialog()">
-          <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
-          Log a List
-        </button>
-      </div>
-    </header>
-
-    <div class="lists-grid">
-      @for (list of enrichedLists$ | async; track list.id) {
-        <app-list-card
-          [list]="list"
-          (cardClick)="onListSaved()" 
-        ></app-list-card>
-      }
-
-      <!-- Add New List Card -->
-      <div class="list-card add-card" (click)="openCreateListDialog()">
-        <div class="add-placeholder">
-          <lucide-icon [img]="PlusIcon" [size]="48"></lucide-icon>
-          <span>Create New List</span>
+    <div class="content-view">
+      <header class="lists-header">
+        <div class="header-main">
+          <div class="header-info">
+            <h1>Dynamic Lists</h1>
+            <p>Curate your anime collection into folders and custom selections.</p>
+          </div>
+          <div class="header-actions">
+            <app-list-filters
+              [availableGenres]="availableGenres()"
+              [availableStudios]="availableStudios()"
+              class="filters-inline"
+            ></app-list-filters>
+            <button class="create-list-btn" (click)="openCreateListDialog()">
+              <lucide-icon [img]="PlusIcon" [size]="20"></lucide-icon>
+              <span>Create New List</span>
+            </button>
+          </div>
         </div>
+      </header>
+
+      <div class="lists-scroll-area">
+        <div class="lists-grid">
+          <!-- Create New List Card (Premium) -->
+          <div class="list-card-wrapper">
+            <div class="premium-add-card" (click)="openCreateListDialog()">
+              <div class="card-inner">
+                <div class="icon-circle">
+                  <lucide-icon [img]="PlusIcon" [size]="24"></lucide-icon>
+                </div>
+                <h3>New Collection</h3>
+                <p>Start grouping your favorites</p>
+              </div>
+            </div>
+          </div>
+
+          @for (list of enrichedLists$ | async; track list.id) {
+            <div class="list-card-wrapper">
+              <app-list-card
+                [list]="list"
+                (cardClick)="onListSaved()" 
+              ></app-list-card>
+            </div>
+          }
+        </div>
+
+        @if ((enrichedLists$ | async)?.length === 0) {
+          <div class="empty-lists-state">
+            <lucide-icon [img]="ListIcon" [size]="64"></lucide-icon>
+            <h2>No lists found in this folder</h2>
+            <p>Create your first list or adjust filters to see results.</p>
+            <button class="primary-btn" (click)="openCreateListDialog()">
+              Create Now
+            </button>
+          </div>
+        }
       </div>
     </div>
   </main>

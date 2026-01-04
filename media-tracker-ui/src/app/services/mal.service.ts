@@ -85,6 +85,7 @@ export class MalService {
       statusId: statusId,
       score: 0,
       genres: jikanAnime.genres?.map(g => g.name) || [],
+      studios: jikanAnime.studios?.map(s => s.name) || [],
       releaseYear: jikanAnime.year || jikanAnime.aired?.prop?.from?.year,
       notes: ''
     };

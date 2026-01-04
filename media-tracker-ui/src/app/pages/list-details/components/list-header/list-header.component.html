@@ -1,0 +1,18 @@
+<div class="list-header">
+    <div class="header-main">
+        <div class="title-section">
+            <div class="badge">Collection</div>
+            <h1>{{ name() }}</h1>
+            @if (description()) {
+                <p class="description">{{ description() }}</p>
+            }
+        </div>
+
+        <div class="header-actions">
+            <button class="edit-btn" (click)="onManageList()">
+                <lucide-icon [img]="EditIcon" [size]="18"></lucide-icon>
+                <span>Manage List</span>
+            </button>
+        </div>
+    </div>
+</div>

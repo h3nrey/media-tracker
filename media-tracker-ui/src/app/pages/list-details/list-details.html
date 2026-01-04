@@ -1,52 +1,28 @@
 @if(list()) {
     <div class="list-details-container">
-        <div class="list-header">
-            <div class="header-content">
-                <div class="title-section">
-                    <h1>{{ list()?.name }}</h1>
-                    @if (list()?.description) {
-                        <p class="description">{{ list()?.description }}</p>
-                    }
+        
+        <app-list-hero [list]="list()"></app-list-hero>
+
+        <div class="list-main-content">
+            <app-list-header 
+                [name]="list()?.name" 
+                [description]="list()?.description"
+                (manageList)="openEditForm()">
+            </app-list-header>
+
+            <div class="content-layout">
+                <div class="main-column">
+                    <app-list-animes [animes]="list()?.animes || []"></app-list-animes>
                 </div>
 
-                <div class="list-stats-card">
-                    <div class="stats-info">
-                        <div class="stat-item">
-                            <span class="label">Total Visualizado</span>
-                            <span class="value">{{ stats().percentage }}%</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="label">Episódios</span>
-                            <span class="value">{{ stats().watched }} <small>/ {{ stats().total }}</small></span>
-                        </div>
-                    </div>
-                    <div class="progress-wrapper">
-                        <div class="progress-track">
-                            <div class="progress-fill" [style.width.%]="stats().percentage"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="actions">
-                <button class="add-button" (click)="openEditForm()">
-                    <span>Adicionar Anime</span>
-                </button>
-            </div>
-        </div>
-    
-        <div class="animes-section">
-            <div class="section-header">
-                <h2>Animes ({{ list()?.animes?.length || 0 }})</h2>
-            </div>
-            
-            <div class="animes-grid">
-                @for(anime of list()?.animes; track anime.id) {
-                    <app-anime-card [anime]="anime"></app-anime-card>
-                } @empty {
-                    <div class="empty-state">
-                        <p>Nenhum anime nesta lista ainda.</p>
-                    </div>
-                }
+                <aside class="sidebar-column">
+                    <app-list-stats 
+                        [percentage]="stats().percentage"
+                        [watchedEpisodes]="stats().watched"
+                        [totalEpisodes]="stats().total"
+                        [animeCount]="list()?.animes?.length || 0">
+                    </app-list-stats>
+                </aside>
             </div>
         </div>
     </div>
