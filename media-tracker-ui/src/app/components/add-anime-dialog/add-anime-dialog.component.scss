@@ -428,12 +428,12 @@
   border-radius: 10px;
   background: var(--app-surface-light);
   border: 1px solid var(--app-border);
-  color: #10B981;
+  color: var(--app-success);
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: rgba(16, 185, 129, 0.1);
+    background: rgba(var(--app-success), 0.1);
     border-color: #10B981;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);

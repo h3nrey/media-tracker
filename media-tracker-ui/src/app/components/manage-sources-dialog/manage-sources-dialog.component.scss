@@ -231,10 +231,10 @@
   }
   
   &.save {
-      color: #10B981;
+      color: var(--app-success);
       &:hover {
-          background: rgba(16, 185, 129, 0.1);
-          border-color: #10B981;
+          background: rgba(var(--app-success), 0.1);
+          border-color: var(--app-success);
       }
   }
 }

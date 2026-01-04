@@ -1,8 +1,8 @@
 .number-input-container {
   display: flex;
   align-items: center;
-  background: #0F172A;
-  border: 1px solid #334155;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 6px;
   overflow: hidden;
   transition: border-color 0.2s;
@@ -16,7 +16,7 @@
     flex: 1;
     background: transparent;
     border: none;
-    color: #F1F5F9;
+    color: var(--app-text-primary);
     font-size: 0.9375rem;
     text-align: center;
     padding: 0.625rem 0;
@@ -41,14 +41,14 @@
     height: 100%;
     background: transparent;
     border: none;
-    color: #64748B;
+    color: var(--app-text-muted);
     cursor: pointer;
     transition: all 0.2s;
     padding: 0;
 
     &:hover:not(:disabled) {
-      background: #1E293B;
-      color: #F1F5F9;
+      background: var(--app-surface-hover);
+      color: var(--app-text-primary);
     }
 
     &:disabled {
