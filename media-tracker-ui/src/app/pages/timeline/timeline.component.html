@@ -24,7 +24,8 @@
             [anime]="group.anime"
             [rotation]="heroRotation()"
             (animeClick)="onAnimeClick($event)"
-            (trailerClick)="openTrailer($event)">
+            (trailerClick)="openTrailer($event)"
+            (recapClick)="openRecap($event)">
           </app-timeline-year-section>
         }
 
@@ -51,4 +52,11 @@
   </div>
 
   <app-anime-details-dialog></app-anime-details-dialog>
+  
+  <app-year-recap
+    *ngIf="showRecap() && selectedYearRecap()"
+    [year]="selectedYearRecap()!"
+    [anime]="getRecapAnime(selectedYearRecap()!)"
+    (close)="showRecap.set(false)">
+  </app-year-recap>
 </div>

@@ -1,0 +1,82 @@
+.stats-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 950;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeInUp 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  }
+
+  .stat-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .rank-anim {
+      font-size: 1rem;
+      font-weight: 900;
+      color: #fbbf24;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      opacity: 0;
+      animation: scaleIn 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards 0.6s;
+    }
+
+    .label {
+      font-size: 1.1rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .value {
+      font-size: 5rem;
+      font-weight: 1000;
+      line-height: 1;
+      opacity: 0;
+      animation: fadeInUp 1s cubic-bezier(0.19, 1, 0.22, 1) forwards 1s;
+    }
+
+    .sub-label {
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    &.anime-watched .value {
+      color: #8b5cf6;
+      text-shadow: 0 0 40px rgba(139, 92, 246, 0.4);
+    }
+
+    &.episodes-count {
+      opacity: 0;
+      animation: fadeInUp 1s cubic-bezier(0.19, 1, 0.22, 1) forwards 1.2s;
+      
+      .value {
+        color: #ec4899;
+        text-shadow: 0 0 40px rgba(236, 72, 153, 0.4);
+      }
+    }
+  }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}

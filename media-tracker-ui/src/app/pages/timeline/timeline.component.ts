@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed, ViewChild, ElementRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Calendar, ChevronLeft, ChevronRight, Info, Star, Play, Plus } from 'lucide-angular';
+import { LucideAngularModule, Calendar, ChevronLeft, ChevronRight, Info, Star, Play, Plus, Award } from 'lucide-angular';
 import { AnimeService } from '../../services/anime.service';
 import { Anime } from '../../models/anime.model';
 import { HeaderComponent } from '../../components/header/header.component';
@@ -9,11 +9,12 @@ import { AnimeDetailsDialogComponent } from '../../components/anime-details-dial
 import { DialogService } from '../../services/dialog.service';
 import { getScoreColorClass } from '../../utils/anime-utils';
 import { TimelineYearSectionComponent } from './components/timeline-year-section/timeline-year-section';
+import { YearRecapComponent } from '../../components/year-recap/year-recap.component';
 
 @Component({
   selector: 'app-timeline',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule, HeaderComponent, AnimeDetailsDialogComponent, TimelineYearSectionComponent],
+  imports: [CommonModule, RouterModule, LucideAngularModule, HeaderComponent, AnimeDetailsDialogComponent, TimelineYearSectionComponent, YearRecapComponent],
   templateUrl: './timeline.component.html',
   styleUrl: './timeline.component.scss'
 })
@@ -27,6 +28,8 @@ export class TimelineComponent implements OnInit {
   allAnime = signal<Anime[]>([]);
   activeYear = signal<number | null>(null);
   heroRotation = signal(0);
+  selectedYearRecap = signal<number | null>(null);
+  showRecap = signal(false);
 
   constructor() {
     // Effect to sync sidebar scroll when active year changes
@@ -103,6 +106,7 @@ export class TimelineComponent implements OnInit {
   readonly StarIcon = Star;
   readonly PlayIcon = Play;
   readonly PlusIcon = Plus;
+  readonly AwardIcon = Award;
 
   openTrailer(url: string | undefined) {
     if (url) window.open(url, '_blank');
@@ -156,6 +160,15 @@ export class TimelineComponent implements OnInit {
 
   onAnimeClick(anime: Anime) {
     this.detailsDialog.open(anime);
+  }
+
+  openRecap(year: number) {
+    this.selectedYearRecap.set(year);
+    this.showRecap.set(true);
+  }
+
+  getRecapAnime(year: number): Anime[] {
+    return this.timelineGroups().find(g => g.year === year)?.anime || [];
   }
 
   getScoreColorClass(score: number): string {

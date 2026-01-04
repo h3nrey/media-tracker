@@ -1,0 +1,152 @@
+.genres-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+
+  .slide-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeInUp 0.8s forwards;
+  }
+
+  .main-genre {
+    position: relative;
+    margin-bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .rank-indicator {
+      position: absolute;
+      top: -20px;
+      z-index: 20;
+      font-size: 2.5rem;
+      font-weight: 1000;
+      color: white;
+      text-shadow: 0 5px 20px rgba(0,0,0,0.5);
+      opacity: 0;
+      animation: scaleIn 0.8s forwards 0.6s;
+    }
+
+    .stamp-box {
+      width: 150px;
+      height: 150px;
+      background: white;
+      padding: 6px;
+      position: relative;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+      opacity: 0;
+      animation: zoomIn 1s cubic-bezier(0.19, 1, 0.22, 1) forwards 0.8s;
+      
+      .genre-image {
+        width: 100%;
+        height: calc(100% - 25px);
+        background: skyblue; /* Matches radio background in photo */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+
+        lucide-icon { width: 45% !important; height: 45% !important; }
+      }
+
+      .genre-label {
+        height: 25px;
+        background: white;
+        color: #060914;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1rem;
+      }
+
+      .stamp-border {
+        position: absolute;
+        inset: -8px;
+        border: 8px dotted white;
+        z-index: -1;
+      }
+    }
+
+    .percentage {
+      margin-top: 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 950;
+      color: #8b5cf6;
+      opacity: 0;
+      animation: fadeInUp 0.8s forwards 1.2s;
+    }
+  }
+
+  .other-genres {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    width: 100%;
+    
+    .mini-genre {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0;
+      animation: fadeInLeft 0.6s forwards;
+
+      @for $i from 1 through 4 {
+        &:nth-child(#{$i}) { animation-delay: 1s + ($i * 0.15s); }
+      }
+
+      .mini-rank {
+        font-size: 1rem;
+        font-weight: 1000;
+      }
+
+      .mini-box {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.5rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        
+        lucide-icon { color: #8b5cf6; width: 18px !important; height: 18px !important; }
+        
+        .meta {
+          display: flex;
+          flex-direction: column;
+          text-align: left;
+          
+          .name { font-weight: 800; font-size: 0.8rem; }
+          .perc { font-size: 0.65rem; color: #64748b; font-weight: 700; }
+        }
+      }
+    }
+  }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}

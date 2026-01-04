@@ -1,0 +1,89 @@
+<div class="recap-overlay" (click)="$event.stopPropagation()">
+  <div class="recap-content">
+    <button class="close-btn" (click)="close.emit()">
+      <lucide-icon [img]="XIcon" [size]="24"></lucide-icon>
+    </button>
+
+    <div class="slides-container">
+      @switch (currentSlide()) {
+        @case (0) {
+          <div class="content-wrapper">
+            <app-recap-intro-slide 
+              [year]="year" 
+              (start)="nextSlide()">
+            </app-recap-intro-slide>
+          </div>
+        }
+        @case (1) {
+          <div class="content-wrapper">
+            <app-recap-stats-slide
+              [totalAnime]="stats().totalAnime"
+              [totalEpisodes]="stats().totalEpisodes">
+            </app-recap-stats-slide>
+          </div>
+        }
+        @case (2) {
+          <div class="content-wrapper">
+            <app-recap-genres-slide
+              [genres]="stats().topGenres"
+              [totalAnime]="stats().totalAnime">
+            </app-recap-genres-slide>
+          </div>
+        }
+        @case (3) {
+          <div class="content-wrapper">
+            <app-recap-studios-slide
+              [studios]="stats().topStudios">
+            </app-recap-studios-slide>
+          </div>
+        }
+        @case (4) {
+          <div class="content-wrapper">
+            <app-recap-anime-top-slide
+              [anime]="stats().animeTop">
+            </app-recap-anime-top-slide>
+          </div>
+        }
+        @case (5) {
+          <div class="content-wrapper">
+            <app-recap-split-slide
+              [surprise]="stats().surprisedMe!"
+              [dropped]="stats().droppedFastest!">
+            </app-recap-split-slide>
+          </div>
+        }
+        @case (6) {
+          <div class="content-wrapper">
+            <app-recap-share-slide
+              [year]="year"
+              [topAnime]="stats().animeTop"
+              [topStudios]="stats().topStudios"
+              [topGenres]="stats().topGenres"
+              [isGenerating]="isGeneratingImage()"
+              (download)="shareRecap()"
+              (close)="close.emit()"
+              (back)="prevSlide()">
+            </app-recap-share-slide>
+          </div>
+        }
+      }
+    </div>
+
+    <div class="bottom-nav-bar" *ngIf="currentSlide() > 0 && currentSlide() < 6">
+      <div class="navigation-dots">
+        @for (s of [0,1,2,3,4,5,6]; track s) {
+          <div class="dot" [class.active]="currentSlide() === s"></div>
+        }
+      </div>
+
+      <div class="slide-nav-buttons">
+        <button (click)="prevSlide()" class="nav-btn prev">
+          <lucide-icon [img]="ChevronLeftIcon" [size]="24"></lucide-icon>
+        </button>
+        <button (click)="nextSlide()" class="nav-btn next">
+          <lucide-icon [img]="ChevronRightIcon" [size]="24"></lucide-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

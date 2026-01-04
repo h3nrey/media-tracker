@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Play } from 'lucide-angular';
+import { LucideAngularModule, Play, Award } from 'lucide-angular';
 import { Anime } from '../../../../models/anime.model';
 import { TimelineCardComponent } from '../timeline-card/timeline-card';
 
@@ -33,12 +33,18 @@ import { TimelineCardComponent } from '../timeline-card/timeline-card';
                   <span class="label">Anime em {{ year }}</span>
                 </div>
                 
-                @if (activeAnime?.trailerUrl) {
-                    <button class="trailer-button" (click)="trailerClick.emit(activeAnime?.trailerUrl); $event.stopPropagation()">
-                        <lucide-icon [img]="PlayIcon" [size]="14"></lucide-icon>
-                        Trailer: {{ activeAnime?.title }}
+                <div class="hero-actions">
+                    @if (activeAnime?.trailerUrl) {
+                        <button class="action-button trailer" (click)="trailerClick.emit(activeAnime?.trailerUrl); $event.stopPropagation()">
+                            <lucide-icon [img]="PlayIcon" [size]="14"></lucide-icon>
+                            Trailer: {{ activeAnime?.title }}
+                        </button>
+                    }
+                    <button class="action-button recap" (click)="recapClick.emit(year); $event.stopPropagation()">
+                        <lucide-icon [img]="AwardIcon" [size]="14"></lucide-icon>
+                        Ver Recap de {{ year }}
                     </button>
-                }
+                </div>
             </div>
         </div>
 
@@ -132,12 +138,16 @@ import { TimelineCardComponent } from '../timeline-card/timeline-card';
             letter-spacing: 0.2em;
         }
 
-        .trailer-button {
-            background: rgba(139, 92, 246, 0.2);
+        .hero-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .action-button {
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(139, 92, 246, 0.3);
             border-radius: 12px;
-            padding: 0.5rem 1rem;
+            padding: 0.6rem 1.25rem;
             color: white;
             font-weight: 700;
             font-size: 0.8rem;
@@ -146,14 +156,23 @@ import { TimelineCardComponent } from '../timeline-card/timeline-card';
             align-items: center;
             gap: 0.5rem;
             transition: all 0.3s ease;
-            max-width: 300px;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            border: 1px solid rgba(255, 255, 255, 0.1);
 
-            &:hover {
-                background: #8b5cf6;
-                transform: translateY(-2px);
+            &.trailer {
+                background: rgba(139, 92, 246, 0.2);
+                border-color: rgba(139, 92, 246, 0.3);
+                max-width: 250px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                &:hover { background: #8b5cf6; transform: translateY(-2px); }
+            }
+
+            &.recap {
+                background: rgba(251, 191, 36, 0.1);
+                border-color: rgba(251, 191, 36, 0.3);
+                color: #fbbf24;
+                &:hover { background: #fbbf24; color: #92400e; transform: translateY(-2px); }
             }
         }
       }
@@ -174,6 +193,8 @@ export class TimelineYearSectionComponent {
 
   @Output() animeClick = new EventEmitter<Anime>();
   @Output() trailerClick = new EventEmitter<string>();
+  @Output() recapClick = new EventEmitter<number>();
 
   readonly PlayIcon = Play;
+  readonly AwardIcon = Award;
 }

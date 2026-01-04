@@ -1,0 +1,92 @@
+.split-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+
+  .slide-title {
+    font-size: 1.5rem;
+    font-weight: 950;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeInUp 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  }
+
+  .split-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 100%;
+  }
+
+  .split-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+
+    .indicator {
+      font-size: 0.8rem;
+      font-weight: 1000;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      opacity: 0;
+      animation: scaleIn 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards 0.6s;
+    }
+
+    .label-group {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      opacity: 0;
+      animation: fadeInUp 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards 0.8s;
+      
+      h3 { margin: 0; font-size: 1.25rem; font-weight: 900; color: #94a3b8; }
+      lucide-icon { width: 24px; height: 24px; }
+    }
+
+    .anime-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      width: 100%;
+      display: flex;
+      padding: 0.75rem;
+      gap: 1rem;
+      align-items: center;
+      opacity: 0;
+      animation: fadeInUp 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards 1.2s;
+
+      img { width: 60px; height: 90px; object-fit: cover; border-radius: 12px; }
+      
+      .meta {
+        text-align: left;
+        h4 { margin: 0; font-size: 1.1rem; font-weight: 800; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        span { font-size: 0.9rem; color: #64748b; font-weight: 600; margin-top: 0.25rem; display: block; }
+      }
+    }
+
+    &.surprise {
+      .indicator { color: #8b5cf6; }
+      lucide-icon { color: #8b5cf6; }
+    }
+
+    &.dropped {
+      .indicator { color: #ef4444; }
+      lucide-icon { color: #ef4444; }
+    }
+  }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
