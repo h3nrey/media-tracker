@@ -1,11 +1,45 @@
 <div class="home-container">
-  <app-kanban-board 
-    class="desktop-only"
-    (addAnimeToCategory)="openAddDialogWithCategory($event)" 
-    (animeClick)="openAnimeDetails($event)"
-    (editAnime)="openEditAnime($event)"
-  />
+  <!-- View Mode Toggle (Desktop Only) -->
+  <div class="view-toggle desktop-only">
+    <button 
+      class="toggle-btn" 
+      [class.active]="viewMode() === 'kanban'"
+      (click)="setViewMode('kanban')"
+      title="Kanban Board View">
+      <lucide-icon [img]="LayoutGridIcon" [size]="18"></lucide-icon>
+      <span>Board</span>
+    </button>
+    <button 
+      class="toggle-btn" 
+      [class.active]="viewMode() === 'list'"
+      (click)="setViewMode('list')"
+      title="List View">
+      <lucide-icon [img]="ListIcon" [size]="18"></lucide-icon>
+      <span>List</span>
+    </button>
+  </div>
 
+  <!-- Kanban Board View -->
+  @if (viewMode() === 'kanban') {
+    <app-kanban-board 
+      class="desktop-only"
+      (addAnimeToCategory)="openAddDialogWithCategory($event)" 
+      (animeClick)="openAnimeDetails($event)"
+      (editAnime)="openEditAnime($event)"
+    />
+  }
+
+  <!-- List View -->
+  @if (viewMode() === 'list') {
+    <app-list-view
+      class="desktop-only"
+      (addAnimeToCategory)="openAddDialogWithCategory($event)"
+      (animeClick)="openAnimeDetails($event)"
+      (editAnime)="openEditAnime($event)"
+    />
+  }
+
+  <!-- Mobile View (Always List) -->
   <app-mobile-library
     class="mobile-only"
     (animeClick)="openAnimeDetails($event)"

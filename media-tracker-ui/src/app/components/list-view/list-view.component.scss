@@ -1,0 +1,226 @@
+.list-view-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.filter-bar {
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--app-text-primary);
+      white-space: nowrap;
+    }
+
+    ui-select {
+      min-width: 180px;
+    }
+  }
+}
+
+.category-section {
+  margin-bottom: 2.5rem;
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-bottom: 2px solid var(--app-border);
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+
+    &:hover {
+      background: var(--app-surface-light);
+      border-radius: 8px 8px 0 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+
+      .collapse-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: transparent;
+        border: 1px solid var(--app-border);
+        color: var(--app-text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          background: var(--app-surface-light);
+          border-color: var(--app-border-light);
+        }
+      }
+
+      h2 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin: 0;
+        color: var(--app-text-primary);
+      }
+
+      .count-badge {
+        padding: 0.35rem 0.75rem;
+        background: var(--app-surface-light);
+        border: 1px solid var(--app-border);
+        border-radius: 12px;
+        color: var(--app-text-secondary);
+        font-weight: 700;
+        font-size: 0.85rem;
+      }
+    }
+
+    .add-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--app-primary);
+      color: var(--app-bg);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px var(--app-primary-glow);
+      }
+    }
+  }
+
+  // Collapsed state
+  &.collapsed {
+    .section-header {
+      margin-bottom: 0;
+      border-radius: 8px;
+      border-bottom: 1px solid var(--app-border);
+    }
+
+    .anime-list {
+      display: none;
+    }
+  }
+
+  .anime-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      background: var(--app-surface);
+      border: 1px dashed var(--app-border);
+      border-radius: 12px;
+      color: var(--app-text-muted);
+
+      p {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+    }
+
+    .anime-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: var(--app-surface-light);
+        border-color: var(--app-border-light);
+        transform: translateX(4px);
+      }
+
+      .anime-cover {
+        width: 60px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 6px;
+        flex-shrink: 0;
+      }
+
+      .anime-info {
+        flex: 1;
+        min-width: 0;
+
+        .anime-title {
+          font-size: 1rem;
+          font-weight: 700;
+          margin: 0 0 0.5rem 0;
+          color: var(--app-text-primary);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .anime-meta {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          flex-wrap: wrap;
+
+          span {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--app-text-secondary);
+            padding: 0.25rem 0.6rem;
+            background: var(--app-bg);
+            border-radius: 6px;
+          }
+
+          .progress {
+            color: var(--app-primary);
+          }
+        }
+      }
+
+      .edit-btn {
+        padding: 0.5rem 1rem;
+        background: var(--app-surface-light);
+        border: 1px solid var(--app-border);
+        border-radius: 8px;
+        color: var(--app-text-primary);
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          background: var(--app-primary);
+          color: var(--app-bg);
+          border-color: var(--app-primary);
+        }
+      }
+    }
+  }
+}
