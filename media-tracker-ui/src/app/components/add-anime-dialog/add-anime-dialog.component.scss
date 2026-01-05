@@ -67,53 +67,42 @@
   padding: 2rem;
   overflow-y: auto;
   flex: 1;
+}
 
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
+.dialog-body,
+.search-results {
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb {
     background: var(--app-border);
     border-radius: 10px;
-
-    &:hover {
-      background: var(--app-border-light);
-    }
+    &:hover { background: var(--app-border-light); }
   }
 }
 
-.search-section {
-  .search-input {
-    width: 100%;
-    padding: 1rem 1.25rem;
-    border: 1px solid var(--app-border);
-    background: var(--app-bg);
-    color: var(--app-text-primary);
-    border-radius: 12px;
-    font-size: 1rem;
-    transition: all 0.2s;
+.search-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--app-border);
+  background: var(--app-bg);
+  color: var(--app-text-primary);
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.2s;
 
-    &::placeholder {
-      color: var(--app-text-muted);
-    }
-
-    &:focus {
-      outline: none;
-      border-color: var(--app-primary);
-      box-shadow: 0 0 0 4px var(--app-primary-glow);
-    }
+  &::placeholder { color: var(--app-text-muted); }
+  &:focus {
+    outline: none;
+    border-color: var(--app-primary);
+    box-shadow: 0 0 0 4px var(--app-primary-glow);
   }
+}
 
-  .searching {
-    text-align: center;
-    padding: 1.5rem;
-    color: var(--app-text-muted);
-    font-weight: 500;
-  }
+.searching {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--app-text-muted);
+  font-weight: 500;
 }
 
 .search-results {
@@ -124,19 +113,6 @@
   overflow-y: auto;
   background: var(--app-bg);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--app-border);
-    border-radius: 10px;
-  }
 }
 
 .search-result-item {
@@ -291,48 +267,43 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
+}
 
-  input,
-  select,
-  textarea {
-    padding: 0.875rem 1rem;
-    border: 1px solid var(--app-border);
-    background: var(--app-bg);
+input, select, textarea {
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--app-border);
+  background: var(--app-bg);
+  color: var(--app-text-primary);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+
+  &::placeholder { color: var(--app-text-muted); }
+  &:focus {
+    outline: none;
+    border-color: var(--app-primary);
+    box-shadow: 0 0 0 4px var(--app-primary-glow);
+  }
+}
+
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238B949E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.2em;
+  padding-right: 2.5rem;
+
+  option {
+    background: var(--app-surface-light);
     color: var(--app-text-primary);
-    border-radius: 10px;
-    font-size: 0.95rem;
-    transition: all 0.2s;
-
-    &::placeholder {
-      color: var(--app-text-muted);
-    }
-
-    &:focus {
-      outline: none;
-      border-color: var(--app-primary);
-      box-shadow: 0 0 0 4px var(--app-primary-glow);
-    }
   }
+}
 
-  select {
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238B949E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1.2em;
-    padding-right: 2.5rem;
-
-    option {
-      background: var(--app-surface-light);
-      color: var(--app-text-primary);
-    }
-  }
-
-  textarea {
-    resize: vertical;
-    min-height: 100px;
-  }
+textarea {
+  resize: vertical;
+  min-height: 100px;
 }
 
 .dialog-footer {

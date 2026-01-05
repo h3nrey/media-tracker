@@ -1,0 +1,259 @@
+<div class="stats-container">
+  <!-- Header with Year Selector -->
+  <div class="stats-header">
+    @if (selectedYear() === 'all') {
+      <h1>All-Time Anime Stats</h1>
+    } @else {
+      <div class="year-badge">{{ selectedYear() }}</div>
+      <h1>Your {{ selectedYear() }} Anime Recap</h1>
+    }
+    
+    <ui-select 
+      [options]="yearOptions()" 
+      [value]="selectedYear()"
+      (valueChange)="onYearChange($event)"
+      placeholder="Select Year">
+    </ui-select>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <lucide-icon [img]="EyeIcon" [size]="24"></lucide-icon>
+      </div>
+      <div class="stat-info">
+        <h3>{{ stats().totalAnime }}</h3>
+        <p>Total Anime</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <lucide-icon [img]="TrendingUpIcon" [size]="24"></lucide-icon>
+      </div>
+      <div class="stat-info">
+        <h3>{{ stats().totalCompleted }}</h3>
+        <p>Completed</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <lucide-icon [img]="ClockIcon" [size]="24"></lucide-icon>
+      </div>
+      <div class="stat-info">
+        <h3>{{ stats().totalEpisodes }}</h3>
+        <p>Episodes Watched</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <lucide-icon [img]="StarIcon" [size]="24"></lucide-icon>
+      </div>
+      <div class="stat-info">
+        <h3>{{ stats().avgScore }}</h3>
+        <p>Average Score</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Chart -->
+  <section class="chart-section">
+    <h2>
+      <lucide-icon [img]="BarChartIcon" [size]="20"></lucide-icon>
+      Monthly Activity
+    </h2>
+    <div class="bar-chart">
+      @for (month of stats().monthlyActivity; track month.month) {
+        <div class="bar-wrapper">
+          <div 
+            class="bar" 
+            [style.height.%]="(month.count / getMaxMonthlyCount()) * 100">
+          </div>
+          <span class="bar-label">{{ month.month }}</span>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Category Distribution -->
+  <section class="distribution-section">
+    <h2>
+      <lucide-icon [img]="CalendarIcon" [size]="20"></lucide-icon>
+      Category Distribution
+    </h2>
+    <div class="distribution-bars">
+      @for (cat of getCategoryStats(); track cat.name) {
+        @if (cat.count > 0) {
+          <div class="dist-bar">
+            <div class="dist-label">
+              <span>{{ cat.name }}</span>
+              <span class="dist-value">{{ cat.count }}</span>
+            </div>
+            <div class="dist-progress">
+              <div 
+                class="dist-fill" 
+                [style.width.%]="(cat.count / stats().totalAnime) * 100"
+                [style.background]="cat.color">
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </section>
+
+  <!-- Top Genres -->
+  <section class="genres-section">
+    <h2>Favorite Genres</h2>
+    <div class="genre-bars">
+      @for (genre of stats().favoriteGenres; track genre.name) {
+        <div class="genre-bar">
+          <span class="genre-name">{{ genre.name }}</span>
+          <div class="genre-progress">
+            <div 
+              class="genre-fill" 
+              [style.width.%]="(genre.count / stats().favoriteGenres[0].count) * 100">
+            </div>
+          </div>
+          <span class="genre-count">{{ genre.count }}</span>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Top Rated Anime -->
+  @if (stats().topRated.length > 0) {
+    <section class="anime-grid-section">
+      <h2>Top Rated</h2>
+      <div class="anime-grid">
+        @for (anime of stats().topRated; track anime.id) {
+          <div class="anime-card">
+            <img [src]="anime.coverImage" [alt]="anime.title">
+            <div class="anime-overlay">
+              <h3>{{ anime.title }}</h3>
+              <div class="anime-score">
+                <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
+                {{ anime.score }}
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Recently Completed -->
+  @if (stats().recentlyCompleted.length > 0) {
+    <section class="anime-grid-section">
+      <h2>Recently Completed</h2>
+      <div class="anime-grid">
+        @for (anime of stats().recentlyCompleted; track anime.id) {
+          <div class="anime-card">
+            <img [src]="anime.coverImage" [alt]="anime.title">
+            <div class="anime-overlay">
+              <h3>{{ anime.title }}</h3>
+              @if (anime.score > 0) {
+                <div class="anime-score">
+                  <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
+                  {{ anime.score }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Completion Rate -->
+  <section class="completion-section">
+    <h2>Completion Rate</h2>
+    <div class="completion-card">
+      <div class="completion-circle">
+        <svg viewBox="0 0 120 120" width="120" height="120">
+          <circle 
+            cx="60" cy="60" r="50" 
+            fill="none" 
+            stroke="var(--app-surface-light)" 
+            stroke-width="10">
+          </circle>
+          <circle 
+            cx="60" cy="60" r="50" 
+            fill="none" 
+            stroke="var(--app-primary)" 
+            stroke-width="10"
+            stroke-linecap="round"
+            [attr.stroke-dasharray]="314.16"
+            [attr.stroke-dashoffset]="314.16 - (314.16 * getCompletionPercentage() / 100)"
+            transform="rotate(-90 60 60)">
+          </circle>
+        </svg>
+        <div class="completion-text">
+          <span class="percentage">{{ getCompletionPercentage() }}%</span>
+          <span class="label">Complete</span>
+        </div>
+      </div>
+      <div class="completion-stats">
+        <div class="stat">
+          <span class="stat-value">{{ stats().totalCompleted }}</span>
+          <span class="stat-label">Completed</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ stats().totalAnime - stats().totalCompleted }}</span>
+          <span class="stat-label">In Progress</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Studio Stats -->
+  <section class="studios-section">
+    <h2>Anime by Studio</h2>
+    <div class="studio-bars">
+      @for (studio of getStudioStats(); track studio.name) {
+        <div class="studio-bar">
+          <span class="studio-name">{{ studio.name }}</span>
+          <div class="studio-progress">
+            <div 
+              class="studio-fill" 
+              [style.width.%]="(studio.count / (getStudioStats()[0]?.count ?? 1)) * 100">
+            </div>
+          </div>
+          <span class="studio-count">{{ studio.count }}</span>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- All Watched Anime -->
+  @if (getAllWatchedAnime().length > 0) {
+    <section class="all-watched-section">
+      <h2>
+        All Anime Watched
+        <span class="count-badge">{{ getAllWatchedAnime().length }}</span>
+      </h2>
+      <div class="all-watched-grid">
+        @for (anime of getAllWatchedAnime(); track anime.id) {
+          <div class="watched-card">
+            <img [src]="anime.coverImage" [alt]="anime.title">
+            <div class="watched-overlay">
+              <h3>{{ anime.title }}</h3>
+              <div class="watched-info">
+                <span class="episodes">{{ anime.episodesWatched }}/{{ anime.totalEpisodes || '?' }} eps</span>
+                @if (anime.score > 0) {
+                  <span class="score">
+                    <lucide-icon [img]="StarIcon" [size]="12"></lucide-icon>
+                    {{ anime.score }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+</div>

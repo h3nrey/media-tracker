@@ -19,6 +19,10 @@
       <lucide-icon [name]="FilmIcon" [size]="18"></lucide-icon>
       <span>Browse</span>
     </a>
+    <a class="nav-btn" routerLink="/stats" title="Stats & Recap">
+      <lucide-icon [name]="BarChartIcon" [size]="18"></lucide-icon>
+      <span>Stats</span>
+    </a>
 
     <div class="dropdown-wrapper">
       <button class="nav-btn" (click)="toogleTools()" [class.active]="showToolsDropdown()">
