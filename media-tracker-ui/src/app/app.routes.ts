@@ -26,6 +26,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/recommendation/recommendation.component').then(m => m.RecommendationComponent)
   },
   {
+    path: 'browse',
+    loadComponent: () => import('./pages/browse/browse.component').then(m => m.BrowseComponent)
+  },
+  {
     path: 'lists',
     loadComponent: () => import('./pages/lists/lists').then(m => m.Lists)
   },

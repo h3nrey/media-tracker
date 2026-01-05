@@ -1,16 +1,66 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, map, of, debounceTime, firstValueFrom } from 'rxjs';
+import { Observable, catchError, map, of, debounceTime, firstValueFrom, delay, switchMap } from 'rxjs';
 import { JikanAnimeSearchResponse, JikanAnime } from '../models/mal-anime.model';
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class MalService {
   private readonly JIKAN_API_BASE = 'https://api.jikan.moe/v4';
-  private readonly RATE_LIMIT_DELAY = 1000; // Jikan has rate limits
+  private readonly RATE_LIMIT_DELAY = 1000; // Jikan has rate limits (1 request per second)
+  private readonly CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+  
+  private cache = new Map<string, CacheEntry<any>>();
+  private lastRequestTime = 0;
 
   constructor(private http: HttpClient) {}
+
+  /**
+   * Clear all cached data
+   */
+  clearCache(): void {
+    this.cache.clear();
+    console.log('Jikan API cache cleared');
+  }
+
+  /**
+   * Get cached data or fetch from API
+   */
+  private getCachedOrFetch<T>(cacheKey: string, fetchFn: () => Observable<T>): Observable<T> {
+    const cached = this.cache.get(cacheKey);
+    const now = Date.now();
+
+    // Return cached data if valid
+    if (cached && (now - cached.timestamp) < this.CACHE_TTL) {
+      console.log(`Using cached data for: ${cacheKey}`);
+      return of(cached.data);
+    }
+
+    // Enforce rate limiting
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    const delayNeeded = Math.max(0, this.RATE_LIMIT_DELAY - timeSinceLastRequest);
+
+    console.log(`Fetching fresh data for: ${cacheKey} (delay: ${delayNeeded}ms)`);
+
+    return of(null).pipe(
+      delay(delayNeeded),
+      map(() => {
+        this.lastRequestTime = Date.now();
+      }),
+      switchMap(() => fetchFn()),
+      map((data: T) => {
+        this.cache.set(cacheKey, { data, timestamp: Date.now() });
+        return data;
+      })
+    );
+  }
+
 
   /**
    * Search anime by title using Jikan API
@@ -64,29 +114,34 @@ export class MalService {
   /**
    * Get filtered anime recommendations
    */
-  getRecommendations(params: { genres?: number[], startDate?: string, endDate?: string, status?: string }): Observable<JikanAnime[]> {
-    let url = `${this.JIKAN_API_BASE}/anime?sfw=true&order_by=score&sort=desc&limit=20`;
+  getRecommendations(params: { genres?: number[], startDate?: string, endDate?: string, status?: string, limit?: number }): Observable<JikanAnime[]> {
+    const cacheKey = `recommendations_${JSON.stringify(params)}`;
     
-    if (params.genres && params.genres.length > 0) {
-      url += `&genres=${params.genres.join(',')}`;
-    }
-    if (params.startDate) {
-      url += `&start_date=${params.startDate}`;
-    }
-    if (params.endDate) {
-      url += `&end_date=${params.endDate}`;
-    }
-    if (params.status) {
-      url += `&status=${params.status}`;
-    }
+    return this.getCachedOrFetch(cacheKey, () => {
+      const limit = params.limit || 20;
+      let url = `${this.JIKAN_API_BASE}/anime?sfw=true&order_by=score&sort=desc&limit=${limit}`;
+      
+      if (params.genres && params.genres.length > 0) {
+        url += `&genres=${params.genres.join(',')}`;
+      }
+      if (params.startDate) {
+        url += `&start_date=${params.startDate}`;
+      }
+      if (params.endDate) {
+        url += `&end_date=${params.endDate}`;
+      }
+      if (params.status) {
+        url += `&status=${params.status}`;
+      }
 
-    return this.http.get<JikanAnimeSearchResponse>(url).pipe(
-      map(response => response.data),
-      catchError(error => {
-        console.error('Error fetching recommendations:', error);
-        return of([]);
-      })
-    );
+      return this.http.get<JikanAnimeSearchResponse>(url).pipe(
+        map(response => response.data),
+        catchError(error => {
+          console.error('Error fetching recommendations:', error);
+          return of([]);
+        })
+      );
+    });
   }
 
   /**

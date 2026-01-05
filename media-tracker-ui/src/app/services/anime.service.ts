@@ -82,6 +82,10 @@ export class AnimeService {
     return await db.anime.where('supabaseId').equals(supabaseId).first();
   }
 
+  getAnimeByMalId(malId: number): Observable<Anime | undefined> {
+    return from(liveQuery(() => db.anime.where('malId').equals(malId).first()));
+  }
+
   async addAnime(anime: Omit<Anime, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();
     const id = await db.anime.add({

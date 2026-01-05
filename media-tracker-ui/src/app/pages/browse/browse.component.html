@@ -1,0 +1,182 @@
+<div class="browse-page">
+  <!-- Featured Hero Carousel -->
+  <section class="hero-section">
+    @if (currentFeatured; as featured) {
+      <div class="hero-backdrop" 
+           [class.transitioning]="isTransitioning()"
+           [style.background-image]="'url(' + (featured.bannerImage || featured.images?.jpg?.large_image_url) + ')'">
+        <div class="hero-gradient"></div>
+      </div>
+      
+      <div class="hero-content" [class.transitioning]="isTransitioning()">
+        <div class="hero-info">
+          <h1 class="hero-title">{{ featured.title_english || featured.title }}</h1>
+          
+          <div class="hero-meta">
+            @if (featured.score) {
+              <span class="meta-item">
+                <lucide-icon [img]="StarIcon" [size]="16"></lucide-icon>
+                {{ featured.score }}
+              </span>
+            }
+            @if (featured.year) {
+              <span class="meta-item">{{ featured.year }}</span>
+            }
+            @if (featured.type) {
+              <span class="meta-item">{{ featured.type }}</span>
+            }
+          </div>
+
+          @if (featured.synopsis) {
+            <p class="hero-synopsis">{{ featured.synopsis }}</p>
+          }
+
+          <div class="hero-genres">
+            @for (genre of (featured.genres || []).slice(0, 3); track genre.mal_id) {
+              <span class="genre-badge">{{ genre.name }}</span>
+            }
+          </div>
+
+          <div class="hero-actions">
+            <button class="hero-btn primary" (click)="viewAnimeDetails(featured)">
+              <lucide-icon [img]="SparklesIcon" [size]="18"></lucide-icon>
+              <span>View Details</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Carousel Controls -->
+        <div class="carousel-controls">
+          <button class="carousel-btn" (click)="prevFeatured()" [disabled]="isTransitioning()">
+            <lucide-icon [img]="ChevronLeftIcon" [size]="20"></lucide-icon>
+          </button>
+          
+          <div class="carousel-dots">
+            @for (anime of featuredAnimeList(); track $index) {
+              <button 
+                class="dot" 
+                [class.active]="currentFeaturedIndex() === $index"
+                [disabled]="isTransitioning()"
+                (click)="selectFeatured($index)">
+              </button>
+            }
+          </div>
+          
+          <button class="carousel-btn" (click)="nextFeatured()" [disabled]="isTransitioning()">
+            <lucide-icon [img]="ChevronRightIcon" [size]="20"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    } @else if (isLoadingFeatured()) {
+      <div class="hero-loading">
+        <div class="spinner"></div>
+      </div>
+    }
+  </section>
+
+  <!-- Scrollable Sections -->
+  <div class="sections-container">
+    <!-- Refresh Button -->
+    <div class="refresh-section">
+      <button class="refresh-btn" (click)="refreshBrowse()" title="Clear cache and reload">
+        <lucide-icon [img]="RefreshIcon" [size]="18"></lucide-icon>
+        <span>Refresh Content</span>
+      </button>
+      <p class="cache-hint">Data is cached for 2 hours. Use this to force refresh.</p>
+    </div>
+
+    @for (section of sections(); track $index) {
+      <section class="anime-section section-{{$index}}">
+        <div class="section-header">
+          <div class="section-title-group">
+            <lucide-icon [img]="section.icon" [size]="20" class="section-icon"></lucide-icon>
+            <div>
+              <h2>{{ section.title }}</h2>
+              @if (section.subtitle) {
+                <p class="section-subtitle">{{ section.subtitle }}</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        @if (section.isLoading) {
+          <div class="section-loading">
+            <div class="loading-cards">
+              @for (i of [1,2,3,4,5,6,7,8]; track i) {
+                <div class="skeleton-card"></div>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="items-wrapper">
+            <button class="scroll-btn left" (click)="scrollSection($index, 'left')">
+              <lucide-icon [img]="ChevronLeftIcon" [size]="24"></lucide-icon>
+            </button>
+            
+            <div class="items-scroller">
+              @for (anime of section.items; track anime.mal_id) {
+                <div class="anime-card">
+                  <div class="card-image-wrapper" (click)="viewAnimeDetails(anime)">
+                    <img 
+                      [src]="anime.images?.webp?.large_image_url || anime.images?.jpg?.large_image_url" 
+                      [alt]="anime.title"
+                      class="card-image">
+                    
+                    <!-- MAL Score Badge -->
+                    @if (anime.score) {
+                      <div class="score-badge">
+                        <lucide-icon [img]="StarIcon" [size]="12"></lucide-icon>
+                        {{ anime.score }}
+                      </div>
+                    }
+
+                    <!-- Quick Add Button -->
+                    <button 
+                      class="quick-add-btn" 
+                      [class.added]="isAnimeAdded(anime.mal_id)"
+                      (click)="quickAddAnime(anime, $event)"
+                      [title]="isAnimeAdded(anime.mal_id) ? 'Added to library' : 'Add to Plan to Watch'">
+                      <lucide-icon 
+                        [img]="isAnimeAdded(anime.mal_id) ? CheckIcon : BookmarkIcon" 
+                        [size]="16">
+                      </lucide-icon>
+                    </button>
+
+                    <!-- Category Selection Tooltip -->
+                    @if (showCategoryTooltip() === anime.mal_id) {
+                      <div class="category-tooltip" (click)="$event.stopPropagation()">
+                        <div class="tooltip-header">
+                          <span>Move to:</span>
+                          <button class="close-tooltip" (click)="closeTooltip()">
+                            <lucide-icon [img]="XIcon" [size]="12"></lucide-icon>
+                          </button>
+                        </div>
+                        <div class="category-list">
+                          @for (cat of categories(); track cat.id) {
+                            <button 
+                              class="category-option"
+                              (click)="changeAnimeCategory(anime, cat, $event)">
+                              {{ cat.name }}
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                  <div class="card-info">
+                    <h3 class="card-title">{{ anime.title_english || anime.title }}</h3>
+                    <p class="card-meta">{{ anime.year || 'N/A' }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <button class="scroll-btn right" (click)="scrollSection($index, 'right')">
+              <lucide-icon [img]="ChevronRightIcon" [size]="24"></lucide-icon>
+            </button>
+          </div>
+        }
+      </section>
+    }
+  </div>
+</div>

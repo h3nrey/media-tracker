@@ -1,7 +1,6 @@
 .recommendation-page {
   min-height: calc(100vh - 70px);
-  background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.03), transparent),
-              radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.03), transparent);
+  background: var(--app-bg);
   padding: 1.5rem 1rem;
 }
 

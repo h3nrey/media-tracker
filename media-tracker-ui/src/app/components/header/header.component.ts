@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Plus, Monitor, Layers, FileUp, RefreshCw, History, Settings, ChevronDown, Package, Sparkles } from 'lucide-angular';
+import { LucideAngularModule, Plus, Monitor, Layers, FileUp, RefreshCw, History, Settings, ChevronDown, Package, Sparkles, Film } from 'lucide-angular';
 
 @Component({
   selector: 'app-header',
@@ -30,6 +30,7 @@ export class HeaderComponent {
   readonly ChevronDownIcon = ChevronDown;
   readonly ToolsIcon = Package;
   readonly SparklesIcon = Sparkles;
+  readonly FilmIcon = Film;
 
   toogleTools() {
     this.showToolsDropdown.update(v => !v);
