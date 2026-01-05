@@ -7,11 +7,12 @@ import { WatchSourceService } from '../../services/watch-source.service';
 import { WatchSource } from '../../models/watch-source.model';
 import { DialogService } from '../../services/dialog.service';
 import { getScoreColorClass } from '../../utils/anime-utils';
+import { AnimeReviewsComponent } from '../anime-reviews/anime-reviews.component';
 
 @Component({
   selector: 'app-anime-details-dialog',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, AnimeReviewsComponent],
   templateUrl: './anime-details-dialog.component.html',
   styleUrl: './anime-details-dialog.component.scss'
 })

@@ -1,0 +1,190 @@
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dialog-content {
+  background: var(--app-surface);
+  border-radius: 24px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40px) scale(0.95); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.review-page-header {
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--app-border);
+  background: var(--app-surface-light);
+
+  .anime-context {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .small-cover {
+      width: 40px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .context-text {
+      display: flex;
+      flex-direction: column;
+      
+      .context-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--app-text-muted);
+        font-weight: 800;
+      }
+
+      .anime-name {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--app-text-primary);
+      }
+    }
+  }
+
+  .close-btn {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    color: var(--app-text-secondary);
+    cursor: pointer;
+    padding: 0.6rem;
+    display: flex;
+    align-items: center;
+    border-radius: 12px;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--app-surface-hover);
+      color: var(--app-text-primary);
+      border-color: var(--app-primary);
+      transform: rotate(90deg);
+    }
+  }
+}
+
+.review-detail-body {
+  padding: 3rem;
+  overflow-y: auto;
+  position: relative;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--app-border);
+    border-radius: 10px;
+  }
+}
+
+.review-hero {
+  margin-bottom: 3rem;
+  text-align: center;
+
+  .review-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--app-text-primary);
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    font-family: var(--app-font-emphasis);
+    background: linear-gradient(135deg, var(--app-text-primary) 0%, var(--app-text-secondary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .review-meta-row {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--app-text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+
+      lucide-icon {
+        color: var(--app-primary);
+      }
+    }
+  }
+}
+
+.review-text-container {
+  position: relative;
+  
+  .quote-decoration {
+    position: absolute;
+    top: -1.5rem;
+    left: -1rem;
+    opacity: 0.1;
+    color: var(--app-primary);
+    z-index: 0;
+  }
+
+  .review-body {
+    position: relative;
+    z-index: 1;
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: var(--app-text-secondary);
+    white-space: pre-wrap;
+    margin: 0;
+  }
+}
+
+.loading-state {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--app-border);
+    border-top-color: var(--app-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

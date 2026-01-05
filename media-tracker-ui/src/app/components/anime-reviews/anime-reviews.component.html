@@ -1,0 +1,60 @@
+<div class="reviews-section">
+  <div class="section-header">
+    <div class="title-with-icon">
+      <lucide-icon [img]="ReviewIcon" [size]="18"></lucide-icon>
+      <h3>Reviews</h3>
+    </div>
+    <button class="add-review-btn" (click)="toggleAdd()" [class.active]="isAddingReview()" [disabled]="!supabaseId()">
+      <lucide-icon [img]="isAddingReview() ? TrashIcon : PlusIcon" [size]="16"></lucide-icon>
+      <span>{{ !supabaseId() ? 'Syncing...' : (isAddingReview() ? 'Cancel' : 'Write Review') }}</span>
+    </button>
+  </div>
+
+  @if (isAddingReview()) {
+    <div class="review-form seamless">
+      <div class="form-group">
+        <textarea 
+          [(ngModel)]="newText" 
+          placeholder="First line is your title (auto-bolded)...&#10;Write your review here"
+          rows="10">
+        </textarea>
+      </div>
+      <div class="form-actions">
+        <button class="save-btn" (click)="saveReview()">
+          {{ editingReview() ? 'Update' : 'Post Review' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <div class="reviews-grid">
+    @for (review of reviews(); track review.id) {
+       @let parts = getParts(review.review_text);
+      <div class="review-card" (click)="openReview(review.id)">
+        <div class="review-header">
+          <div class="review-meta">
+            <span class="review-date">{{ review.created_at | date:'mediumDate' }}</span>
+            <div class="review-actions">
+              <button (click)="editReview(review); $event.stopPropagation()" title="Edit">
+                <lucide-icon [img]="EditIcon" [size]="14"></lucide-icon>
+              </button>
+              <button (click)="deleteReview(review.id); $event.stopPropagation()" title="Delete" class="delete">
+                <lucide-icon [img]="TrashIcon" [size]="14"></lucide-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="review-content">
+          <h4 class="review-title">{{ parts.title }}</h4>
+          <p class="review-body">{{ parts.body }}</p>
+        </div>
+      </div>
+    } @empty {
+      @if (!isAddingReview()) {
+        <div class="empty-reviews">
+          <p>No reviews yet. Share your thoughts!</p>
+        </div>
+      }
+    }
+  </div>
+</div>

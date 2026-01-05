@@ -39,6 +39,10 @@
               </app-anime-history>
             </div>
           </div>
+
+          <div class="reviews-wrapper">
+            <app-anime-reviews [supabaseId]="anime()?.supabaseId"></app-anime-reviews>
+          </div>
         </div>
       </div>
     </div>

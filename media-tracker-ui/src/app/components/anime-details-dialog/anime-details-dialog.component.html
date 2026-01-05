@@ -160,6 +160,8 @@
                 <p class="notes-text">{{ anime()!.notes }}</p>
               </div>
             }
+
+            <app-anime-reviews [supabaseId]="anime()?.supabaseId"></app-anime-reviews>
           </div>
         </div>
       </div>

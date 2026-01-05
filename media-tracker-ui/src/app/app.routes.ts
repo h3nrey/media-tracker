@@ -34,6 +34,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/animes-details/animes-details').then(m => m.AnimesDetailsComponent)
   },
   {
+    path: 'anime/:animeId/reviews/:id',
+    loadComponent: () => import('./pages/review-detail/review-detail.component').then(m => m.ReviewDetailComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }
