@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { AnimeService } from '../../services/anime.service';
 import { CategoryService } from '../../services/status.service';
 import { ListService } from '../../services/list.service';
@@ -24,10 +24,8 @@ import { LucideAngularModule } from 'lucide-angular';
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink,
     AnimeListsComponent,
     AnimeHistoryComponent,
-    AnimeLinksComponent,
     AnimeSidebarComponent,
     AnimeInfoComponent,
     AnimeReviewsComponent,

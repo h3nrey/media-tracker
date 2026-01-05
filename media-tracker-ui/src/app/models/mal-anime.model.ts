@@ -81,4 +81,5 @@ export interface JikanAnime {
     url: string;
   }>;
   year?: number;
+  synopsis?: string;
 }

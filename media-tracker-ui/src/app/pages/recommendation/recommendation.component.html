@@ -1,0 +1,162 @@
+<div class="recommendation-page">
+  <div class="page-container">
+    <header class="page-header">
+      <div class="title-group">
+        <div class="icon-orb">
+          <lucide-icon [img]="SparklesIcon" [size]="24"></lucide-icon>
+        </div>
+        <div>
+          <h1>Anime Discovery</h1>
+          <p>Find your next obsession</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="discovery-grid">
+      <!-- Filters Section -->
+      <aside class="filters-card">
+        <div class="card-header">
+          <lucide-icon [img]="FilterIcon" [size]="16"></lucide-icon>
+          <h2>Filters</h2>
+        </div>
+
+        <div class="filter-groups">
+          <div class="filter-group">
+            <label>Source</label>
+            <div class="source-toggle">
+              <button 
+                [class.active]="source() === 'jikan'" 
+                (click)="source.set('jikan')"
+                title="External">
+                <lucide-icon [img]="GlobeIcon" [size]="14"></lucide-icon>
+                <span>Jikan</span>
+              </button>
+              <button 
+                [class.active]="source() === 'backlog'" 
+                (click)="source.set('backlog')"
+                title="Backlog">
+                <lucide-icon [img]="BookIcon" [size]="14"></lucide-icon>
+                <span>Backlog</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <label>Era</label>
+            <ui-select 
+              [options]="eraOptions()" 
+              [(value)]="selectedDecadeValue" 
+              placeholder="Any Era">
+            </ui-select>
+          </div>
+
+          <div class="filter-group">
+            <label>Genres</label>
+            
+            @if (getSelectedGenreObjects().length > 0) {
+              <div class="selected-genres-list">
+                @for (genre of getSelectedGenreObjects(); track genre.mal_id) {
+                  <button class="genre-chip active" (click)="toggleGenre(genre.mal_id)">
+                    <lucide-icon [img]="getGenreIcon(genre.name)" [size]="12"></lucide-icon>
+                    {{ genre.name }}
+                    <lucide-icon [img]="XIcon" [size]="10" class="remove-icon"></lucide-icon>
+                  </button>
+                }
+              </div>
+            }
+
+            <div class="genres-grid">
+              @for (genre of getUnselectedGenres(); track genre.mal_id) {
+                <button 
+                  class="genre-chip" 
+                  (click)="toggleGenre(genre.mal_id)">
+                  <lucide-icon [img]="getGenreIcon(genre.name)" [size]="12"></lucide-icon>
+                  {{ genre.name }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <button class="generate-btn" (click)="getRecommendation()" [disabled]="isLoading()">
+          <lucide-icon [img]="isLoading() ? RefreshIcon : SparklesIcon" [size]="16" [class.spinning]="isLoading()"></lucide-icon>
+          <span>{{ isLoading() ? 'Finding...' : 'Surprise Me!' }}</span>
+        </button>
+      </aside>
+
+      <!-- Result Section -->
+      <main class="result-area">
+        @if (recommendedAnime()) {
+          @let anime = recommendedAnime();
+          <div class="recommendation-card" [class.animate-in]="recommendedAnime()">
+            <div class="anime-hero">
+              <img [src]="anime.coverImage || anime.images?.webp?.large_image_url" [alt]="anime.title" class="hero-image">
+              <div class="hero-overlay">
+                <div class="meta-badges">
+                  <span class="score-badge" *ngIf="anime.score">
+                    ⭐ {{ anime.score }}
+                  </span>
+                  <span class="year-badge">
+                    {{ anime.releaseYear || anime.year }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="anime-details">
+              <h1>{{ anime.title }}</h1>
+              
+              <div class="genres-list">
+                @for (genre of (anime.genres || []); track genre) {
+                  <span class="genre-tag">
+                    <lucide-icon [img]="getGenreIcon(genre.name || genre)" [size]="10"></lucide-icon>
+                    {{ genre.name || genre }}
+                  </span>
+                }
+              </div>
+
+              <div class="synopsis" *ngIf="anime.synopsis">
+                <p>{{ anime.synopsis }}</p>
+              </div>
+
+              <div class="card-footer-actions">
+                <div class="category-selector-wrapper">
+                  <lucide-icon [img]="LayersIcon" [size]="14"></lucide-icon>
+                  <select [(ngModel)]="selectedCategory" class="inline-select">
+                    @for (cat of categories(); track cat.id) {
+                      <option [ngValue]="cat">{{ cat.name }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="footer-buttons">
+                  <button class="primary-action" (click)="addToLibrary()">
+                    <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
+                    <span>Add to {{ selectedCategory()?.name }}</span>
+                  </button>
+                  <button class="secondary-action" (click)="getRecommendation()" title="Try Another">
+                    <lucide-icon [img]="RefreshIcon" [size]="16"></lucide-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        } @else if (isLoading()) {
+          <div class="placeholder-state loading">
+            <div class="magic-spinner">
+              <lucide-icon [img]="SparklesIcon" [size]="40"></lucide-icon>
+            </div>
+            <h2>Magic happens...</h2>
+          </div>
+        } @else {
+          <div class="placeholder-state">
+            <div class="icon-bounce">
+              <lucide-icon [img]="SearchIcon" [size]="48"></lucide-icon>
+            </div>
+            <h2>Ready?</h2>
+            <p>Pick your filters and click "Surprise Me!"</p>
+          </div>
+        }
+      </main>
+    </div>
+  </div>
+</div>

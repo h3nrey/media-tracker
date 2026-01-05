@@ -1,0 +1,46 @@
+<div class="dialog-overlay" (click)="close()">
+  <div class="dialog-content" (click)="$event.stopPropagation()">
+    
+    @if (review()) {
+      @let parts = getParts(review()!.review_text);
+      @let a = anime();
+
+      <div class="review-page-header">
+        <div class="anime-context" *ngIf="a">
+          <img [src]="a.coverImage" [alt]="a.title" class="small-cover">
+          <div class="context-text">
+            <span class="context-label">Reviewing</span>
+            <span class="anime-name">{{ a.title }}</span>
+          </div>
+        </div>
+        <button class="close-btn" (click)="close()">
+          <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="review-detail-body">
+        <div class="review-hero">
+          <h1 class="review-title">{{ parts.title }}</h1>
+          <div class="review-meta-row">
+            <div class="meta-item">
+              <lucide-icon [img]="CalendarIcon" [size]="14"></lucide-icon>
+              <span>{{ review()!.created_at | date:'longDate' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-text-container">
+          <div class="quote-decoration">
+            <lucide-icon [img]="QuoteIcon" [size]="40"></lucide-icon>
+          </div>
+          <p class="review-body">{{ parts.body }}</p>
+        </div>
+      </div>
+    } @else {
+      <div class="loading-state">
+        <div class="spinner"></div>
+      </div>
+    }
+
+  </div>
+</div>

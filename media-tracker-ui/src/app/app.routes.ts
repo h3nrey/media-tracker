@@ -22,6 +22,10 @@ export const routes: Routes = [
     component: MobileSourcesComponent
   },
   {
+    path: 'recommendation',
+    loadComponent: () => import('./pages/recommendation/recommendation.component').then(m => m.RecommendationComponent)
+  },
+  {
     path: 'lists',
     loadComponent: () => import('./pages/lists/lists').then(m => m.Lists)
   },

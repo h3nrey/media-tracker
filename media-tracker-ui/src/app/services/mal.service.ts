@@ -48,6 +48,62 @@ export class MalService {
   }
 
   /**
+   * Get random anime from Jikan
+   */
+  getRandomAnime(): Observable<JikanAnime | null> {
+    const url = `${this.JIKAN_API_BASE}/random/anime`;
+    return this.http.get<{ data: JikanAnime }>(url).pipe(
+      map(response => response.data),
+      catchError(error => {
+        console.error('Error fetching random anime:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Get filtered anime recommendations
+   */
+  getRecommendations(params: { genres?: number[], startDate?: string, endDate?: string, status?: string }): Observable<JikanAnime[]> {
+    let url = `${this.JIKAN_API_BASE}/anime?sfw=true&order_by=score&sort=desc&limit=20`;
+    
+    if (params.genres && params.genres.length > 0) {
+      url += `&genres=${params.genres.join(',')}`;
+    }
+    if (params.startDate) {
+      url += `&start_date=${params.startDate}`;
+    }
+    if (params.endDate) {
+      url += `&end_date=${params.endDate}`;
+    }
+    if (params.status) {
+      url += `&status=${params.status}`;
+    }
+
+    return this.http.get<JikanAnimeSearchResponse>(url).pipe(
+      map(response => response.data),
+      catchError(error => {
+        console.error('Error fetching recommendations:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Get all anime genres from Jikan
+   */
+  getGenres(): Observable<any[]> {
+    const url = `${this.JIKAN_API_BASE}/genres/anime`;
+    return this.http.get<{ data: any[] }>(url).pipe(
+      map(response => response.data),
+      catchError(error => {
+        console.error('Error fetching genres:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
    * Fetch banner image from AniList using MAL ID
    */
   async getBannerFromAnilist(malId: number): Promise<string | null> {
@@ -75,7 +131,6 @@ export class MalService {
    * Convert Jikan anime to our local anime format (helper)
    */
   convertJikanToAnime(jikanAnime: JikanAnime, statusId: number) {
-    // ... logic remains same but we might want to augment it later
     return {
       title: jikanAnime.title_english || jikanAnime.title,
       coverImage: jikanAnime.images.webp.large_image_url || jikanAnime.images.jpg.large_image_url,
