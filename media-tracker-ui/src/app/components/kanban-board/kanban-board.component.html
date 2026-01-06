@@ -10,13 +10,13 @@
           <div class="column-header" [style.border-color]="column.category.color">
             <div class="header-left">
               <h2>{{ column.category.name }}</h2>
-              <span class="count">{{ column.anime.length }}</span>
+              <span class="count">{{ column.media.length }}</span>
             </div>
             <button 
               class="add-column-btn" 
               [style.background]="column.category.color"
               (click)="openAddDialog(column.category.id!)"
-              title="Add anime to {{ column.category.name }}"
+              title="Add media to {{ column.category.name }}"
             >
               <span class="add-icon">+</span>
             </button>
@@ -26,23 +26,23 @@
             class="anime-list"
             cdkDropList
             [id]="'column-' + $index"
-            [cdkDropListData]="column.anime"
+            [cdkDropListData]="column.media"
             [cdkDropListConnectedTo]="getConnectedLists()"
             [cdkDropListAutoScrollDisabled]="false"
             cdkDropListOrientation="vertical"
             (cdkDropListDropped)="onDrop($event, column.category.id!)"
           >
-            @for (anime of column.anime; track trackByAnimeId($index, anime)) {
+            @for (media of column.media; track trackByMediaId($index, media)) {
               <app-kanban-anime-card 
-                [anime]="anime"
-                (click)="animeClick.emit(anime)"
+                [anime]="media"
+                (click)="animeClick.emit(media)"
                 (edit)="onEdit($event)"
                 (delete)="onDelete($event)"
                 (increment)="onIncrement($event)"
               ></app-kanban-anime-card>
             } @empty {
               <div class="empty-column">
-                <p>No anime in this category</p>
+                <p>No media in this category</p>
               </div>
             }
           </div>

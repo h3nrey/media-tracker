@@ -1,4 +1,4 @@
-<div class="anime-card" cdkDrag [routerLink]="['/anime', anime.id]">
+<div class="anime-card" cdkDrag [routerLink]="['/media', anime.id]">
   <div class="card-actions">
     <button class="menu-btn" (click)="toggleMenu($event)">
       <lucide-icon [img]="MoreVerticalIcon" [size]="16"></lucide-icon>
@@ -35,7 +35,7 @@
         <div class="studio-name">{{ anime.studios[0] }}</div>
       }
       <div class="meta">
-        <span>{{ anime.episodesWatched }} / {{ anime.totalEpisodes || '?' }}</span>
+        <span>{{ anime.progress_current }} / {{ anime.progress_total || '?' }}</span>
         @if (anime.score > 0) {
           <span class="score" [ngClass]="getScoreColorClass(anime.score)">
             <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
@@ -52,7 +52,7 @@
       }
     </div>
   </div>
-  @if (!anime.totalEpisodes || anime.episodesWatched < anime.totalEpisodes) {
+  @if (!anime.progress_total || anime.progress_current < anime.progress_total) {
     <button class="track-btn" (click)="onIncrement($event)">
       <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
     </button>

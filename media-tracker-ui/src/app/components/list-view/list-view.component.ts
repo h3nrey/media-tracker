@@ -1,8 +1,10 @@
 import { Component, inject, signal, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AnimeService } from '../../services/anime.service';
+import { combineLatest } from 'rxjs';
+import { MediaService } from '../../services/media.service';
 import { CategoryService } from '../../services/status.service';
-import { Anime } from '../../models/anime.model';
+import { MediaTypeStateService } from '../../services/media-type-state.service';
+import { MediaItem } from '../../models/media-type.model';
 import { Category } from '../../models/status.model';
 import { LucideAngularModule, Plus, ChevronDown, ChevronUp } from 'lucide-angular';
 import { SelectComponent } from '../ui/select/select';
@@ -15,11 +17,12 @@ import { SelectComponent } from '../ui/select/select';
   styleUrl: './list-view.component.scss'
 })
 export class ListViewComponent {
-  private animeService = inject(AnimeService);
+  private mediaService = inject(MediaService);
   private categoryService = inject(CategoryService);
+  private mediaTypeState = inject(MediaTypeStateService);
 
-  @Output() animeClick = new EventEmitter<Anime>();
-  @Output() editAnime = new EventEmitter<Anime>();
+  @Output() animeClick = new EventEmitter<MediaItem>();
+  @Output() editAnime = new EventEmitter<MediaItem>();
   @Output() addAnimeToCategory = new EventEmitter<number>();
 
   readonly PlusIcon = Plus;
@@ -27,7 +30,7 @@ export class ListViewComponent {
   readonly ChevronUpIcon = ChevronUp;
 
   categories = signal<Category[]>([]);
-  animeByCategory = signal<Map<number, Anime[]>>(new Map());
+  mediaByCategory = signal<Map<number, MediaItem[]>>(new Map());
   collapsedSections = new Set<number>(); // Track collapsed categories
   
   // Year filter
@@ -54,32 +57,35 @@ export class ListViewComponent {
   }
 
   loadData() {
-    this.categoryService.getAllCategories$().subscribe(categories => {
+    combineLatest([
+      this.categoryService.getAllCategories$(),
+      this.mediaTypeState.getSelectedMediaType$()
+    ]).subscribe(([categories, selectedType]) => {
       this.categories.set(categories);
       
-      // Load anime for each category
-      const animeMap = new Map<number, Anime[]>();
+      // Load media for each category
+      const mediaMap = new Map<number, MediaItem[]>();
       
       categories.forEach(category => {
-        this.animeService.getAnimeByStatus$(category.id!).subscribe(anime => {
-          animeMap.set(category.id!, anime);
-          this.animeByCategory.set(new Map(animeMap));
+        this.mediaService.getMediaByStatus$(category.id!, selectedType).subscribe(media => {
+          mediaMap.set(category.id!, media);
+          this.mediaByCategory.set(new Map(mediaMap));
         });
       });
     });
   }
 
-  getAnimeForCategory(categoryId: number): Anime[] {
-    const allAnime = this.animeByCategory().get(categoryId) || [];
+  getMediaForCategory(categoryId: number): MediaItem[] {
+    const allMedia = this.mediaByCategory().get(categoryId) || [];
     const year = this.selectedYear();
     
     if (year === 'all') {
-      return allAnime;
+      return allMedia;
     }
     
     // Filter by year
     const yearNum = parseInt(year);
-    return allAnime.filter(anime => anime.releaseYear === yearNum);
+    return allMedia.filter(m => m.releaseYear === yearNum);
   }
 
   toggleSection(categoryId: number) {
@@ -98,16 +104,16 @@ export class ListViewComponent {
     this.selectedYear.set(year);
   }
 
-  onAnimeClick(anime: Anime) {
-    this.animeClick.emit(anime);
+  onMediaClick(media: MediaItem) {
+    this.animeClick.emit(media);
   }
 
-  onEditAnime(anime: Anime, event: Event) {
+  onEditMedia(media: MediaItem, event: Event) {
     event.stopPropagation();
-    this.editAnime.emit(anime);
+    this.editAnime.emit(media);
   }
 
-  onAddAnime(categoryId: number) {
+  onAddMedia(categoryId: number) {
     this.addAnimeToCategory.emit(categoryId);
   }
 }

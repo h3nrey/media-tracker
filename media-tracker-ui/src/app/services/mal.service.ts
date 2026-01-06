@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of, debounceTime, firstValueFrom, delay, switchMap } from 'rxjs';
 import { JikanAnimeSearchResponse, JikanAnime } from '../models/mal-anime.model';
+import { JikanMangaSearchResponse, JikanManga } from '../models/jikan-manga.model';
 
 interface CacheEntry<T> {
   data: T;
@@ -97,15 +98,61 @@ export class MalService {
     );
   }
 
-  /**
-   * Get random anime from Jikan
-   */
   getRandomAnime(): Observable<JikanAnime | null> {
     const url = `${this.JIKAN_API_BASE}/random/anime`;
     return this.http.get<{ data: JikanAnime }>(url).pipe(
       map(response => response.data),
       catchError(error => {
         console.error('Error fetching random anime:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Search manga by title using Jikan API
+   */
+  searchManga(query: string, limit: number = 10): Observable<JikanManga[]> {
+    if (!query || query.trim().length < 2) {
+      return of([]);
+    }
+
+    const url = `${this.JIKAN_API_BASE}/manga?q=${encodeURIComponent(query)}&limit=${limit}&sfw=true`;
+    
+    return this.http.get<JikanMangaSearchResponse>(url).pipe(
+      debounceTime(this.RATE_LIMIT_DELAY),
+      map(response => response.data),
+      catchError(error => {
+        console.error('Error searching manga:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Get manga details by MAL ID
+   */
+  getMangaById(malId: number): Observable<JikanManga | null> {
+    const url = `${this.JIKAN_API_BASE}/manga/${malId}`;
+    
+    return this.http.get<{ data: JikanManga }>(url).pipe(
+      map(response => response.data),
+      catchError(error => {
+        console.error('Error fetching manga details:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Get random manga from Jikan
+   */
+  getRandomManga(): Observable<JikanManga | null> {
+    const url = `${this.JIKAN_API_BASE}/random/manga`;
+    return this.http.get<{ data: JikanManga }>(url).pipe(
+      map(response => response.data),
+      catchError(error => {
+        console.error('Error fetching random manga:', error);
         return of(null);
       })
     );
@@ -197,6 +244,26 @@ export class MalService {
       genres: jikanAnime.genres?.map(g => g.name) || [],
       studios: jikanAnime.studios?.map(s => s.name) || [],
       releaseYear: jikanAnime.year || jikanAnime.aired?.prop?.from?.year,
+      notes: ''
+    };
+  }
+
+  /**
+   * Convert Jikan manga to our local media item format
+   */
+  convertJikanToManga(jikanManga: JikanManga, statusId: number) {
+    return {
+      title: jikanManga.title_english || jikanManga.title,
+      coverImage: jikanManga.images.webp.large_image_url || jikanManga.images.jpg.large_image_url,
+      externalId: jikanManga.mal_id,
+      externalApi: 'mal',
+      mediaTypeId: 2, // Manga
+      progress_current: 0,
+      progress_total: jikanManga.chapters || 0,
+      statusId: statusId,
+      score: 0,
+      genres: jikanManga.genres?.map(g => g.name) || [],
+      releaseYear: jikanManga.published?.prop?.from?.year,
       notes: ''
     };
   }

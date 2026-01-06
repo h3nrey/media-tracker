@@ -6,7 +6,7 @@ import { SyncService } from './services/sync.service';
 import { DialogService } from './services/dialog.service';
 
 import { HeaderComponent } from './components/header/header.component';
-import { AddAnimeDialogComponent } from './components/add-anime-dialog/add-anime-dialog.component';
+import { AddMediaDialogComponent } from './components/add-media-dialog/add-media-dialog.component';
 import { ManageCategoriesDialogComponent } from './components/manage-categories-dialog/manage-categories-dialog.component';
 import { ManageSourcesDialogComponent } from './components/manage-sources-dialog/manage-sources-dialog.component';
 import { BulkImportDialogComponent } from './components/bulk-import-dialog/bulk-import-dialog.component';
@@ -21,7 +21,7 @@ import { ToastComponent } from './components/ui/toast/toast.component';
   imports: [
     RouterOutlet, 
     MobileNavComponent, 
-    AddAnimeDialogComponent, 
+    AddMediaDialogComponent, 
     HeaderComponent,
     ManageCategoriesDialogComponent,
     ManageSourcesDialogComponent,

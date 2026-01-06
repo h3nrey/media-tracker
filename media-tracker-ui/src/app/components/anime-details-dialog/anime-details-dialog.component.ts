@@ -1,28 +1,28 @@
 import { Component, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, X, Calendar, Star, PlayCircle, Tag, FileText, Monitor, Edit, Clock, Plus, ExternalLink } from 'lucide-angular';
-import { Anime } from '../../models/anime.model';
-import { AnimeService } from '../../services/anime.service';
+import { MediaItem } from '../../models/media-type.model';
+import { MediaService } from '../../services/media.service';
 import { WatchSourceService } from '../../services/watch-source.service';
 import { WatchSource } from '../../models/watch-source.model';
 import { DialogService } from '../../services/dialog.service';
 import { getScoreColorClass } from '../../utils/anime-utils';
-import { AnimeReviewsComponent } from '../anime-reviews/anime-reviews.component';
+// import { AnimeReviewsComponent } from '../anime-reviews/anime-reviews.component'; // Keep as placeholder if needed
 
 @Component({
   selector: 'app-anime-details-dialog',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, AnimeReviewsComponent],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './anime-details-dialog.component.html',
   styleUrl: './anime-details-dialog.component.scss'
 })
 export class AnimeDetailsDialogComponent {
   private dialogService = inject(DialogService);
-  private animeService = inject(AnimeService);
+  private mediaService = inject(MediaService);
   private watchSourceService = inject(WatchSourceService);
 
   isOpen = signal(false);
-  anime = signal<Anime | null>(null);
+  media = signal<MediaItem | null>(null);
   sources = signal<WatchSource[]>([]);
   
   // Lucide icons
@@ -43,7 +43,7 @@ export class AnimeDetailsDialogComponent {
     
     // React to global dialog service
     effect(() => {
-      const details = this.dialogService.animeDetails();
+      const details = this.dialogService.mediaDetails();
       if (details) {
         this.open(details);
       } else {
@@ -59,66 +59,66 @@ export class AnimeDetailsDialogComponent {
   }
 
   getSourceUrl(source: WatchSource): string {
-    const currentAnime = this.anime();
-    if (!currentAnime || !source.baseUrl) return '#';
+    const currentMedia = this.media();
+    if (!currentMedia || !source.baseUrl) return '#';
 
-    const override = currentAnime.watchLinks?.find(l => l.sourceId === source.id);
+    const override = currentMedia.sourceLinks?.find(l => l.sourceId === source.id);
     if (override) return override.url;
 
-    return source.baseUrl + encodeURIComponent(currentAnime.title);
+    return source.baseUrl + encodeURIComponent(currentMedia.title);
   }
 
-  private open(anime: Anime) {
-    this.anime.set(anime);
+  private open(media: MediaItem) {
+    this.media.set(media);
     this.isOpen.set(true);
     document.body.style.overflow = 'hidden';
   }
 
   private closeLocal() {
     this.isOpen.set(false);
-    this.anime.set(null);
+    this.media.set(null);
     document.body.style.overflow = '';
   }
 
   close() {
-    this.dialogService.closeAnimeDetails();
+    this.dialogService.closeMediaDetails();
   }
 
   onEdit() {
-    const currentAnime = this.anime();
-    if (currentAnime) {
-      this.dialogService.openEditAnime(currentAnime);
+    const currentMedia = this.media();
+    if (currentMedia) {
+      this.dialogService.openEditMedia(currentMedia);
       this.close(); // Close details when opening edit
     }
   }
 
   async addWatchDate() {
-    const currentAnime = this.anime();
-    if (!currentAnime || !currentAnime.id) return;
+    const currentMedia = this.media();
+    if (!currentMedia || !currentMedia.id) return;
 
     const newDate = new Date();
-    const updatedDates = [...(currentAnime.watchDates || []), newDate];
+    const updatedDates = [...(currentMedia.activityDates || []), newDate];
     
     // Persist
-    await this.animeService.updateAnime(currentAnime.id, { watchDates: updatedDates });
+    await this.mediaService.updateMedia(currentMedia.id, { activityDates: updatedDates });
     
     // Update local state
-    this.anime.update(a => a ? { ...a, watchDates: updatedDates } : null);
+    this.media.update(m => m ? { ...m, activityDates: updatedDates } : null);
   }
 
   async incrementEpisode() {
-    const currentAnime = this.anime();
-    if (!currentAnime?.id) return;
+    const currentMedia = this.media();
+    if (!currentMedia?.id) return;
 
-    const current = currentAnime.episodesWatched || 0;
-    const total = currentAnime.totalEpisodes || 0;
+    const current = currentMedia.progress_current || 0;
+    const total = currentMedia.progress_total || 0;
     
     if (total > 0 && current >= total) return; 
 
     const newCount = current + 1;
-    await this.animeService.updateAnime(currentAnime.id, { episodesWatched: newCount });
+    await this.mediaService.updateMedia(currentMedia.id, { progress_current: newCount });
     
-    this.anime.update(a => a ? { ...a, episodesWatched: newCount } : null);
+    this.media.update(m => m ? { ...m, progress_current: newCount } : null);
   }
 
   getScoreColorClass(score: number): string {

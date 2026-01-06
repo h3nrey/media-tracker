@@ -5,6 +5,8 @@ import { ListViewComponent } from '../../components/list-view/list-view.componen
 import { DialogService } from '../../services/dialog.service';
 import { MobileLibraryComponent } from '../../components/mobile-library/mobile-library.component';
 import { Anime } from '../../models/anime.model';
+import { MediaItem } from '../../models/media-type.model';
+import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { LucideAngularModule, LayoutGrid, List } from 'lucide-angular';
 
 type ViewMode = 'kanban' | 'list';
@@ -24,11 +26,13 @@ type ViewMode = 'kanban' | 'list';
 })
 export class HomeComponent {
   private dialogService = inject(DialogService);
+  private mediaTypeState = inject(MediaTypeStateService);
 
   readonly LayoutGridIcon = LayoutGrid;
   readonly ListIcon = List;
 
   viewMode = signal<ViewMode>('kanban');
+  selectedMediaType$ = this.mediaTypeState.getSelectedMediaType$();
 
   setViewMode(mode: ViewMode) {
     this.viewMode.set(mode);
@@ -45,18 +49,18 @@ export class HomeComponent {
   }
 
   openAddDialog() {
-    this.dialogService.openAddAnime();
+    this.dialogService.openAddMedia();
   }
 
   openAddDialogWithCategory(categoryId: number) {
-    this.dialogService.openAddAnime(categoryId);
+    this.dialogService.openAddMedia(categoryId);
   }
 
-  openAnimeDetails(anime: Anime) {
-    this.dialogService.openAnimeDetails(anime);
+  openAnimeDetails(media: MediaItem | Anime) {
+    this.dialogService.openMediaDetails(media);
   }
 
-  openEditAnime(anime: Anime) {
-    this.dialogService.openEditAnime(anime);
+  openEditAnime(media: MediaItem | Anime) {
+    this.dialogService.openEditMedia(media);
   }
 }

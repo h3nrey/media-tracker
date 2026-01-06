@@ -1,0 +1,10 @@
+{
+  "/igdb-api": {
+    "target": "https://api.igdb.com/v4",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/igdb-api": ""
+    }
+  }
+}

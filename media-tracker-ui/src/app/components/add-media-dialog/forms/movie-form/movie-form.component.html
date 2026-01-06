@@ -1,0 +1,96 @@
+<div class="form-container">
+  <div class="premium-form-grid">
+    <div class="form-card full-width primary-fields">
+      <div class="form-row">
+        <div class="field-item grow">
+          <label>Status</label>
+          <div class="custom-select-wrapper">
+            <select class="premium-select" [value]="selectedCategoryId()" (change)="selectedCategoryId.set(+$any($event.target).value)">
+              @for (category of categories(); track category.id) { <option [value]="category.id">{{ category.name }}</option> }
+            </select>
+          </div>
+        </div>
+        <div class="field-item">
+          <label>Score (0-11)</label>
+          <app-number-input [value]="score()" [min]="0" [max]="11" (valueChange)="score.set($event)"></app-number-input>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card full-width">
+      <div class="field-item spacing-bottom">
+        <label>Title *</label>
+        <input type="text" class="premium-input" [value]="title()" (input)="title.set($any($event.target).value)" placeholder="Enter movie title..." />
+      </div>
+
+      <div class="form-row">
+        <div class="field-item grow">
+          <label>Minutes Watched</label>
+          <div class="progress-input-group">
+            <app-number-input [value]="progressCurrent()" [min]="0" [max]="progressTotal() > 0 ? progressTotal() : undefined" (valueChange)="progressCurrent.set($event)"></app-number-input>
+            @if (progressTotal() > 0 && progressCurrent() < progressTotal()) {
+              <button class="complete-btn-action" (click)="markAsComplete()" title="Finish"><lucide-icon [img]="CheckCircleIcon" [size]="18"></lucide-icon></button>
+            }
+          </div>
+        </div>
+        <div class="field-item grow">
+          <label>Duration (Min)</label>
+          <app-number-input [value]="progressTotal()" [min]="0" (valueChange)="progressTotal.set($event)"></app-number-input>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card full-width">
+      <h4 class="card-section-title">Visuals & Media</h4>
+      <div class="field-item spacing-bottom"><label>Cover Image URL</label><input type="text" class="premium-input" [value]="coverImage()" (input)="coverImage.set($any($event.target).value)" /></div>
+      <div class="field-item spacing-bottom"><label>Banner Image URL</label><input type="text" class="premium-input" [value]="bannerImage()" (input)="bannerImage.set($any($event.target).value)" /></div>
+      <div class="field-item"><label>Trailer URL (YouTube)</label><input type="text" class="premium-input" [value]="trailerUrl()" (input)="trailerUrl.set($any($event.target).value)" /></div>
+    </div>
+
+    <div class="form-card full-width">
+      <h4 class="card-section-title">Details</h4>
+      <div class="form-grid-inner">
+        <div class="field-item"><label>Release Year</label><app-number-input [value]="releaseYear() || 0" (valueChange)="releaseYear.set($event || undefined)"></app-number-input></div>
+        <div class="field-item full"><label>Directors</label><app-tag-input [tags]="studios()" (tagsChange)="studios.set($event)"></app-tag-input></div>
+        <div class="field-item full"><label>Genres</label><app-tag-input [tags]="genres()" (tagsChange)="genres.set($event)"></app-tag-input></div>
+      </div>
+    </div>
+
+    <div class="form-card full-width">
+      <h4 class="card-section-title">Timeline & Links</h4>
+      <div class="field-item spacing-bottom">
+        <label>Watch Dates</label>
+        <div class="action-row">
+          <button class="btn-premium-toggle" (click)="showDatePicker.set(!showDatePicker())"><lucide-icon [img]="CalendarIcon" [size]="18"></lucide-icon>Add Date</button>
+          @if (showDatePicker()) { <div class="date-picker-popover"><app-date-picker [selectedDate]="tempDate()" (dateChange)="onDateSelect($event)" (close)="showDatePicker.set(false)"></app-date-picker></div> }
+        </div>
+        <div class="chip-container">
+          @for (date of activityDates(); track $index) { <div class="activity-chip"><span>{{ date | date:'MMM d, y' }}</span><button (click)="removeDate($index)"><lucide-icon [img]="XIcon" [size]="12"></lucide-icon></button></div> }
+        </div>
+      </div>
+
+      <div class="field-item">
+        <label>Watch Sources</label>
+        <div class="action-row">
+          <select class="premium-select" [ngModel]="newLinkSourceId()" (ngModelChange)="newLinkSourceId.set(+$event || null)">
+            <option [ngValue]="null">Source</option>
+            @for (source of sources(); track source.id) { <option [value]="source.id">{{ source.name }}</option> }
+          </select>
+          <input type="text" class="premium-input grow" placeholder="URL" [ngModel]="newLinkUrl()" (ngModelChange)="newLinkUrl.set($event)" />
+          <button class="btn-add-circle" (click)="addLink()"><lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon></button>
+        </div>
+        <div class="chip-container">
+          @for (link of sourceLinks(); track $index) {
+            <div class="source-chip"><span class="badge">{{ getLinkSourceName(link.sourceId) }}</span><a [href]="link.url" target="_blank">Watch</a><button (click)="removeLink($index)"><lucide-icon [img]="XIcon" [size]="12"></lucide-icon></button></div>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="form-card full-width"><label>Notes</label><textarea class="premium-textarea" rows="4" [value]="notes()" (input)="notes.set($any($event.target).value)"></textarea></div>
+  </div>
+
+  <div class="form-actions-fixed">
+    <button class="footer-btn secondary" (click)="cancel.emit()">Cancel</button>
+    <button class="footer-btn primary" (click)="submit()" [disabled]="isSaving() || !title().trim()">Save Movie</button>
+  </div>
+</div>

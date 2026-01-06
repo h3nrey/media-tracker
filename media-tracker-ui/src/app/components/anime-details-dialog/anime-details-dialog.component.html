@@ -1,16 +1,16 @@
-@if (isOpen() && anime()) {
+@if (isOpen() && media()) {
   <div class="dialog-overlay" (click)="close()">
     <div class="dialog-content" (click)="$event.stopPropagation()">
       <div class="dialog-header">
-        <h2>{{ anime()!.title }}</h2>
+        <h2>{{ media()!.title }}</h2>
         <div class="header-actions">
-          <button class="header-quick-add" (click)="incrementEpisode()" title="Quick Add Episode" *ngIf="!anime()!.totalEpisodes || anime()!.episodesWatched < anime()!.totalEpisodes">
+          <button class="header-quick-add" (click)="incrementEpisode()" title="Quick Add" *ngIf="!media()!.progress_total || media()!.progress_current < media()!.progress_total">
             <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
-            <span>+1 Ep</span>
+            <span>+1</span>
           </button>
           <button class="header-edit-btn" (click)="onEdit()">
             <lucide-icon [img]="EditIcon" [size]="18"></lucide-icon>
-            <span>Edit</span>
+            <span>Editar</span>
           </button>
           <button class="close-btn" (click)="close()">
             <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
@@ -22,8 +22,8 @@
         <div class="details-layout">
           <div class="cover-section">
             <img 
-              [src]="anime()!.coverImage || 'assets/placeholder-cover.jpg'" 
-              [alt]="anime()!.title" 
+              [src]="media()!.coverImage || 'assets/placeholder-cover.jpg'" 
+              [alt]="media()!.title" 
               class="cover-image"
             />
 
@@ -32,7 +32,7 @@
                 @for (source of sources(); track source.id) {
                   <a [href]="getSourceUrl(source)" target="_blank" class="watch-btn-rounded">
                     <lucide-icon [img]="ExternalLinkIcon" [size]="16"></lucide-icon>
-                    Assista em {{ source.name }}
+                    {{ media()!.mediaTypeId === 1 ? 'Assistir' : media()!.mediaTypeId === 2 ? 'Ler' : 'Acessar' }} em {{ source.name }}
                   </a>
                 }
               </div>
@@ -40,54 +40,54 @@
           </div>
           
           <div class="info-section">
-            <h1 class="anime-title">{{ anime()!.title }}</h1>
+            <h1 class="anime-title">{{ media()!.title }}</h1>
             
             <div class="anime-meta-grid">
-              <!-- Episodes Section -->
+              <!-- Progress Section -->
               <div class="meta-block full-width">
                 <div class="meta-label">
                   <lucide-icon [img]="PlayCircleIcon" [size]="14"></lucide-icon>
-                  Episódios
+                  {{ media()!.mediaTypeId === 1 ? 'Episódios' : media()!.mediaTypeId === 2 ? 'Capítulos' : 'Progresso' }}
                 </div>
                 <div class="meta-content">
                   <div class="episodes-row">
-                    <span class="episodes-text">{{ anime()!.episodesWatched }} / {{ anime()!.totalEpisodes || '?' }}</span>
+                    <span class="episodes-text">{{ media()!.progress_current }} / {{ media()!.progress_total || '?' }}</span>
                   
                   </div>
-                  @if (anime()!.totalEpisodes > 0 && anime()!.episodesWatched < anime()!.totalEpisodes) {
-                    <div class="progress-bar-container" title="{{ (anime()!.episodesWatched / anime()!.totalEpisodes) | percent:'1.0-0' }} watched">
-                      <div class="progress-bar-fill" [style.width.%]="(anime()!.episodesWatched / anime()!.totalEpisodes) * 100"></div>
+                  @if (media()!.progress_total > 0 && media()!.progress_current < media()!.progress_total) {
+                    <div class="progress-bar-container" title="{{ (media()!.progress_current / media()!.progress_total) | percent:'1.0-0' }} complete">
+                      <div class="progress-bar-fill" [style.width.%]="(media()!.progress_current / media()!.progress_total) * 100"></div>
                     </div>
                   }
                 </div>
-                @if (!anime()!.totalEpisodes || anime()!.episodesWatched < anime()!.totalEpisodes) {
+                @if (!media()!.progress_total || media()!.progress_current < media()!.progress_total) {
                       <button class="details-track-btn" (click)="incrementEpisode()">
                           <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
-                          Adicionar episódio
+                          Atualizar progresso
                       </button>
                     }
               </div>
 
               <!-- Year & Score -->
               <div class="meta-row">
-                @if (anime()!.releaseYear) {
+                @if (media()!.releaseYear) {
                   <div class="meta-block">
                     <div class="meta-label">
                       <lucide-icon [img]="CalendarIcon" [size]="14"></lucide-icon>
-                      Data de lançamento
+                      Ano de Lançamento
                     </div>
-                    <div class="meta-value">{{ anime()!.releaseYear }}</div>
+                    <div class="meta-value">{{ media()!.releaseYear }}</div>
                   </div>
                 }
 
-                @if (anime()!.score > 0) {
+                @if (media()!.score > 0) {
                   <div class="meta-block">
                     <div class="meta-label">
                       <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
                       Nota
                     </div>
-                    <span class="score-badge" [ngClass]="getScoreColorClass(anime()!.score)">
-                      {{ anime()!.score }}/10
+                    <span class="score-badge" [ngClass]="getScoreColorClass(media()!.score)">
+                      {{ media()!.score }}/10
                     </span>
                   </div>
                 }
@@ -98,7 +98,7 @@
                 <div class="meta-header">
                   <div class="meta-label">
                     <lucide-icon [img]="ClockIcon" [size]="14"></lucide-icon>
-                    Histórico de visualização
+                    Histórico de Atividade
                   </div>
                   <button class="add-date-btn" (click)="addWatchDate()">
                     <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon>
@@ -106,15 +106,15 @@
                   </button>
                 </div>
                 <div class="watch-dates-list">
-                  @if (anime()!.watchDates && anime()!.watchDates!.length > 0) {
-                    @for (date of anime()!.watchDates; track date) {
+                  @if (media()!.activityDates && media()!.activityDates!.length > 0) {
+                    @for (date of media()!.activityDates; track date) {
                       <div class="watch-date-chip">
                         {{ date | date:'mediumDate' }}
                       </div>
                     }
                   } @else {
                      <div class="watch-date-chip fallback">
-                        Updated: {{ anime()!.updatedAt | date:'mediumDate' }}
+                        Atualizado: {{ media()!.updatedAt | date:'mediumDate' }}
                      </div>
                   }
                 </div>
@@ -123,45 +123,45 @@
 
 
 
-            @if (anime()!.studios && anime()!.studios.length > 0) {
+            @if (media()!.studios && media()!.studios!.length > 0) {
               <div class="section">
                 <div class="section-title">
                   <lucide-icon [img]="MonitorIcon" [size]="16"></lucide-icon>
-                  Studios
+                  {{ media()!.mediaTypeId === 1 ? 'Studios' : media()!.mediaTypeId === 2 ? 'Autores' : 'Desenvolvedores' }}
                 </div>
                 <div class="genres-list">
-                  @for (studio of anime()!.studios; track studio) {
+                  @for (studio of media()!.studios; track studio) {
                     <span class="genre-chip">{{ studio }}</span>
                   }
                 </div>
               </div>
             }
 
-            @if (anime()!.genres.length > 0) {
+            @if (media()!.genres && media()!.genres!.length > 0) {
               <div class="section">
                 <div class="section-title">
                   <lucide-icon [img]="TagIcon" [size]="16"></lucide-icon>
                   Gêneros
                 </div>
                 <div class="genres-list">
-                  @for (genre of anime()!.genres; track genre) {
+                  @for (genre of media()!.genres; track genre) {
                     <span class="genre-chip">{{ genre }}</span>
                   }
                 </div>
               </div>
             }
 
-            @if (anime()!.notes) {
+            @if (media()!.notes) {
               <div class="section">
                 <div class="section-title">
                   <lucide-icon [img]="FileTextIcon" [size]="16"></lucide-icon>
                   Comentários
                 </div>
-                <p class="notes-text">{{ anime()!.notes }}</p>
+                <p class="notes-text">{{ media()!.notes }}</p>
               </div>
             }
 
-            <app-anime-reviews [supabaseId]="anime()?.supabaseId"></app-anime-reviews>
+            <!-- <app-anime-reviews [supabaseId]="media()?.supabaseId"></app-anime-reviews> -->
           </div>
         </div>
       </div>

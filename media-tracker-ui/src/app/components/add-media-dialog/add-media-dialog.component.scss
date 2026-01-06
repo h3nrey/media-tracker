@@ -1,0 +1,281 @@
+@use 'sass:color';
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 1.5rem;
+}
+
+.dialog-content {
+  background: var(--app-surface);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8), 
+              0 0 0 1px var(--app-border);
+  position: relative;
+  overflow: hidden;
+  animation: dialogAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dialogAppear {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+// --- Header ---
+.dialog-header {
+  padding: 1.5rem 2rem;
+  background: var(--app-surface-light);
+  border-bottom: 1px solid var(--app-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .header-main {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .header-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    background: var(--app-surface);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--app-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+    lucide-icon { width: 24px; height: 24px; }
+    .icon-anime { color: #ff4757; }
+    .icon-manga { color: #2ed573; }
+    .icon-game { color: #ffa502; }
+    .icon-movie { color: #70a1ff; }
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--app-text-primary);
+    line-height: 1.2;
+  }
+
+  .header-subtitle {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--app-text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: var(--app-text-secondary);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--app-text-primary);
+      transform: rotate(90deg);
+    }
+  }
+}
+
+// --- Body ---
+.dialog-body {
+  padding: 2.5rem;
+  overflow-y: auto;
+  flex: 1;
+
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-thumb {
+    background: var(--app-border);
+    border-radius: 10px;
+  }
+}
+
+// --- Search Section ---
+.search-section {
+  .search-input-wrapper {
+    position: relative;
+    margin-bottom: 2rem;
+
+    .search-icon {
+      position: absolute;
+      left: 1.25rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--app-text-muted);
+      pointer-events: none;
+    }
+
+    .premium-search-input {
+      width: 100%;
+      padding: 1.25rem 1.25rem 1.25rem 3.5rem;
+      background: var(--app-bg);
+      border: 1px solid var(--app-border);
+      border-radius: 16px;
+      color: var(--app-text-primary);
+      font-size: 1.1rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s;
+
+      &:focus {
+        outline: none;
+        border-color: var(--app-primary);
+        background: var(--app-surface);
+        box-shadow: 0 0 0 4px var(--app-primary-glow);
+      }
+    }
+  }
+
+  .searching-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 3rem;
+    color: var(--app-text-muted);
+
+    .loader-ring {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--app-border);
+      border-top-color: var(--app-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// --- Search Results Grid ---
+.search-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.premium-result-card {
+  background: var(--app-surface-light);
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  padding: 0.75rem;
+  display: flex;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: var(--app-surface-hover);
+    border-color: var(--app-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .result-cover-wrapper {
+    width: 60px;
+    height: 84px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    img { width: 100%; height: 100%; object-fit: cover; }
+  }
+
+  .result-details {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .result-name {
+      display: block;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--app-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.4rem;
+    }
+
+    .result-meta-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+
+      .meta-tag {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        color: var(--app-text-secondary);
+      }
+      .meta-separator { color: var(--app-text-muted); }
+      .meta-year { color: var(--app-primary); }
+    }
+  }
+}
+
+.search-empty-action {
+  text-align: center;
+  padding: 2rem;
+  background: rgba(var(--app-primary-rgb), 0.05);
+  border-radius: 20px;
+  border: 2px dashed var(--app-border);
+
+  p { margin-bottom: 1rem; color: var(--app-text-muted); font-size: 0.9rem; }
+
+  .manual-trigger-btn {
+    background: var(--app-surface);
+    border: 1px solid var(--app-primary);
+    color: var(--app-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--app-primary);
+      color: white;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .dialog-content { border-radius: 0; max-height: 100vh; }
+  .search-results-grid { grid-template-columns: 1fr; }
+  .dialog-body { padding: 1.5rem; }
+}

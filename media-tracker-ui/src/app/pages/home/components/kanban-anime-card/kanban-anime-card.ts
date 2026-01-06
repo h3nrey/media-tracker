@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, signal, OnInit } from '@angular
 import { CommonModule, NgClass } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { LucideAngularModule, Star, MoreVertical, Edit2, Trash2, Plus, Play } from 'lucide-angular';
-import { Anime } from '../../../../models/anime.model';
+import { MediaItem, MediaType } from '../../../../models/media-type.model';
 import { WatchSourceService } from '../../../../services/watch-source.service';
 import { getScoreColorClass } from '../../../../utils/anime-utils';
 import { RouterLink } from '@angular/router';
@@ -15,10 +15,10 @@ import { RouterLink } from '@angular/router';
   styleUrl: './kanban-anime-card.scss'
 })
 export class KanbanAnimeCard {
-  @Input() anime!: Anime;
-  @Output() edit = new EventEmitter<Anime>();
-  @Output() delete = new EventEmitter<Anime>();
-  @Output() increment = new EventEmitter<Anime>();
+  @Input() anime!: MediaItem;
+  @Output() edit = new EventEmitter<MediaItem>();
+  @Output() delete = new EventEmitter<MediaItem>();
+  @Output() increment = new EventEmitter<MediaItem>();
   
   readonly StarIcon = Star;
   readonly MoreVerticalIcon = MoreVertical;
@@ -37,7 +37,7 @@ export class KanbanAnimeCard {
   }
 
   async checkSources() {
-    if (this.anime.watchLinks && this.anime.watchLinks.length > 0) {
+    if (this.anime.sourceLinks && this.anime.sourceLinks.length > 0) {
       this.hasSources.set(true);
       return;
     }
@@ -71,8 +71,8 @@ export class KanbanAnimeCard {
   async playFirstSource(event: Event) {
     event.stopPropagation();
     
-    if (this.anime.watchLinks && this.anime.watchLinks.length > 0) {
-      window.open(this.anime.watchLinks[0].url, '_blank');
+    if (this.anime.sourceLinks && this.anime.sourceLinks.length > 0) {
+      window.open(this.anime.sourceLinks[0].url, '_blank');
       return;
     }
 

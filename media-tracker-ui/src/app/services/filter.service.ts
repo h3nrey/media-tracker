@@ -1,12 +1,14 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { Anime, AnimeFilterParams } from '../models/anime.model';
+import { Anime } from '../models/anime.model';
+import { MediaItem, MediaFilterParams } from '../models/media-type.model';
 import { AnimeService } from './anime.service';
+import { MediaService } from './media.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FilterService {
-  private filters = signal<AnimeFilterParams>({
+  private filters = signal<MediaFilterParams>({
     query: '',
     genres: [],
     studios: [],
@@ -18,7 +20,10 @@ export class FilterService {
 
   readonly currentFilters = this.filters.asReadonly();
 
-  constructor(private animeService: AnimeService) {}
+  constructor(
+    private animeService: AnimeService,
+    private mediaService: MediaService
+  ) {}
 
   updateSearchQuery(query: string) {
     this.filters.update(f => ({ ...f, query }));
@@ -57,7 +62,11 @@ export class FilterService {
   }
 
   filterAnime(anime: Anime[]): Anime[] {
-    return this.animeService.filterAnimeList(anime, this.filters());
+    return this.animeService.filterAnimeList(anime, this.filters() as any);
+  }
+
+  filterMedia(media: MediaItem[]): MediaItem[] {
+    return this.mediaService.filterMediaList(media, this.filters());
   }
 
   hasActiveFilters(): boolean {
