@@ -93,6 +93,7 @@ export class AddMediaDialogComponent {
           this.resetForm();
           this.selectedMediaType.set(globalMediaType || MediaType.ANIME);
           if (categoryToSet !== undefined) {
+            console.log("category to set",  categoryToSet)
             this.initialFormData.set({ statusId: categoryToSet });
           }
         }
@@ -108,6 +109,7 @@ export class AddMediaDialogComponent {
     this.manualMode.set(true);
     this.editingId.set(media.id!);
     this.selectedMediaType.set(media.mediaTypeId);
+    console.log("media", media);
     this.initialFormData.set(media);
   }
 
@@ -161,19 +163,22 @@ export class AddMediaDialogComponent {
   async selectMediaFromApi(result: any) {
     this.selectedMediaApiResult.set(result);
     this.manualMode.set(true);
+    console.log("result", result);
+    console.log("categories", this.categories());
     
     const type = this.selectedMediaType();
     let mappedData: any = {};
+    const categoryId = this.categories()[0].supabaseId || 26;
 
     if (type === MediaType.GAME) {
-      mappedData = this.igdbService.convertIGDBToMediaItem(result, 1);
+      mappedData = this.igdbService.convertIGDBToMediaItem(result, categoryId);
     } else {
       // Anime/Manga from MAL
       mappedData = {
         title: result.title_english || result.title,
         coverImage: result.images?.webp?.large_image_url || result.images?.jpg?.large_image_url,
         externalId: result.mal_id,
-        statusId: 1
+        statusId: this.categories()[0].supabaseId
       };
       
       if (type === MediaType.ANIME) {
@@ -198,6 +203,7 @@ export class AddMediaDialogComponent {
       mappedData.genres = [...new Set(combinedGenres)];
     }
     
+    console.log("mapped data", mappedData);
     this.initialFormData.set(mappedData);
     this.searchQuery.set('');
     this.searchResults.set([]);
@@ -216,6 +222,8 @@ export class AddMediaDialogComponent {
     try {
       mediaData.externalApi = this.selectedMediaType() === MediaType.GAME ? 'igdb' : 'mal';
       
+      console.log("save media data")
+      console.log(mediaData);
       let mediaId: number;
       if (this.editMode() && this.editingId()) {
         await this.mediaService.updateMedia(this.editingId()!, mediaData);
@@ -253,9 +261,9 @@ export class AddMediaDialogComponent {
       await this.mediaService.saveGameMetadata({
         mediaItemId: mediaId,
         igdbId: mediaData.externalId,
-        developers: mediaData.studios,
+        developers: mediaData.studios || [],
         publishers: [],
-        platforms: this.selectedMediaApiResult()?.platforms?.map((p: any) => p.name) || []
+        platforms: mediaData.platforms || []
       });
     }
   }

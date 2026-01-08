@@ -34,8 +34,19 @@
       @if (anime.studios && anime.studios.length > 0) {
         <div class="studio-name">{{ anime.studios[0] }}</div>
       }
+      @if (anime.mediaTypeId === 3 && anime.platforms && anime.platforms.length > 0) {
+        <div class="platforms-info">
+          @for (platform of anime.platforms.slice(0, 2); track platform) {
+            <span class="platform-badge">{{ platform }}</span>
+          }
+        </div>
+      }
       <div class="meta">
-        <span>{{ anime.progress_current }} / {{ anime.progress_total || '?' }}</span>
+        @if (anime.mediaTypeId === 3) {
+          <span>{{ anime.progress_current }}h</span>
+        } @else {
+          <span>{{ anime.progress_current }} / {{ anime.progress_total || '?' }}</span>
+        }
         @if (anime.score > 0) {
           <span class="score" [ngClass]="getScoreColorClass(anime.score)">
             <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>

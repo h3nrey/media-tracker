@@ -22,54 +22,60 @@ CREATE TABLE media_items (
   banner_image TEXT,
   external_id INTEGER, -- MAL ID, IGDB ID, TMDB ID, etc.
   external_api TEXT, -- 'mal', 'igdb', 'tmdb', etc.
-  progress_current INTEGER DEFAULT 0 NOT NULL, -- Episodes watched, chapters read, hours played, etc.
-  progress_total INTEGER DEFAULT 0 NOT NULL,
   status_id BIGINT REFERENCES categories(id),
   score INTEGER DEFAULT 0 NOT NULL,
   genres TEXT[],
   release_year INTEGER,
   trailer_url TEXT,
   notes TEXT,
-  activity_dates TIMESTAMP WITH TIME ZONE[], -- Watch/read/play dates
+  start_date TIMESTAMP WITH TIME ZONE[],
+  end_date TIMESTAMP WITH TIME ZONE[],
   source_links JSONB DEFAULT '[]'::jsonb, -- Watch/read/play source links
   is_deleted BOOLEAN DEFAULT FALSE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  temp_orig_id BIGINT -- Temporary column for migration mapping
 );
 
 -- Anime-specific metadata
 CREATE TABLE anime_metadata (
   media_item_id BIGINT REFERENCES media_items(id) PRIMARY KEY,
   studios TEXT[],
-  mal_id INTEGER
+  mal_id INTEGER,
+  episodes_watched INTEGER DEFAULT 0 NOT NULL,
+  episodes_total INTEGER DEFAULT 0 NOT NULL,
+  publication_status TEXT -- 'Publishing', 'Finished', 'Hiatus'
 );
 
 -- Manga-specific metadata
 CREATE TABLE manga_metadata (
   media_item_id BIGINT REFERENCES media_items(id) PRIMARY KEY,
+  mal_id INTEGER,
   authors TEXT[],
   publishers TEXT[],
-  mal_id INTEGER,
+  chapters_total INTEGER DEFAULT 0 NOT NULL,
+  chapters_read INTEGER DEFAULT 0 NOT NULL,
   publication_status TEXT -- 'Publishing', 'Finished', 'Hiatus'
 );
 
 -- Game-specific metadata
 CREATE TABLE game_metadata (
   media_item_id BIGINT REFERENCES media_items(id) PRIMARY KEY,
+  igdb_id INTEGER,
   developers TEXT[],
   publishers TEXT[],
   platforms TEXT[], -- 'PC', 'PS5', 'Xbox', 'Switch', etc.
-  igdb_id INTEGER,
-  playtime_hours DECIMAL(10, 2)
+  hours_played INTEGER DEFAULT 0 NOT NULL,
+  hltb_hours INTEGER DEFAULT 0 NOT NULL -- How Long To Beat hours
 );
 
 -- Movie-specific metadata
 CREATE TABLE movie_metadata (
   media_item_id BIGINT REFERENCES media_items(id) PRIMARY KEY,
-  directors TEXT[],
-  cast TEXT[],
-  studios TEXT[],
   tmdb_id INTEGER,
+  directors TEXT[],
+  "cast" TEXT[],
+  studios TEXT[],
   runtime_minutes INTEGER
 );
 
@@ -91,21 +97,23 @@ CREATE POLICY "Allow public access" ON movie_metadata FOR ALL USING (true) WITH 
 
 -- Migration: Copy existing anime data to media_items
 INSERT INTO media_items (
-  title, cover_image, external_id, progress_current, progress_total, 
-  status_id, score, genres, release_year, notes, activity_dates, 
-  source_links, is_deleted, created_at, updated_at, media_type_id, external_api
+  title, cover_image, external_id, 
+  status_id, score, genres, release_year, notes, 
+  source_links, is_deleted, created_at, updated_at, media_type_id, external_api,
+  temp_orig_id
 )
 SELECT 
-  title, cover_image, mal_id, episodes_watched, total_episodes, 
-  status_id, score, genres, release_year, notes, watch_dates, 
-  watch_links, is_deleted, created_at, updated_at, 1, 'mal'
+  title, cover_image, mal_id, 
+  status_id, score, genres, release_year, notes, 
+  watch_links, is_deleted, created_at, updated_at, 1, 'mal',
+  id
 FROM anime;
 
 -- Migration: Copy anime-specific metadata
-INSERT INTO anime_metadata (media_item_id, studios, mal_id)
-SELECT mi.id, a.studios, a.mal_id
+INSERT INTO anime_metadata (media_item_id, studios, mal_id, episodes_watched, episodes_total)
+SELECT mi.id, a.studios, a.mal_id, a.episodes_watched, a.total_episodes
 FROM media_items mi
-JOIN anime a ON mi.title = a.title AND mi.created_at = a.created_at
+JOIN anime a ON mi.temp_orig_id = a.id
 WHERE mi.media_type_id = 1;
 
 -- Add media_item_ids to lists table
@@ -118,23 +126,22 @@ CREATE TEMP TABLE id_mapping (
 );
 
 INSERT INTO id_mapping (old_id, new_id)
-SELECT a.id, mi.id
-FROM anime a
-JOIN media_items mi ON mi.title = a.title AND mi.created_at = a.created_at
-WHERE mi.media_type_id = 1;
+SELECT temp_orig_id, id
+FROM media_items
+WHERE temp_orig_id IS NOT NULL;
 
 -- Function to migrate array of IDs
 CREATE OR REPLACE FUNCTION migrate_list_ids(old_ids BIGINT[])
 RETURNS BIGINT[] AS $$
 DECLARE
   new_ids BIGINT[] := ARRAY[]::BIGINT[];
-  old_id BIGINT;
-  new_id BIGINT;
+  id_to_map BIGINT;
+  mapped_id BIGINT;
 BEGIN
-  FOREACH old_id IN ARRAY old_ids LOOP
-    SELECT m.new_id INTO new_id FROM id_mapping m WHERE m.old_id = old_id;
-    IF new_id IS NOT NULL THEN
-      new_ids := array_append(new_ids, new_id);
+  FOREACH id_to_map IN ARRAY old_ids LOOP
+    SELECT m.new_id INTO mapped_id FROM id_mapping m WHERE m.old_id = id_to_map;
+    IF mapped_id IS NOT NULL THEN
+      new_ids := array_append(new_ids, mapped_id);
     END IF;
   END LOOP;
   RETURN new_ids;
@@ -147,3 +154,4 @@ UPDATE lists SET media_item_ids = migrate_list_ids(anime_ids);
 -- Cleanup
 DROP FUNCTION migrate_list_ids(BIGINT[]);
 DROP TABLE id_mapping;
+ALTER TABLE media_items DROP COLUMN temp_orig_id;

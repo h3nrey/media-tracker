@@ -36,7 +36,6 @@ export class GameFormComponent {
   trailerUrl = signal('');
   externalId = signal<number | undefined>(undefined);
   progressCurrent = signal(0); // Hours played
-  // progressTotal not used for games as requested
   selectedCategoryId = signal<number>(1);
   score = signal(0);
   genres = signal<string[]>([]);
@@ -45,6 +44,7 @@ export class GameFormComponent {
   notes = signal('');
   activityDates = signal<Date[]>([]);
   sourceLinks = signal<any[]>([]);
+  platforms = signal<string[]>([]);
 
   showDatePicker = signal(false);
   tempDate = signal(new Date());
@@ -54,11 +54,13 @@ export class GameFormComponent {
   constructor() {
     effect(() => {
       const data = this.initialData();
+      console.log("initial data", data)
       if (data) this.applyData(data);
     });
   }
 
   private applyData(data: any) {
+    console.log("apply data", data);
     this.title.set(data.title || '');
     this.coverImage.set(data.coverImage || '');
     this.bannerImage.set(data.bannerImage || '');
@@ -73,6 +75,7 @@ export class GameFormComponent {
     this.notes.set(data.notes || '');
     this.activityDates.set(data.activityDates || []);
     this.sourceLinks.set(data.source_links || data.sourceLinks || []);
+    this.platforms.set(data.platforms || []);
   }
 
   onDateSelect(date: Date) {
@@ -112,16 +115,20 @@ export class GameFormComponent {
       externalId: this.externalId(),
       mediaTypeId: MediaType.GAME,
       progress_current: this.progressCurrent(),
-      progress_total: 0, // No total for games
-      statusId: this.selectedCategoryId(),
       score: this.score(),
       genres: this.genres(),
       studios: this.studios(),
       releaseYear: this.releaseYear(),
+      statusId: this.selectedCategoryId(),
       notes: this.notes(),
       activityDates: this.activityDates(),
-      source_links: this.sourceLinks()
+      source_links: this.sourceLinks(),
+      platforms: this.platforms()
     };
+
+    console.log("selected category id", this.selectedCategoryId());
+
+    console.log(mediaData);
     this.save.emit(mediaData);
   }
 }

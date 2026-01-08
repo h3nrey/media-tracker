@@ -27,6 +27,7 @@ export interface MediaItem {
   score: number;
   genres: string[];
   studios?: string[];
+  platforms?: string[];
   releaseYear?: number;
   trailerUrl?: string;
   notes?: string;

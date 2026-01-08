@@ -81,7 +81,7 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
               const filteredMedia = this.filterService.filterMedia(allMedia);
               const columns: MediaByCategory[] = categories.map(category => ({
                 category,
-                media: filteredMedia.filter(m => m.statusId === category.id)
+                media: filteredMedia.filter(m => m.statusId === category.supabaseId)
               }));
               return columns;
             })

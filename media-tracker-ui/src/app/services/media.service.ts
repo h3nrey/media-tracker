@@ -40,6 +40,16 @@ export class MediaService {
     );
   }
 
+  async getAllMedia(mediaTypeId?: number | null): Promise<MediaItem[]> {
+    let items;
+    if (mediaTypeId) {
+      items = await db.mediaItems.where('mediaTypeId').equals(mediaTypeId).toArray();
+    } else {
+      items = await db.mediaItems.toArray();
+    }
+    return items.filter(m => !m.isDeleted);
+  }
+
   getMediaByStatus$(statusId: number, mediaTypeId?: number | null): Observable<MediaItem[]> {
     return from(liveQuery(async () => {
       let query = db.mediaItems.where('statusId').equals(statusId);
@@ -104,7 +114,9 @@ export class MediaService {
       isDeleted: false
     } as MediaItem);
     
-    this.syncService.sync();
+    console.log("generated id: ", id);
+    this.triggerFilterUpdate();
+    this.syncService.sync();  
     return id as number;
   }
 
@@ -153,18 +165,22 @@ export class MediaService {
 
   async saveAnimeMetadata(metadata: AnimeMetadata): Promise<void> {
     await db.animeMetadata.put(metadata);
+    this.syncService.sync();
   }
 
   async saveMangaMetadata(metadata: MangaMetadata): Promise<void> {
     await db.mangaMetadata.put(metadata);
+    this.syncService.sync();
   }
 
   async saveGameMetadata(metadata: GameMetadata): Promise<void> {
     await db.gameMetadata.put(metadata);
+    this.syncService.sync();
   }
 
   async saveMovieMetadata(metadata: MovieMetadata): Promise<void> {
     await db.movieMetadata.put(metadata);
+    this.syncService.sync();
   }
 
   filterMediaList(list: MediaItem[], params: MediaFilterParams): MediaItem[] {

@@ -6,7 +6,9 @@
           <label>Status</label>
           <div class="custom-select-wrapper">
             <select class="premium-select" [value]="selectedCategoryId()" (change)="selectedCategoryId.set(+$any($event.target).value)">
-              @for (category of categories(); track category.id) { <option [value]="category.id">{{ category.name }}</option> }
+              @for (category of categories(); track category.id) { 
+                <option [value]="category.id">{{ category.name + category.id }}</option>
+            }
             </select>
           </div>
         </div>
@@ -41,6 +43,7 @@
       <div class="form-grid-inner">
         <div class="field-item"><label>Release Year</label><app-number-input [value]="releaseYear() || 0" (valueChange)="releaseYear.set($event || undefined)"></app-number-input></div>
         <div class="field-item full"><label>Developers</label><app-tag-input [tags]="studios()" (tagsChange)="studios.set($event)"></app-tag-input></div>
+        <div class="field-item full"><label>Platforms</label><app-tag-input [tags]="platforms()" (tagsChange)="platforms.set($event)"></app-tag-input></div>
         <div class="field-item full"><label>Genres</label><app-tag-input [tags]="genres()" (tagsChange)="genres.set($event)"></app-tag-input></div>
       </div>
     </div>

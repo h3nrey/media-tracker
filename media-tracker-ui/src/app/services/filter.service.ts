@@ -13,7 +13,7 @@ export class FilterService {
     genres: [],
     studios: [],
     year: undefined,
-    activityYear: new Date().getFullYear(),
+    activityYear: undefined,
     sortBy: 'updated',
     sortOrder: 'desc'
   });
@@ -51,7 +51,7 @@ export class FilterService {
       genres: [],
       studios: [],
       year: undefined,
-      activityYear: new Date().getFullYear(),
+      activityYear: undefined,
       sortBy: 'updated',
       sortOrder: 'desc'
     });

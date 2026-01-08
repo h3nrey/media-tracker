@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Settings, X, RotateCcw, SortAsc, SortDesc, FunnelX } from 'lucide-angular';
 import { combineLatest } from 'rxjs';
 import { FilterService } from '../../services/filter.service';
-import { AnimeService } from '../../services/anime.service';
-import { Anime, AnimeFilterParams } from '../../models/anime.model';
+import { MediaService } from '../../services/media.service';
+import { MediaTypeStateService } from '../../services/media-type-state.service';
+import { MediaItem } from '../../models/media-type.model';
 import { SelectComponent } from '../ui/select/select';
 import { SearchBarComponent } from '../ui/search-bar/search-bar';
 
@@ -36,22 +37,23 @@ export class BoardFiltersComponent implements OnInit {
 
   constructor(
     private filterService: FilterService,
-    private animeService: AnimeService
+    private mediaService: MediaService,
+    private mediaTypeState: MediaTypeStateService
   ) {
     this.currentFilters = this.filterService.currentFilters;
   }
 
   ngOnInit() {
     combineLatest([
-      this.animeService.getAllAnime$(),
-      this.animeService.filterUpdate$
-    ]).subscribe(([all]: [Anime[], number]) => {
-      // Always calculate all available activity years once or from the full list
+      this.mediaTypeState.getSelectedMediaType$(),
+      this.mediaService.filterUpdate$
+    ]).subscribe(async ([selectedType, _]) => {
+      const all = await this.mediaService.getAllMedia(selectedType);
+      
       const allActivityYears = this.getActivityYears(all);
       this.availableActivityYears.set(allActivityYears);
 
-      // Filter list by activity year for other options
-      const filteredByYear = this.animeService.filterAnimeList(all, { 
+      const filteredByYear = this.mediaService.filterMediaList(all, { 
         activityYear: this.currentFilters().activityYear 
       });
       
@@ -59,28 +61,28 @@ export class BoardFiltersComponent implements OnInit {
     });
   }
 
-  private getActivityYears(all: Anime[]): number[] {
+  private getActivityYears(all: MediaItem[]): number[] {
     const activityYears = new Set<number>();
-    all.forEach(anime => {
-      if (anime.createdAt) {
-        activityYears.add(new Date(anime.createdAt).getFullYear());
+    all.forEach(item => {
+      if (item.createdAt) {
+        activityYears.add(new Date(item.createdAt).getFullYear());
       }
-      anime.watchDates?.forEach(d => {
+      item.activityDates?.forEach(d => {
         activityYears.add(new Date(d).getFullYear());
       });
     });
     return [...activityYears].sort((a, b) => b - a);
   }
 
-  private calculateOptions(all: Anime[]) {
+  private calculateOptions(all: MediaItem[]) {
     const genres = new Set<string>();
     const studios = new Set<string>();
     const years = new Set<number>();
     
-    all.forEach(anime => {
-        anime.genres?.forEach(g => genres.add(g));
-        anime.studios?.forEach(s => studios.add(s));
-        if (anime.releaseYear) years.add(anime.releaseYear);
+    all.forEach(item => {
+        item.genres?.forEach(g => genres.add(g));
+        item.studios?.forEach(s => studios.add(s));
+        if (item.releaseYear) years.add(item.releaseYear);
     });
     
     this.availableGenres.set([...genres].sort());
@@ -90,25 +92,25 @@ export class BoardFiltersComponent implements OnInit {
 
   onSearchChange(query: string) {
     this.filterService.updateSearchQuery(query);
-    this.animeService.triggerFilterUpdate();
+    this.mediaService.triggerFilterUpdate();
   }
 
   clearSearch() {
     this.searchQuery = '';
     this.filterService.updateSearchQuery('');
-    this.animeService.triggerFilterUpdate();
+    this.mediaService.triggerFilterUpdate();
   }
   
   onSortChange(sortBy: any) {
       this.filterService.updateSort(sortBy, this.currentFilters().sortOrder || 'desc');
-      this.animeService.triggerFilterUpdate();
+      this.mediaService.triggerFilterUpdate();
   }
 
   toggleSortOrder() {
       const currentOrder = this.currentFilters().sortOrder || 'desc';
       const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
       this.filterService.updateSort(this.currentFilters().sortBy || 'updated', newOrder);
-      this.animeService.triggerFilterUpdate();
+      this.mediaService.triggerFilterUpdate();
   }
 
   toggleGenre(genre: string) {
@@ -118,7 +120,7 @@ export class BoardFiltersComponent implements OnInit {
       } else {
            this.filterService.updateGenres([...genres, genre]);
       }
-      this.animeService.triggerFilterUpdate();
+      this.mediaService.triggerFilterUpdate();
   }
 
   toggleStudio(studio: string) {
@@ -128,7 +130,7 @@ export class BoardFiltersComponent implements OnInit {
        } else {
             this.filterService.updateStudios([...studios, studio]);
        }
-       this.animeService.triggerFilterUpdate();
+       this.mediaService.triggerFilterUpdate();
   }
 
   selectYear(year: number) {
@@ -137,7 +139,7 @@ export class BoardFiltersComponent implements OnInit {
       } else {
            this.filterService.updateYear(year);
       }
-      this.animeService.triggerFilterUpdate();
+      this.mediaService.triggerFilterUpdate();
   }
 
   toggleActivityYear(year: number | undefined) {
@@ -146,7 +148,7 @@ export class BoardFiltersComponent implements OnInit {
     } else {
         this.filterService.updateActivityYear(year);
     }
-    this.animeService.triggerFilterUpdate();
+    this.mediaService.triggerFilterUpdate();
   }
 
   hasActiveFilters(): boolean {
@@ -167,7 +169,7 @@ export class BoardFiltersComponent implements OnInit {
   clearAllFilters() {
     this.searchQuery = '';
     this.filterService.resetFilters();
-    this.animeService.triggerFilterUpdate();
+    this.mediaService.triggerFilterUpdate();
   }
 
   getGenreOptions() {
