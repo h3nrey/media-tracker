@@ -79,10 +79,11 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
           return this.mediaService.getAllMedia$(selectedType).pipe(
             map(allMedia => {
               const filteredMedia = this.filterService.filterMedia(allMedia);
-              const columns: MediaByCategory[] = categories.map(category => ({
+              const columns: MediaByCategory[] = categories.filter(category => !category.isDeleted).map(category => ({
                 category,
                 media: filteredMedia.filter(m => m.statusId === category.supabaseId)
               }));
+              console.log("columns", columns);
               return columns;
             })
           );
@@ -121,6 +122,7 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
 
   private async handleCategoryChange(event: CdkDragDrop<MediaItem[]>, targetCategoryId: number) {
     const media = event.previousContainer.data[event.previousIndex];
+    console.log("media", media)
     
     transferArrayItem(
       event.previousContainer.data,
@@ -129,6 +131,8 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
       event.currentIndex
     );
     
+    console.log('status atual', media.statusId)
+    console.log('status novo', targetCategoryId)
     if (media.id) {
       try {
         await this.mediaService.updateMediaStatus(media.id, targetCategoryId);
