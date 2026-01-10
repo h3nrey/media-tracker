@@ -68,7 +68,7 @@ export class MediaService {
       map(allMedia => 
         categories.map(category => ({
           category,
-          media: allMedia.filter(m => m.statusId === category.id)
+          media: allMedia.filter(m => m.statusId === category.supabaseId)
         }))
       )
     );
@@ -87,7 +87,7 @@ export class MediaService {
         const filteredMedia = filterFn(allMedia);
         return categories.map(category => ({
           category,
-          media: filteredMedia.filter(m => m.statusId === category.id)
+          media: filteredMedia.filter(m => m.statusId === category.supabaseId)
         }));
       })
     );
@@ -103,6 +103,13 @@ export class MediaService {
 
   async getMediaBySupabaseId(supabaseId: number): Promise<MediaItem | undefined> {
     return await db.mediaItems.where('supabaseId').equals(supabaseId).first();
+  }
+
+  async getMediaByExternalId(externalId: number, externalApi: string): Promise<MediaItem | undefined> {
+    return await db.mediaItems
+      .where('externalId').equals(externalId)
+      .and(item => item.externalApi === externalApi)
+      .first();
   }
 
   async addMedia(media: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {

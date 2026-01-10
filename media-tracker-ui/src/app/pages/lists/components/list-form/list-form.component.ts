@@ -116,7 +116,7 @@ export class ListFormComponent implements OnDestroy {
 
   get filteredApiAnime() {
     // Filter out API results that are already in our local collection (by title or MAL ID)
-    const localMalIds = this.allAnime().map(a => a.malId);
+    const localMalIds = this.allAnime().map(a => a.externalId);
     return this.apiResults().filter(api => !localMalIds.includes(api.mal_id));
   }
 
@@ -129,7 +129,10 @@ export class ListFormComponent implements OnDestroy {
     const newAnime = this.malService.convertJikanToAnime(jikanAnime, backlogCat.id!);
     
     // 3. Add to local DB
-    const id = await this.animeService.addAnime(newAnime);
+    const id = await this.animeService.addAnime(
+      {...newAnime, 
+        mediaTypeId: 1,
+      });
     
     // 4. Update local state so it appears in selected
     // Note: AnimeService.getAllAnime$ is a liveQuery, so this.allAnime() will update automatically

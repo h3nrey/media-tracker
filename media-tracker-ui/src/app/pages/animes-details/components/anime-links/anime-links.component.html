@@ -57,7 +57,7 @@
 
   <div class="links-list">
     @for (source of availableSources(); track source.id) {
-      @let link = getLinkForSource(source.name);
+      @let link = getLinkForSource(source.id || 0);
       <div class="watch-link-wrapper" [class.not-configured]="!link">
         @if (link) {
           <a [href]="link.url" target="_blank" class="watch-link">
@@ -68,7 +68,7 @@
             <button (click)="onEditLink(link)" title="Edit link">
               <lucide-icon [img]="EditIcon" [size]="14"></lucide-icon>
             </button>
-            <button (click)="onDeleteLinkByName(source.name)" class="delete" title="Remove link">
+            <button (click)="onDeleteLinkBySourceId(source.id || 0)" class="delete" title="Remove link">
               <lucide-icon [img]="TrashIcon" [size]="14"></lucide-icon>
             </button>
           </div>

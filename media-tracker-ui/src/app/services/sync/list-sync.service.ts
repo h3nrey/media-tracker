@@ -34,6 +34,12 @@ export class ListSyncService {
       };
 
       if (!remote) {
+        if (local.supabaseId) {
+          // Deleted on remote - remove locally
+          await db.folders.delete(local.id!);
+          continue;
+        }
+
         if (!local.isDeleted) {
           const { data, error: insertError } = await this.supabase
             .from('folders')
@@ -116,6 +122,12 @@ export class ListSyncService {
       };
 
       if (!remote) {
+        if (local.supabaseId) {
+          // Deleted on remote - remove locally
+          await db.lists.delete(local.id!);
+          continue;
+        }
+
         if (!local.isDeleted) {
           const { data, error: insertError } = await this.supabase
             .from('lists')

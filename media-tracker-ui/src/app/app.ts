@@ -14,6 +14,7 @@ import { MetadataSyncDialogComponent } from './components/metadata-sync-dialog/m
 import { AnimeDetailsDialogComponent } from './components/anime-details-dialog/anime-details-dialog.component';
 import { ThemeSettingsDialogComponent } from './components/theme-settings-dialog/theme-settings-dialog.component';
 import { ToastComponent } from './components/ui/toast/toast.component';
+import { AlertComponent } from './components/ui/alert/alert.component';
 
 @Component({
   selector: 'app-root',
@@ -29,7 +30,8 @@ import { ToastComponent } from './components/ui/toast/toast.component';
     MetadataSyncDialogComponent,
     AnimeDetailsDialogComponent,
     ThemeSettingsDialogComponent,
-    ToastComponent
+    ToastComponent,
+    AlertComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'

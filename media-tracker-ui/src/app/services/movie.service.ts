@@ -32,7 +32,6 @@ export class MovieService {
       cast: [],
       studios: [],
       tmdbId: tmdbMovie.id,
-      runtimeMinutes: 0
     };
     
     await this.mediaService.saveMovieMetadata(metadata);

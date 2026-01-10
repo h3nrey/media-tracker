@@ -38,7 +38,7 @@ export class MovieFormComponent {
   externalId = signal<number | undefined>(undefined);
   progressCurrent = signal(0); // Minutes watched (usually 0 or total)
   progressTotal = signal(0); // Duration
-  selectedCategoryId = signal<number>(1);
+  selectedCategoryId = signal<number | undefined>(undefined);
   score = signal(0);
   genres = signal<string[]>([]);
   studios = signal<string[]>([]); // Directors
@@ -57,6 +57,13 @@ export class MovieFormComponent {
       const data = this.initialData();
       if (data) this.applyData(data);
     });
+
+    effect(() => {
+        const cats = this.categories();
+        if (cats.length > 0 && this.selectedCategoryId() === undefined) {
+            this.selectedCategoryId.set(cats[0].supabaseId);
+        }
+    });
   }
 
   private applyData(data: any) {
@@ -67,7 +74,7 @@ export class MovieFormComponent {
     this.externalId.set(data.externalId);
     this.progressCurrent.set(data.progress_current || 0);
     this.progressTotal.set(data.progress_total || 0);
-    this.selectedCategoryId.set(data.statusId || 1);
+    this.selectedCategoryId.set(data.statusId);
     this.score.set(data.score || 0);
     this.genres.set(data.genres || []);
     this.studios.set(data.studios || []); // Directors

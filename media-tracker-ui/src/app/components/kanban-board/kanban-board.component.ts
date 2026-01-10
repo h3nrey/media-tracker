@@ -7,6 +7,7 @@ import { MediaService, MediaByCategory } from '../../services/media.service';
 import { CategoryService } from '../../services/status.service';
 import { FilterService } from '../../services/filter.service';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
+import { AlertService } from '../../services/alert.service';
 import { KanbanAnimeCard } from '../../pages/home/components/kanban-anime-card/kanban-anime-card';
 import { BoardFiltersComponent } from '../board-filters/board-filters.component';
 import { LucideAngularModule } from 'lucide-angular';
@@ -31,7 +32,8 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
     private mediaService: MediaService,
     private categoryService: CategoryService,
     private filterService: FilterService,
-    private mediaTypeState: MediaTypeStateService
+    private mediaTypeState: MediaTypeStateService,
+    private alertService: AlertService
   ) {}
 
   // ...
@@ -41,20 +43,25 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
   }
 
   async onDelete(media: MediaItem) {
-    if (confirm(`Are you sure you want to delete "${media.title}"?`)) {
+    const confirmed = await this.alertService.showConfirm(
+      `Are you sure you want to delete "${media.title}"?`,
+      'Delete Media',
+      'error'
+    );
+    if (confirmed) {
       await this.mediaService.deleteMedia(media.id!);
     }
   }
 
   async onIncrement(media: MediaItem) {
     if (!media.id) return;
-    const current = media.progress_current || 0;
-    const total = media.progress_total || 0;
+    const current = media.progressCurrent || 0;
+    const total = media.progressTotal || 0;
     
     if (total > 0 && current >= total) return; 
 
     await this.mediaService.updateMedia(media.id, { 
-      progress_current: current + 1 
+      progressCurrent: current + 1 
     });
   }
 
@@ -79,6 +86,7 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
           return this.mediaService.getAllMedia$(selectedType).pipe(
             map(allMedia => {
               const filteredMedia = this.filterService.filterMedia(allMedia);
+              console.log("filteredMedia", filteredMedia);
               const columns: MediaByCategory[] = categories.filter(category => !category.isDeleted).map(category => ({
                 category,
                 media: filteredMedia.filter(m => m.statusId === category.supabaseId)
@@ -105,6 +113,9 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
   }
 
   async onDrop(event: CdkDragDrop<MediaItem[]>, targetCategoryId: number) {
+    console.log("reorder", event);
+    console.log("drag container", event.container)
+    console.log("target ", targetCategoryId)
     if (event.previousContainer === event.container) {
       this.handleReorder(event);
     } else {
@@ -152,8 +163,8 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
     return this.columns().map((_, index) => `column-${index}`);
   }
 
-  openAddDialog(categoryId: number) {
-    this.addAnimeToCategory.emit(categoryId);
+  openAddDialog(supabaseId: number) {
+    this.addAnimeToCategory.emit(supabaseId);
   }
 
   trackByCategoryId(index: number, column: MediaByCategory): number {

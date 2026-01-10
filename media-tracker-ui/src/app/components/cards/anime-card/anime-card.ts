@@ -21,12 +21,12 @@ export class AnimeCard {
     event.stopPropagation();
     event.preventDefault();
 
-    const current = this.anime().episodesWatched || 0;
-    const total = this.anime().totalEpisodes;
+    const current = this.anime().progressCurrent || 0;
+    const total = this.anime().progressTotal;
 
     if (!total || current < total) {
       this.animeService.updateAnime(this.anime().id!, {
-        episodesWatched: current + 1
+        progressCurrent: current + 1
       });
     }
   }

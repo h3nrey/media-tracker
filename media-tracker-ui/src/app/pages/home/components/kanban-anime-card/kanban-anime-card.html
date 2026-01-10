@@ -1,3 +1,4 @@
+@if(anime) {
 <div class="anime-card" cdkDrag [routerLink]="['/media', anime.id]">
   <div class="card-actions">
     <button class="menu-btn" (click)="toggleMenu($event)">
@@ -42,10 +43,10 @@
         </div>
       }
       <div class="meta">
-        @if (anime.mediaTypeId === 3) {
-          <span>{{ anime.progress_current }}h</span>
+        @if (anime.mediaTypeId === 1) {
+          <span>{{ anime.progressCurrent }}h</span>
         } @else {
-          <span>{{ anime.progress_current }} / {{ anime.progress_total || '?' }}</span>
+          <span>{{ anime.progressCurrent }} / {{ anime.progressTotal || '?' }}</span>
         }
         @if (anime.score > 0) {
           <span class="score" [ngClass]="getScoreColorClass(anime.score)">
@@ -63,9 +64,10 @@
       }
     </div>
   </div>
-  @if (!anime.progress_total || anime.progress_current < anime.progress_total) {
+  @if (2==2) {
     <button class="track-btn" (click)="onIncrement($event)">
       <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
     </button>
   }
 </div>
+}

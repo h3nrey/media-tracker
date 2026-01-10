@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, X, Plus, Trash2, Edit2, Check, ExternalLink } from 'lucide-angular';
 import { WatchSourceService } from '../../services/watch-source.service';
 import { WatchSource } from '../../models/watch-source.model';
+import { AlertService } from '../../services/alert.service';
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-manage-sources-dialog',
@@ -31,7 +33,10 @@ export class ManageSourcesDialogComponent {
   readonly CheckIcon = Check;
   readonly ExternalLinkIcon = ExternalLink;
 
-  constructor(private sourceService: WatchSourceService) {
+  private sourceService = inject(WatchSourceService);
+  private alertService = inject(AlertService);
+
+  constructor() {
     this.loadSources();
   }
 
@@ -88,7 +93,8 @@ export class ManageSourcesDialogComponent {
   }
 
   async deleteSource(id: number) {
-    if (confirm('Delete this source?')) {
+    const confirmed = await this.alertService.showConfirm('Are you sure you want to delete this watch source?', 'Delete Source', 'error');
+    if (confirmed) {
       await this.sourceService.deleteSource(id);
     }
   }

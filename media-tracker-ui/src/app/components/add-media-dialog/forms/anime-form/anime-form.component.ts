@@ -42,7 +42,7 @@ export class AnimeFormComponent {
   externalId = signal<number | undefined>(undefined);
   progressCurrent = signal(0);
   progressTotal = signal(0);
-  selectedCategoryId = signal<number>(1);
+  selectedCategoryId = signal<number | undefined>(undefined);
   score = signal(0);
   genres = signal<string[]>([]);
   studios = signal<string[]>([]);
@@ -67,8 +67,8 @@ export class AnimeFormComponent {
 
     effect(() => {
         const cats = this.categories();
-        if (cats.length > 0 && !this.selectedCategoryId()) {
-            this.selectedCategoryId.set(cats[0].id!);
+        if (cats.length > 0 && this.selectedCategoryId() === undefined) {
+            this.selectedCategoryId.set(cats[0].supabaseId);
         }
     });
   }
@@ -81,7 +81,7 @@ export class AnimeFormComponent {
     this.externalId.set(data.externalId);
     this.progressCurrent.set(data.progress_current || 0);
     this.progressTotal.set(data.progress_total || 0);
-    this.selectedCategoryId.set(data.statusId || 1);
+    this.selectedCategoryId.set(data.statusId);
     this.score.set(data.score || 0);
     this.genres.set(data.genres || []);
     this.studios.set(data.studios || []);

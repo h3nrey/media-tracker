@@ -5,6 +5,12 @@ import { Category } from '../../../../models/status.model';
 import { AnimeLinksComponent } from '../anime-links/anime-links.component';
 import { LucideAngularModule, Play, Edit3, Plus, Star, Minus, RotateCcw, CheckCheck } from 'lucide-angular';
 
+
+export interface AnimeDetails extends Anime {
+  sourceLinks?: any[];
+  activityDates?: any[];
+}
+
 @Component({
   selector: 'app-anime-sidebar',
   standalone: true,
@@ -13,7 +19,7 @@ import { LucideAngularModule, Play, Edit3, Plus, Star, Minus, RotateCcw, CheckCh
   styleUrl: './anime-sidebar.component.scss'
 })
 export class AnimeSidebarComponent {
-  anime = input<Anime | null>(null);
+  anime = input<AnimeDetails | null>(null);
   category = input<Category | null>(null);
   
   edit = output<void>();
@@ -45,8 +51,8 @@ export class AnimeSidebarComponent {
 
   get progress(): number {
     const a = this.anime();
-    if (!a || !a.totalEpisodes) return 0;
-    return Math.min(100, Math.round(((a.episodesWatched || 0) / a.totalEpisodes) * 100));
+    if (!a || !a.progressTotal) return 0;
+    return Math.min(100, Math.round(((a.progressCurrent || 0) / a.progressTotal) * 100));
   }
 
   get currentLabel(): string {

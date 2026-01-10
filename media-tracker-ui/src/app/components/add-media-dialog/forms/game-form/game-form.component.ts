@@ -36,7 +36,7 @@ export class GameFormComponent {
   trailerUrl = signal('');
   externalId = signal<number | undefined>(undefined);
   progressCurrent = signal(0); // Hours played
-  selectedCategoryId = signal<number>(1);
+  selectedCategoryId = signal<number | undefined>(undefined);
   score = signal(0);
   genres = signal<string[]>([]);
   studios = signal<string[]>([]); // Developers
@@ -57,6 +57,13 @@ export class GameFormComponent {
       console.log("initial data", data)
       if (data) this.applyData(data);
     });
+
+    effect(() => {
+        const cats = this.categories();
+        if (cats.length > 0 && this.selectedCategoryId() === undefined) {
+            this.selectedCategoryId.set(cats[0].supabaseId);
+        }
+    });
   }
 
   private applyData(data: any) {
@@ -67,7 +74,7 @@ export class GameFormComponent {
     this.trailerUrl.set(data.trailerUrl || '');
     this.externalId.set(data.externalId);
     this.progressCurrent.set(data.progress_current || 0);
-    this.selectedCategoryId.set(data.statusId || 1);
+    this.selectedCategoryId.set(data.statusId);
     this.score.set(data.score || 0);
     this.genres.set(data.genres || []);
     this.studios.set(data.studios || []); // Developers

@@ -45,6 +45,14 @@ export class GameSyncService {
       };
 
       if (!remote) {
+        if (local.supabaseId) {
+          // Deleted on remote - remove locally
+          console.log(`Game ${local.title} deleted on remote, removing locally.`);
+          await db.mediaItems.delete(local.id!);
+          await db.gameMetadata.delete(local.id!);
+          continue;
+        }
+
         if (!local.isDeleted) {
           const { data, error: insertError } = await this.supabase
             .from('media_items')
@@ -58,7 +66,7 @@ export class GameSyncService {
               supabaseId: data.id, 
               lastSyncedAt: new Date() 
             });
-            await this.syncGameMetadata(local.id!, data.id);
+            await this.syncGameMetadata(local.id!, data.id, 'push');
           }
         }
       } else {
@@ -66,7 +74,7 @@ export class GameSyncService {
         if (local.updatedAt > remoteUpdatedAt && (!local.lastSyncedAt || local.updatedAt > local.lastSyncedAt)) {
           await this.supabase.from('media_items').update(supabaseData).eq('id', local.supabaseId);
           await db.mediaItems.update(local.id!, { lastSyncedAt: new Date() });
-          await this.syncGameMetadata(local.id!, local.supabaseId!);
+          await this.syncGameMetadata(local.id!, local.supabaseId!, 'push');
         } else if (remoteUpdatedAt > (local.lastSyncedAt || local.updatedAt)) {
           await db.mediaItems.update(local.id!, {
             supabaseId: remote.id,
@@ -85,10 +93,8 @@ export class GameSyncService {
             isDeleted: remote.is_deleted,
             updatedAt: remoteUpdatedAt,
             lastSyncedAt: new Date(),
-            progress_current: local.progress_current,
-            progress_total: local.progress_total
           });
-          await this.syncGameMetadata(local.id!, remote.id);
+          await this.syncGameMetadata(local.id!, remote.id, 'pull');
         }
       }
     }
@@ -116,15 +122,13 @@ export class GameSyncService {
           createdAt: new Date(remote.created_at),
           updatedAt: new Date(remote.updated_at),
           lastSyncedAt: new Date(),
-          progress_current: 0,
-          progress_total: 0
         });
-        await this.syncGameMetadata(localId as number, remote.id);
+        await this.syncGameMetadata(localId as number, remote.id, 'pull');
       }
     }
   }
 
-  private async syncGameMetadata(localMediaId: number, remoteMediaId: number) {
+  private async syncGameMetadata(localMediaId: number, remoteMediaId: number, direction: 'push' | 'pull' = 'push') {
     const localMeta = await db.gameMetadata.get(localMediaId);
     const { data: remoteMeta, error } = await this.supabase
       .from('game_metadata')
@@ -134,7 +138,7 @@ export class GameSyncService {
 
     if (error && error.code !== 'PGRST116') throw error;
 
-    if (localMeta) {
+    if (direction === 'push' && localMeta) {
       const localItem = await db.mediaItems.get(localMediaId);
       const supabaseData = {
         media_item_id: remoteMediaId,
@@ -142,7 +146,7 @@ export class GameSyncService {
         developers: localMeta.developers,
         publishers: localMeta.publishers,
         platforms: localMeta.platforms,
-        hours_played: localItem?.progress_current || 0
+        hours_played: localMeta.playtimeHours || 0
       };
 
       if (!remoteMeta) {
@@ -150,7 +154,7 @@ export class GameSyncService {
       } else {
         await this.supabase.from('game_metadata').update(supabaseData).eq('media_item_id', remoteMediaId);
       }
-    } else if (remoteMeta) {
+    } else if (direction === 'pull' && remoteMeta) {
       await db.gameMetadata.put({
         mediaItemId: localMediaId,
         igdbId: remoteMeta.igdb_id,
@@ -161,10 +165,40 @@ export class GameSyncService {
       });
       // Sync progress and studios (developers) back to media_item
       await db.mediaItems.update(localMediaId, {
-        progress_current: remoteMeta.hours_played,
         studios: remoteMeta.developers || [],
         platforms: remoteMeta.platforms || [],
       });
+    } else if (!direction) {
+      // Fallback for cases where direction is not provided
+      if (localMeta) {
+        const localItem = await db.mediaItems.get(localMediaId);
+        const supabaseData = {
+          media_item_id: remoteMediaId,
+          igdb_id: localMeta.igdbId,
+          developers: localMeta.developers,
+          publishers: localMeta.publishers,
+          platforms: localMeta.platforms,
+          hours_played: localMeta.playtimeHours || 0
+        };
+        if (!remoteMeta) {
+          await this.supabase.from('game_metadata').insert([supabaseData]);
+        } else {
+          await this.supabase.from('game_metadata').update(supabaseData).eq('media_item_id', remoteMediaId);
+        }
+      } else if (remoteMeta) {
+        await db.gameMetadata.put({
+          mediaItemId: localMediaId,
+          igdbId: remoteMeta.igdb_id,
+          developers: remoteMeta.developers || [],
+          publishers: remoteMeta.publishers || [],
+          platforms: remoteMeta.platforms || [],
+          playtimeHours: remoteMeta.hours_played,
+        });
+        await db.mediaItems.update(localMediaId, {
+          studios: remoteMeta.developers || [],
+          platforms: remoteMeta.platforms || [],
+        });
+      }
     }
   }
 }

@@ -103,7 +103,7 @@ export class BrowseComponent implements OnInit, OnDestroy {
 
     try {
       const animeToAdd = this.malService.convertJikanToAnime(anime, planToWatch.id!);
-      await this.animeService.addAnime(animeToAdd);
+      await this.animeService.addAnime({...animeToAdd, mediaTypeId: 1});
       
       this.addedAnimeIds.add(anime.mal_id);
       this.toast.success(`Added to ${planToWatch.name}!`);
@@ -126,7 +126,7 @@ export class BrowseComponent implements OnInit, OnDestroy {
 
     try {
       // Find the anime in local db by MAL ID
-      const localAnime = await this.animeService.getAnimeByMalId(anime.mal_id).toPromise();
+      const localAnime = await this.animeService.getAnimeByExternalId(anime.mal_id).toPromise();
       
       if (localAnime?.id) {
         await this.animeService.updateAnimeStatus(localAnime.id, category.id!);
@@ -280,7 +280,7 @@ export class BrowseComponent implements OnInit, OnDestroy {
 
   viewAnimeDetails(anime: JikanAnime) {
     // Check if anime exists in local db
-    this.animeService.getAnimeByMalId(anime.mal_id).subscribe((localAnime: any) => {
+    this.animeService.getAnimeByExternalId(anime.mal_id).subscribe((localAnime: any) => {
       if (localAnime) {
         this.router.navigate(['/anime', localAnime.id]);
       } else {

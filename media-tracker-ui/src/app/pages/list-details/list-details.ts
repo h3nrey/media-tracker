@@ -43,8 +43,8 @@ export class ListDetailsComponent {
     if (!listData || !listData.animes) return { watched: 0, total: 0, percentage: 0 };
     
     const stats = listData.animes.reduce((acc, anime) => ({
-      watched: acc.watched + (anime.episodesWatched || 0),
-      total: acc.total + (anime.totalEpisodes || 0)
+      watched: acc.watched + (anime.progressCurrent || 0),
+      total: acc.total + (anime.progressTotal || 0)
     }), { watched: 0, total: 0 });
 
     const percentage = stats.total > 0 ? Math.round((stats.watched / stats.total) * 100) : 0;

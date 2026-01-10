@@ -15,7 +15,7 @@ import { WatchSource } from '../../../../models/watch-source.model';
 export class AnimeLinksComponent implements OnInit {
   private sourceService = inject(WatchSourceService);
   
-  watchLinks = input<any[] | undefined>([]);
+  sourceLinks = input<any[] | undefined>([]);
   saveLinks = output<any[]>();
 
   showAddForm = signal(false);
@@ -73,8 +73,8 @@ export class AnimeLinksComponent implements OnInit {
     }
   }
 
-  getLinkForSource(sourceName: string) {
-    return (this.watchLinks() || []).find(l => l.name === sourceName);
+  getLinkForSource(sourceId: number) {
+    return (this.sourceLinks() || []).find(l => l.sourceId === sourceId);
   }
 
   onAddForSource(source: WatchSource) {
@@ -88,20 +88,19 @@ export class AnimeLinksComponent implements OnInit {
   }
 
   onEditLink(link: any) {
-    const index = (this.watchLinks() || []).findIndex(l => l.name === link.name);
+    const index = (this.sourceLinks() || []).findIndex(l => l.sourceId === link.sourceId);
     this.editingIndex.set(index !== -1 ? index : null);
     this.showAddForm.set(true);
-    this.newLinkName.set(link.name);
-    this.newLinkUrl.set(link.url);
     
-    // Try to match with existing source
-    const matchedSource = this.availableSources().find(s => s.name === link.name);
-    this.selectedSourceId.set(matchedSource?.id || null);
+    const matchedSource = this.availableSources().find(s => s.id === link.sourceId);
+    this.newLinkName.set(matchedSource?.name || 'Custom');
+    this.newLinkUrl.set(link.url);
+    this.selectedSourceId.set(link.sourceId);
   }
 
-  onDeleteLinkByName(name: string) {
-    const currentLinks = [...(this.watchLinks() || [])];
-    const index = currentLinks.findIndex(l => l.name === name);
+  onDeleteLinkBySourceId(sourceId: number) {
+    const currentLinks = [...(this.sourceLinks() || [])];
+    const index = currentLinks.findIndex(l => l.sourceId === sourceId);
     if (index !== -1) {
       currentLinks.splice(index, 1);
       this.saveLinks.emit(currentLinks);
@@ -109,16 +108,15 @@ export class AnimeLinksComponent implements OnInit {
   }
 
   onAddLink() {
-    if (!this.newLinkUrl() || !this.newLinkName()) return;
+    if (!this.newLinkUrl() || this.selectedSourceId() === null) return;
 
-    const currentLinks = [...(this.watchLinks() || [])];
-    const newLink = { name: this.newLinkName(), url: this.newLinkUrl() };
+    const currentLinks = [...(this.sourceLinks() || [])];
+    const newLink = { sourceId: this.selectedSourceId()!, url: this.newLinkUrl() };
 
     if (this.editingIndex() !== null) {
       currentLinks[this.editingIndex()!] = newLink;
     } else {
-      // If adding a predefined source that already exists, update it instead
-      const existingIndex = currentLinks.findIndex(l => l.name === newLink.name);
+      const existingIndex = currentLinks.findIndex(l => l.sourceId === newLink.sourceId);
       if (existingIndex !== -1) {
         currentLinks[existingIndex] = newLink;
       } else {

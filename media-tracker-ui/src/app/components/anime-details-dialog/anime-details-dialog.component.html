@@ -2,12 +2,14 @@
   <div class="dialog-overlay" (click)="close()">
     <div class="dialog-content" (click)="$event.stopPropagation()">
       <div class="dialog-header">
-        <h2>{{ media()!.title }}</h2>
+        <h2>{{ media()?.title }}</h2>
         <div class="header-actions">
-          <button class="header-quick-add" (click)="incrementEpisode()" title="Quick Add" *ngIf="!media()!.progress_total || media()!.progress_current < media()!.progress_total">
-            <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
-            <span>+1</span>
-          </button>
+          @if (!(media()?.progressTotal) || (media()?.progressCurrent ?? 0) < (media()?.progressTotal ?? 0)) {
+            <button class="header-quick-add" (click)="incrementEpisode()" title="Quick Add">
+              <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
+              <span>+1</span>
+            </button>
+          }
           <button class="header-edit-btn" (click)="onEdit()">
             <lucide-icon [img]="EditIcon" [size]="18"></lucide-icon>
             <span>Editar</span>
@@ -22,8 +24,8 @@
         <div class="details-layout">
           <div class="cover-section">
             <img 
-              [src]="media()!.coverImage || 'assets/placeholder-cover.jpg'" 
-              [alt]="media()!.title" 
+              [src]="media()?.coverImage || 'assets/placeholder-cover.jpg'" 
+              [alt]="media()?.title" 
               class="cover-image"
             />
 
@@ -32,7 +34,7 @@
                 @for (source of sources(); track source.id) {
                   <a [href]="getSourceUrl(source)" target="_blank" class="watch-btn-rounded">
                     <lucide-icon [img]="ExternalLinkIcon" [size]="16"></lucide-icon>
-                    {{ media()!.mediaTypeId === 1 ? 'Assistir' : media()!.mediaTypeId === 2 ? 'Ler' : 'Acessar' }} em {{ source.name }}
+                    {{ media()?.mediaTypeId === 1 ? 'Assistir' : media()?.mediaTypeId === 2 ? 'Ler' : 'Acessar' }} em {{ source.name }}
                   </a>
                 }
               </div>
@@ -40,7 +42,7 @@
           </div>
           
           <div class="info-section">
-            <h1 class="anime-title">{{ media()!.title }}</h1>
+            <h1 class="anime-title">{{ media()?.title }}</h1>
             
             <div class="anime-meta-grid">
               <!-- Progress Section -->
@@ -51,26 +53,26 @@
                 </div>
                 <div class="meta-content">
                   <div class="episodes-row">
-                    <span class="episodes-text">{{ media()!.progress_current }} / {{ media()!.progress_total || '?' }}</span>
+                    <span class="episodes-text">{{ media()?.progressCurrent }} / {{ media()?.progressTotal || '?' }}</span>
                   
                   </div>
-                  @if (media()!.progress_total > 0 && media()!.progress_current < media()!.progress_total) {
-                    <div class="progress-bar-container" title="{{ (media()!.progress_current / media()!.progress_total) | percent:'1.0-0' }} complete">
-                      <div class="progress-bar-fill" [style.width.%]="(media()!.progress_current / media()!.progress_total) * 100"></div>
+                  @if ((media()?.progressTotal ?? 0) > 0 && (media()?.progressCurrent ?? 0) < (media()?.progressTotal ?? 0)) {
+                    <div class="progress-bar-container" title="{{ ((media()?.progressCurrent ?? 0) / (media()?.progressTotal ?? 1)) | percent:'1.0-0' }} complete">
+                      <div class="progress-bar-fill" [style.width.%]="((media()?.progressCurrent ?? 0) / (media()?.progressTotal ?? 1)) * 100"></div>
                     </div>
                   }
                 </div>
-                @if (!media()!.progress_total || media()!.progress_current < media()!.progress_total) {
-                      <button class="details-track-btn" (click)="incrementEpisode()">
-                          <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
-                          Atualizar progresso
-                      </button>
-                    }
+                @if (!(media()?.progressTotal) || (media()?.progressCurrent ?? 0) < (media()?.progressTotal ?? 0)) {
+                  <button class="details-track-btn" (click)="incrementEpisode()">
+                    <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
+                    Atualizar progresso
+                  </button>
+                }
               </div>
 
               <!-- Year & Score -->
               <div class="meta-row">
-                @if (media()!.releaseYear) {
+                @if (media()?.releaseYear) {
                   <div class="meta-block">
                     <div class="meta-label">
                       <lucide-icon [img]="CalendarIcon" [size]="14"></lucide-icon>
@@ -80,14 +82,14 @@
                   </div>
                 }
 
-                @if (media()!.score > 0) {
+                @if ((media()?.score ?? 0) > 0) {
                   <div class="meta-block">
                     <div class="meta-label">
                       <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
                       Nota
                     </div>
-                    <span class="score-badge" [ngClass]="getScoreColorClass(media()!.score)">
-                      {{ media()!.score }}/10
+                    <span class="score-badge" [ngClass]="getScoreColorClass(media()?.score || 0)">
+                      {{ media()?.score }}/10
                     </span>
                   </div>
                 }
@@ -106,15 +108,15 @@
                   </button>
                 </div>
                 <div class="watch-dates-list">
-                  @if (media()!.activityDates && media()!.activityDates!.length > 0) {
-                    @for (date of media()!.activityDates; track date) {
+                  @if (media()?.activityDates && (media()?.activityDates?.length ?? 0) > 0) {
+                    @for (date of media()?.activityDates; track date) {
                       <div class="watch-date-chip">
                         {{ date | date:'mediumDate' }}
                       </div>
                     }
                   } @else {
                      <div class="watch-date-chip fallback">
-                        Atualizado: {{ media()!.updatedAt | date:'mediumDate' }}
+                        Atualizado: {{ media()?.updatedAt | date:'mediumDate' }}
                      </div>
                   }
                 </div>
@@ -123,41 +125,41 @@
 
 
 
-            @if (media()!.studios && media()!.studios!.length > 0) {
+            @if (media()?.studios && (media()?.studios?.length ?? 0) > 0) {
               <div class="section">
                 <div class="section-title">
                   <lucide-icon [img]="MonitorIcon" [size]="16"></lucide-icon>
-                  {{ media()!.mediaTypeId === 1 ? 'Studios' : media()!.mediaTypeId === 2 ? 'Autores' : 'Desenvolvedores' }}
+                  {{ media()?.mediaTypeId === 1 ? 'Studios' : media()?.mediaTypeId === 2 ? 'Autores' : 'Desenvolvedores' }}
                 </div>
                 <div class="genres-list">
-                  @for (studio of media()!.studios; track studio) {
+                  @for (studio of media()?.studios; track studio) {
                     <span class="genre-chip">{{ studio }}</span>
                   }
                 </div>
               </div>
             }
 
-            @if (media()!.genres && media()!.genres!.length > 0) {
+            @if (media()?.genres && (media()?.genres?.length ?? 0) > 0) {
               <div class="section">
                 <div class="section-title">
                   <lucide-icon [img]="TagIcon" [size]="16"></lucide-icon>
                   Gêneros
                 </div>
                 <div class="genres-list">
-                  @for (genre of media()!.genres; track genre) {
+                  @for (genre of media()?.genres; track genre) {
                     <span class="genre-chip">{{ genre }}</span>
                   }
                 </div>
               </div>
             }
 
-            @if (media()!.notes) {
+            @if (media()?.notes) {
               <div class="section">
                 <div class="section-title">
                   <lucide-icon [img]="FileTextIcon" [size]="16"></lucide-icon>
                   Comentários
                 </div>
-                <p class="notes-text">{{ media()!.notes }}</p>
+                <p class="notes-text">{{ media()?.notes }}</p>
               </div>
             }
 

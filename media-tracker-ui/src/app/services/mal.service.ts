@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of, debounceTime, firstValueFrom, delay, switchMap } from 'rxjs';
 import { JikanAnimeSearchResponse, JikanAnime } from '../models/mal-anime.model';
 import { JikanMangaSearchResponse, JikanManga } from '../models/jikan-manga.model';
+import { Anime } from '../models/anime.model';
 
 interface CacheEntry<T> {
   data: T;
@@ -237,7 +238,6 @@ export class MalService {
       title: jikanAnime.title_english || jikanAnime.title,
       coverImage: jikanAnime.images.webp.large_image_url || jikanAnime.images.jpg.large_image_url,
       malId: jikanAnime.mal_id,
-      episodesWatched: 0,
       totalEpisodes: jikanAnime.episodes || 0,
       statusId: statusId,
       score: 0,

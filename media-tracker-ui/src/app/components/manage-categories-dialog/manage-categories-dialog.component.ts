@@ -5,6 +5,7 @@ import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-
 import { LucideAngularModule, GripVertical, Plus, Trash2, X } from 'lucide-angular';
 import { CategoryService } from '../../services/status.service';
 import { Category } from '../../models/status.model';
+import { AlertService } from '../../services/alert.service';
 
 import { ColorPickerDirective } from 'ngx-color-picker';
 
@@ -29,7 +30,10 @@ export class ManageCategoriesDialogComponent implements OnInit {
   readonly Trash2Icon = Trash2;
   readonly XIcon = X;
 
-  constructor(private categoryService: CategoryService) {}
+  constructor(
+    private categoryService: CategoryService,
+    private alertService: AlertService
+  ) {}
 
   async ngOnInit() {
     await this.loadCategories();
@@ -85,7 +89,12 @@ export class ManageCategoriesDialogComponent implements OnInit {
   }
 
   async deleteCategory(id: number) {
-    if (confirm('Are you sure you want to delete this category? All anime in this category will need to be reassigned.')) {
+    const confirmed = await this.alertService.showConfirm(
+      'Are you sure you want to delete this category? All items in this category will need to be reassigned.',
+      'Delete Category',
+      'error'
+    );
+    if (confirmed) {
       await this.categoryService.deleteCategory(id);
       await this.loadCategories();
     }

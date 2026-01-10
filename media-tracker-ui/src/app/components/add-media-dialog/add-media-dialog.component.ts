@@ -10,6 +10,7 @@ import { IgdbService } from '../../services/igdb.service';
 import { DialogService } from '../../services/dialog.service';
 import { CategoryService } from '../../services/status.service';
 import { WatchSourceService } from '../../services/watch-source.service';
+import { AlertService } from '../../services/alert.service';
 import { WatchSource } from '../../models/watch-source.model';
 import { Category } from '../../models/status.model';
 import { LucideAngularModule, X, Search, Plus, Play, BookOpen, Gamepad2, Film } from 'lucide-angular';
@@ -70,6 +71,7 @@ export class AddMediaDialogComponent {
   private watchSourceService = inject(WatchSourceService);
   private dialogService = inject(DialogService);
   private igdbService = inject(IgdbService);
+  private alertService = inject(AlertService);
 
   isOpen = this.dialogService.isAddMediaOpen;
   selectedMediaType = signal<number>(MediaType.ANIME);
@@ -161,12 +163,22 @@ export class AddMediaDialogComponent {
   }
 
   async selectMediaFromApi(result: any) {
+    const type = this.selectedMediaType();
+    const externalApi = type === MediaType.GAME ? 'igdb' : (type === MediaType.MOVIE ? 'tmdb' : 'mal');
+    const externalId = type === MediaType.GAME ? result.id : (type === MediaType.MOVIE ? result.id : result.mal_id);
+
+    // Duplicate check
+    const existing = await this.mediaService.getMediaByExternalId(externalId, externalApi);
+    if (existing) {
+      this.alertService.showAlert(`"${existing.title}" is already in your library!`, 'Duplicate Found', 'warning');
+      return;
+    }
+
     this.selectedMediaApiResult.set(result);
     this.manualMode.set(true);
     console.log("result", result);
     console.log("categories", this.categories());
     
-    const type = this.selectedMediaType();
     let mappedData: any = {};
     const categoryId = this.categories()[0].supabaseId || 26;
 
@@ -220,7 +232,18 @@ export class AddMediaDialogComponent {
   async onSave(mediaData: any) {
     this.isSaving.set(true);
     try {
-      mediaData.externalApi = this.selectedMediaType() === MediaType.GAME ? 'igdb' : 'mal';
+      const type = this.selectedMediaType();
+      mediaData.externalApi = type === MediaType.GAME ? 'igdb' : (type === MediaType.MOVIE ? 'tmdb' : 'mal');
+      
+      // Secondary duplicate check (especially for manual entry with externalId)
+      if (!this.editMode() && mediaData.externalId) {
+        const existing = await this.mediaService.getMediaByExternalId(mediaData.externalId, mediaData.externalApi);
+        if (existing) {
+          this.alertService.showAlert(`"${mediaData.title}" is already in your library!`, 'Duplicate Found', 'warning');
+          this.isSaving.set(false);
+          return;
+        }
+      }
       
       console.log("save media data")
       console.log(mediaData);

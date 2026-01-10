@@ -31,7 +31,7 @@ export class ListViewComponent {
 
   categories = signal<Category[]>([]);
   mediaByCategory = signal<Map<number, MediaItem[]>>(new Map());
-  collapsedSections = new Set<number>(); // Track collapsed categories
+  collapsedSections = new Set<number>(); // Track collapsed categories (using supabaseId)
   
   // Year filter
   selectedYear = signal<string>('all');
@@ -67,16 +67,17 @@ export class ListViewComponent {
       const mediaMap = new Map<number, MediaItem[]>();
       
       categories.forEach(category => {
-        this.mediaService.getMediaByStatus$(category.id!, selectedType).subscribe(media => {
-          mediaMap.set(category.id!, media);
+        const catId = category.supabaseId!;
+        this.mediaService.getMediaByStatus$(catId, selectedType).subscribe(media => {
+          mediaMap.set(catId, media);
           this.mediaByCategory.set(new Map(mediaMap));
         });
       });
     });
   }
 
-  getMediaForCategory(categoryId: number): MediaItem[] {
-    const allMedia = this.mediaByCategory().get(categoryId) || [];
+  getMediaForCategory(supabaseId: number): MediaItem[] {
+    const allMedia = this.mediaByCategory().get(supabaseId) || [];
     const year = this.selectedYear();
     
     if (year === 'all') {
@@ -88,16 +89,16 @@ export class ListViewComponent {
     return allMedia.filter(m => m.releaseYear === yearNum);
   }
 
-  toggleSection(categoryId: number) {
-    if (this.collapsedSections.has(categoryId)) {
-      this.collapsedSections.delete(categoryId);
+  toggleSection(supabaseId: number) {
+    if (this.collapsedSections.has(supabaseId)) {
+      this.collapsedSections.delete(supabaseId);
     } else {
-      this.collapsedSections.add(categoryId);
+      this.collapsedSections.add(supabaseId);
     }
   }
 
-  isSectionCollapsed(categoryId: number): boolean {
-    return this.collapsedSections.has(categoryId);
+  isSectionCollapsed(supabaseId: number): boolean {
+    return this.collapsedSections.has(supabaseId);
   }
 
   onYearChange(year: string) {
@@ -113,7 +114,7 @@ export class ListViewComponent {
     this.editAnime.emit(media);
   }
 
-  onAddMedia(categoryId: number) {
-    this.addAnimeToCategory.emit(categoryId);
+  onAddMedia(supabaseId: number) {
+    this.addAnimeToCategory.emit(supabaseId);
   }
 }

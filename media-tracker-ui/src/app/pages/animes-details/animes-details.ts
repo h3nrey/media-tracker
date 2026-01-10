@@ -14,7 +14,7 @@ import { take, Subscription } from 'rxjs';
 import { AnimeListsComponent } from './components/anime-lists/anime-lists.component';
 import { AnimeHistoryComponent } from './components/anime-history/anime-history.component';
 import { AnimeLinksComponent } from './components/anime-links/anime-links.component';
-import { AnimeSidebarComponent } from './components/anime-sidebar/anime-sidebar.component';
+import { AnimeDetails, AnimeSidebarComponent } from './components/anime-sidebar/anime-sidebar.component';
 import { AnimeInfoComponent } from './components/anime-info/anime-info.component';
 import { AnimeReviewsComponent } from '../../components/anime-reviews/anime-reviews.component';
 import { LucideAngularModule } from 'lucide-angular';
@@ -42,7 +42,7 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
   private dialogService = inject(DialogService);
   private toastService = inject(ToastService);
 
-  anime = signal<Anime | null>(null);
+  anime = signal<AnimeDetails | null>(null);
   category = signal<Category | null>(null);
   lists = signal<List[]>([]);
   isLoading = signal(true);
@@ -67,7 +67,7 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     this.sub.add(
       this.animeService.getAnimeById$(id).subscribe(async animeData => {
         if (animeData) {
-          this.anime.set(animeData);
+          this.anime.set(animeData as AnimeDetails);
           
           if (animeData.statusId) {
             const cat = await this.categoryService.getCategoryById(animeData.statusId);
@@ -87,15 +87,15 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     const currentAnime = this.anime();
     if (!currentAnime || !currentAnime.id) return;
 
-    const current = currentAnime.episodesWatched || 0;
-    const total = currentAnime.totalEpisodes;
+    const current = currentAnime.progressCurrent || 0;
+    const total = currentAnime.progressTotal;
 
     if (!total || current < total) {
       const newCount = current + 1;
       await this.animeService.updateAnime(currentAnime.id, {
-        episodesWatched: newCount
+        progressCurrent: newCount
       });
-      this.anime.update(a => a ? { ...a, episodesWatched: newCount } : null);
+      this.anime.update(a => a ? { ...a, progressCurrent: newCount } : null);
       
       if (total && newCount === total) {
         this.toastService.success(`You've finished ${currentAnime.title}!`, {
@@ -110,13 +110,13 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     const currentAnime = this.anime();
     if (!currentAnime || !currentAnime.id) return;
 
-    const current = currentAnime.episodesWatched || 0;
+    const current = currentAnime.progressCurrent || 0;
     if (current > 0) {
       const newCount = current - 1;
       await this.animeService.updateAnime(currentAnime.id, {
-        episodesWatched: newCount
+        progressCurrent: newCount
       });
-      this.anime.update(a => a ? { ...a, episodesWatched: newCount } : null);
+      this.anime.update(a => a ? { ...a, progressCurrent: newCount } : null);
     }
   }
 
@@ -125,21 +125,21 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     if (!currentAnime || !currentAnime.id) return;
 
     await this.animeService.updateAnime(currentAnime.id, {
-      episodesWatched: 0
+      progressCurrent: 0
     });
-    this.anime.update(a => a ? { ...a, episodesWatched: 0 } : null);
+    this.anime.update(a => a ? { ...a, progressCurrent: 0 } : null);
   }
 
   async completeEpisodes() {
     const currentAnime = this.anime();
     if (!currentAnime || !currentAnime.id) return;
 
-    const total = currentAnime.totalEpisodes;
-    if (total && currentAnime.episodesWatched !== total) {
+    const total = currentAnime.progressTotal;
+    if (total && currentAnime.progressCurrent !== total) {
       await this.animeService.updateAnime(currentAnime.id, {
-        episodesWatched: total
+        progressCurrent: total
       });
-      this.anime.update(a => a ? { ...a, episodesWatched: total } : null);
+      this.anime.update(a => a ? { ...a, progressCurrent: total } : null);
 
       this.toastService.success(`You've finished ${currentAnime.title}!`, {
         label: 'Log Date',
@@ -167,31 +167,31 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     const currentAnime = this.anime();
     if (!currentAnime || !currentAnime.id) return;
 
-    const watchDates = [...(currentAnime.watchDates || []), new Date()];
-    await this.animeService.updateAnime(currentAnime.id, { watchDates });
-    this.anime.update(a => a ? { ...a, watchDates } : null);
+    const activityDates = [...(currentAnime.activityDates || []), new Date()];
+    await this.animeService.updateAnime(currentAnime.id, { activityDates });
+    this.anime.update(a => a ? { ...a, activityDates } : null);
   }
 
   async onRemoveLog(index: number) {
     const currentAnime = this.anime();
-    if (!currentAnime || !currentAnime.id || !currentAnime.watchDates) return;
+    if (!currentAnime || !currentAnime.id || !currentAnime.activityDates) return;
 
-    const watchDates = [...currentAnime.watchDates];
-    watchDates.splice(index, 1);
+    const activityDates = [...currentAnime.activityDates];
+    activityDates.splice(index, 1);
     
-    await this.animeService.updateAnime(currentAnime.id, { watchDates });
-    this.anime.update(a => a ? { ...a, watchDates } : null);
+    await this.animeService.updateAnime(currentAnime.id, { activityDates });
+    this.anime.update(a => a ? { ...a, activityDates } : null);
   }
 
   async onUpdateLog(event: { index: number, date: Date }) {
     const currentAnime = this.anime();
-    if (!currentAnime || !currentAnime.id || !currentAnime.watchDates) return;
+    if (!currentAnime || !currentAnime.id || !currentAnime.activityDates) return;
 
-    const watchDates = [...currentAnime.watchDates];
-    watchDates[event.index] = event.date;
+    const activityDates = [...currentAnime.activityDates];
+    activityDates[event.index] = event.date;
 
-    await this.animeService.updateAnime(currentAnime.id, { watchDates });
-    this.anime.update(a => a ? { ...a, watchDates } : null);
+    await this.animeService.updateAnime(currentAnime.id, { activityDates });
+    this.anime.update(a => a ? { ...a, activityDates } : null);
   }
 
   async onUpdateScore(score: number) {
@@ -202,11 +202,11 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     this.anime.update(a => a ? { ...a, score } : null);
   }
 
-  async onSaveLinks(watchLinks: any[]) {
+  async onSaveLinks(sourceLinks: any[]) {
     const currentAnime = this.anime();
     if (!currentAnime || !currentAnime.id) return;
 
-    await this.animeService.updateAnime(currentAnime.id, { watchLinks });
-    this.anime.update(a => a ? { ...a, watchLinks } : null);
+    await this.animeService.updateAnime(currentAnime.id, { sourceLinks });
+    this.anime.update(a => a ? { ...a, sourceLinks } : null);
   }
 }

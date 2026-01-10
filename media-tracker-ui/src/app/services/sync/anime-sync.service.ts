@@ -45,6 +45,14 @@ export class AnimeSyncService {
       };
 
       if (!remote) {
+        if (local.supabaseId) {
+          // Deleted on remote - remove locally
+          console.log(`Anime ${local.title} deleted on remote, removing locally.`);
+          await db.mediaItems.delete(local.id!);
+          await db.animeMetadata.delete(local.id!);
+          continue;
+        }
+
         if (!local.isDeleted) {
           const { data, error: insertError } = await this.supabase
             .from('media_items')
@@ -58,7 +66,7 @@ export class AnimeSyncService {
               supabaseId: data.id, 
               lastSyncedAt: new Date() 
             });
-            await this.syncAnimeMetadata(local.id!, data.id);
+            await this.syncAnimeMetadata(local.id!, data.id, 'push');
           }
         }
       } else {
@@ -66,7 +74,7 @@ export class AnimeSyncService {
         if (local.updatedAt > remoteUpdatedAt && (!local.lastSyncedAt || local.updatedAt > local.lastSyncedAt)) {
           await this.supabase.from('media_items').update(supabaseData).eq('id', local.supabaseId);
           await db.mediaItems.update(local.id!, { lastSyncedAt: new Date() });
-          await this.syncAnimeMetadata(local.id!, local.supabaseId!);
+          await this.syncAnimeMetadata(local.id!, local.supabaseId!, 'push');
         } else if (remoteUpdatedAt > (local.lastSyncedAt || local.updatedAt)) {
           await db.mediaItems.update(local.id!, {
             supabaseId: remote.id,
@@ -85,10 +93,8 @@ export class AnimeSyncService {
             isDeleted: remote.is_deleted,
             updatedAt: remoteUpdatedAt,
             lastSyncedAt: new Date(),
-            progress_current: local.progress_current, // Handled separately or in metadata
-            progress_total: local.progress_total
           });
-          await this.syncAnimeMetadata(local.id!, remote.id);
+          await this.syncAnimeMetadata(local.id!, remote.id, 'pull');
         }
       }
     }
@@ -116,15 +122,15 @@ export class AnimeSyncService {
           createdAt: new Date(remote.created_at),
           updatedAt: new Date(remote.updated_at),
           lastSyncedAt: new Date(),
-          progress_current: 0,
-          progress_total: 0
+          progressCurrent: 0,
+          progressTotal: 0
         });
-        await this.syncAnimeMetadata(localId as number, remote.id);
+        await this.syncAnimeMetadata(localId as number, remote.id, 'pull');
       }
     }
   }
 
-  private async syncAnimeMetadata(localMediaId: number, remoteMediaId: number) {
+  private async syncAnimeMetadata(localMediaId: number, remoteMediaId: number, direction: 'push' | 'pull' = 'push') {
     const localMeta = await db.animeMetadata.get(localMediaId);
     const { data: remoteMeta, error } = await this.supabase
       .from('anime_metadata')
@@ -134,14 +140,11 @@ export class AnimeSyncService {
 
     if (error && error.code !== 'PGRST116') throw error;
 
-    if (localMeta) {
-      const localItem = await db.mediaItems.get(localMediaId);
+    if (direction === 'push' && localMeta) {
       const supabaseData = {
         media_item_id: remoteMediaId,
         mal_id: localMeta.malId,
         studios: localMeta.studios,
-        episodes_watched: localItem?.progress_current || 0,
-        episodes_total: localItem?.progress_total || 0,
         publication_status: '' // Could be synced later
       };
 
@@ -150,7 +153,7 @@ export class AnimeSyncService {
       } else {
         await this.supabase.from('anime_metadata').update(supabaseData).eq('media_item_id', remoteMediaId);
       }
-    } else if (remoteMeta) {
+    } else if (direction === 'pull' && remoteMeta) {
       await db.animeMetadata.put({
         mediaItemId: localMediaId,
         malId: remoteMeta.mal_id,
@@ -158,10 +161,33 @@ export class AnimeSyncService {
       });
       // Update progress and studios on mediaItem
       await db.mediaItems.update(localMediaId, {
-        progress_current: remoteMeta.episodes_watched,
-        progress_total: remoteMeta.episodes_total,
         studios: remoteMeta.studios || [],
       });
+    } else if (!direction) {
+      // Fallback for cases where direction is not provided
+      if (localMeta) {
+        const localItem = await db.mediaItems.get(localMediaId);
+        const supabaseData = {
+          media_item_id: remoteMediaId,
+          mal_id: localMeta.malId,
+          studios: localMeta.studios,
+          publication_status: ''
+        };
+        if (!remoteMeta) {
+          await this.supabase.from('anime_metadata').insert([supabaseData]);
+        } else {
+          await this.supabase.from('anime_metadata').update(supabaseData).eq('media_item_id', remoteMediaId);
+        }
+      } else if (remoteMeta) {
+        await db.animeMetadata.put({
+          mediaItemId: localMediaId,
+          malId: remoteMeta.mal_id,
+          studios: remoteMeta.studios || []
+        });
+        await db.mediaItems.update(localMediaId, {
+          studios: remoteMeta.studios || []
+        });
+      }
     }
   }
 }

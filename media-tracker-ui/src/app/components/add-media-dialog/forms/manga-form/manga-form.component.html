@@ -6,7 +6,7 @@
           <label>Status</label>
           <div class="custom-select-wrapper">
             <select class="premium-select" [value]="selectedCategoryId()" (change)="selectedCategoryId.set(+$any($event.target).value)">
-              @for (category of categories(); track category.id) { <option [value]="category.id">{{ category.name }}</option> }
+              @for (category of categories(); track category.id) { <option [value]="category.supabaseId">{{ category.name }}</option> }
             </select>
           </div>
         </div>

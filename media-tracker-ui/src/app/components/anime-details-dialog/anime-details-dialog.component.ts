@@ -110,15 +110,15 @@ export class AnimeDetailsDialogComponent {
     const currentMedia = this.media();
     if (!currentMedia?.id) return;
 
-    const current = currentMedia.progress_current || 0;
-    const total = currentMedia.progress_total || 0;
+    const current = currentMedia.progressCurrent || 0;
+    const total = currentMedia.progressTotal || 0;
     
     if (total > 0 && current >= total) return; 
 
     const newCount = current + 1;
-    await this.mediaService.updateMedia(currentMedia.id, { progress_current: newCount });
+    await this.mediaService.updateMedia(currentMedia.id, { progressCurrent: newCount });
     
-    this.media.update(m => m ? { ...m, progress_current: newCount } : null);
+    this.media.update(m => m ? { ...m, progressCurrent: newCount } : null);
   }
 
   getScoreColorClass(score: number): string {

@@ -2,7 +2,7 @@
   <div class="section-header">
     <div class="header-left">
       <lucide-icon [img]="ClockIcon" [size]="18"></lucide-icon>
-      <h2>Watch History ({{ watchDates()?.length }})</h2>
+      <h2>History ({{ activityDates()?.length }})</h2>
     </div>
     <button class="add-btn" (click)="onAddLog()" title="Add new log">
       <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
@@ -10,7 +10,7 @@
   </div>
   
   <div class="history-list">
-    @for (date of watchDates(); track $index; let i = $index) {
+    @for (date of activityDates(); track $index; let i = $index) {
       <div class="history-item" (click)="togglePicker(i)" [class.picker-open]="activePickerIndex() === i">
         <div class="item-content">
           <div class="dot"></div>
@@ -37,7 +37,7 @@
         }
       </div>
     }
-    @if (!watchDates()?.length) {
+    @if (!activityDates()?.length) {
       <div class="empty-state">
         No history recorded yet.
       </div>

@@ -21,14 +21,14 @@ export interface MediaItem {
   bannerImage?: string;
   externalId?: number;
   externalApi?: string; // 'mal', 'igdb', 'tmdb'
-  progress_current: number;
-  progress_total: number;
   statusId: number;
   score: number;
   genres: string[];
   studios?: string[];
   platforms?: string[];
   releaseYear?: number;
+  startDate?: Date | string;
+  endDate?: Date | string;
   trailerUrl?: string;
   notes?: string;
   activityDates?: Date[];
@@ -36,6 +36,8 @@ export interface MediaItem {
   createdAt: Date;
   updatedAt: Date;
   lastSyncedAt?: Date;
+  progressCurrent?: number;
+  progressTotal?: number;
   isDeleted?: boolean;
 }
 

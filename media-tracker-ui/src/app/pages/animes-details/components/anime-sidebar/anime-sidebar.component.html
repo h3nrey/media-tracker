@@ -35,11 +35,11 @@
   </div>
 
   <div class="side-actions">
-    @if (anime()?.totalEpisodes) {
+    @if (anime()?.progressTotal) {
       <div class="episode-progress">
         <div class="progress-info">
           <span>Progress</span>
-          <span class="count">{{ anime()?.episodesWatched }} / {{ anime()?.totalEpisodes }}</span>
+          <span class="count">{{ anime()?.progressCurrent }} / {{ anime()?.progressTotal }}</span>
         </div>
         <div class="progress-bar-container">
           <div class="progress-bar" [style.width.%]="progress"></div>
@@ -58,13 +58,13 @@
       <button class="btn-outline" (click)="onIncrementEpisode()" title="Add Episode">
         <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
       </button>
-      <button class="btn-outline" (click)="onDecrementEpisode()" title="Remove Episode" [disabled]="(anime()?.episodesWatched || 0) <= 0">
+      <button class="btn-outline" (click)="onDecrementEpisode()" title="Remove Episode" [disabled]="(anime()?.progressCurrent || 0) <= 0">
         <lucide-icon [img]="MinusIcon" [size]="18"></lucide-icon>
       </button>
-      <button class="btn-outline" (click)="onCompleteEpisodes()" title="Complete All" [disabled]="anime()?.episodesWatched === anime()?.totalEpisodes">
+      <button class="btn-outline" (click)="onCompleteEpisodes()" title="Complete All" [disabled]="anime()?.progressTotal === anime()?.progressCurrent">
         <lucide-icon [img]="CheckIcon" [size]="18"></lucide-icon>
       </button>
-      <button class="btn-outline" (click)="onResetEpisodes()" title="Reset Progress" [disabled]="(anime()?.episodesWatched || 0) <= 0">
+      <button class="btn-outline" (click)="onResetEpisodes()" title="Reset Progress" [disabled]="(anime()?.progressCurrent || 0) <= 0">
         <lucide-icon [img]="ResetIcon" [size]="18"></lucide-icon>
       </button>
     </div>
@@ -76,6 +76,6 @@
   </div>
 
   <div class="side-links">
-    <app-anime-links [watchLinks]="anime()?.watchLinks" (saveLinks)="onSaveLinks($event)"></app-anime-links>
+    <app-anime-links [sourceLinks]="anime()?.sourceLinks" (saveLinks)="onSaveLinks($event)"></app-anime-links>
   </div>
 </aside>

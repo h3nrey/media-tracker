@@ -91,7 +91,7 @@ export class StatsComponent {
 
     // Calculate total episodes watched
     const totalEpisodes = filteredAnime.reduce((sum, anime) => 
-      sum + (anime.episodesWatched || 0), 0
+      sum + (anime.progressCurrent || 0), 0
     );
 
     // Calculate average score
@@ -194,8 +194,8 @@ export class StatsComponent {
 
     // Return all anime with at least 1 episode watched, sorted by episodes watched
     return filteredAnime
-      .filter(a => (a.episodesWatched || 0) > 0)
-      .sort((a, b) => (b.episodesWatched || 0) - (a.episodesWatched || 0));
+      .filter(a => (a.progressCurrent || 0) > 0)
+      .sort((a, b) => (b.progressCurrent || 0) - (a.progressTotal || 0));
   }
 
   getCompletionPercentage(): number {

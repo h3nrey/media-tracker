@@ -47,7 +47,7 @@ export class YearRecapComponent {
 
   stats = computed(() => {
     const yearAnime = this.anime;
-    const totalEpisodes = yearAnime.reduce((acc, a) => acc + (a.episodesWatched || 0), 0);
+    const totalEpisodes = yearAnime.reduce((acc, a) => acc + (a.progressTotal || 0), 0);
     
     // Studios
     const studioMap: Record<string, number> = {};
@@ -76,7 +76,7 @@ export class YearRecapComponent {
 
     // Dropped Fastest (Status ID 4 = Dropped)
     const droppedAnime = yearAnime.filter(a => a.statusId === 4);
-    const droppedFastest = droppedAnime.sort((a, b) => (a.episodesWatched || 0) - (b.episodesWatched || 0))[0];
+    const droppedFastest = droppedAnime.sort((a, b) => (a.progressTotal || 0) - (b.progressCurrent || 0))[0];
 
     // Surprised Me
     const potentialSurprises = yearAnime.filter(a => a.id !== highestRated?.id);

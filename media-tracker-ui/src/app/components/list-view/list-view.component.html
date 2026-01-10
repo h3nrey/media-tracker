@@ -14,35 +14,35 @@
 
   <!-- Category Sections -->
   @for (category of categories(); track category.id) {
-    <section class="category-section" [class.collapsed]="isSectionCollapsed(category.id!)">
-      <div class="section-header" (click)="toggleSection(category.id!)">
+    <section class="category-section" [class.collapsed]="isSectionCollapsed(category.supabaseId!)">
+      <div class="section-header" (click)="toggleSection(category.supabaseId!)">
         <div class="header-left">
           <button class="collapse-btn">
             <lucide-icon 
-              [img]="isSectionCollapsed(category.id!) ? ChevronDownIcon : ChevronUpIcon" 
+              [img]="isSectionCollapsed(category.supabaseId!) ? ChevronDownIcon : ChevronUpIcon" 
               [size]="20">
             </lucide-icon>
           </button>
           <h2>{{ category.name }}</h2>
-          <span class="count-badge">{{ getMediaForCategory(category.id!).length }}</span>
+          <span class="count-badge">{{ getMediaForCategory(category.supabaseId!).length }}</span>
         </div>
         
         <button 
           class="add-btn" 
-          (click)="onAddMedia(category.id!); $event.stopPropagation()" 
+          (click)="onAddMedia(category.supabaseId!); $event.stopPropagation()" 
           title="Add media">
           <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
         </button>
       </div>
 
-      @if (!isSectionCollapsed(category.id!)) {
+      @if (!isSectionCollapsed(category.supabaseId!)) {
         <div class="anime-list">
-          @if (getMediaForCategory(category.id!).length === 0) {
+          @if (getMediaForCategory(category.supabaseId!).length === 0) {
             <div class="empty-state">
               <p>No media in this category for the selected year</p>
             </div>
           } @else {
-            @for (media of getMediaForCategory(category.id!); track media.id) {
+            @for (media of getMediaForCategory(category.supabaseId!); track media.id) {
               <div class="anime-item" (click)="onMediaClick(media)">
                 <img 
                   [src]="media.coverImage" 
@@ -53,7 +53,7 @@
                   <h3 class="anime-title">{{ media.title }}</h3>
                   <div class="anime-meta">
                     <span class="progress">
-                      {{ media.progress_current }}/{{ media.progress_total || '?' }}
+                      {{ media.progressCurrent }}/{{ media.progressTotal || '?' }}
                     </span>
                     @if (media.score > 0) {
                       <span class="score">⭐ {{ media.score }}</span>

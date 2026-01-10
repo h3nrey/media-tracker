@@ -4,5 +4,6 @@ export interface MovieMetadata {
   cast: string[];
   studios: string[];
   tmdbId?: number;
-  runtimeMinutes?: number;
+  progressCurrent?: number; // minutesWatched
+  progressTotal?: number; // runtimeMinutes
 }

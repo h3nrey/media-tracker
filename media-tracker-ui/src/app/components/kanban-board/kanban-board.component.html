@@ -10,13 +10,12 @@
           <div class="column-header" [style.border-color]="column.category.color">
             <div class="header-left">
               <h2>{{ column.category.name }}</h2>
-              <h1>{{ column.category.supabaseId }}</h1>
               <span class="count">{{ column.media.length }}</span>
             </div>
             <button 
               class="add-column-btn" 
               [style.background]="column.category.color"
-              (click)="openAddDialog(column.category.id!)"
+              (click)="openAddDialog(column.category.supabaseId!)"
               title="Add media to {{ column.category.name }}"
             >
               <span class="add-icon">+</span>
@@ -31,7 +30,7 @@
             [cdkDropListConnectedTo]="getConnectedLists()"
             [cdkDropListAutoScrollDisabled]="false"
             cdkDropListOrientation="vertical"
-            (cdkDropListDropped)="onDrop($event, column.category.id!)"
+            (cdkDropListDropped)="onDrop($event, column.category.supabaseId!)"
           >
             @for (media of column.media; track trackByMediaId($index, media)) {
               <app-kanban-anime-card 

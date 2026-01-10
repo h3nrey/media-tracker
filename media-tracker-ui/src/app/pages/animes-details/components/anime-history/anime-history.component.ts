@@ -13,7 +13,7 @@ import { DatePickerComponent } from '../../../../components/ui/date-picker/date-
 })
 export class AnimeHistoryComponent {
   private el = inject(ElementRef);
-  watchDates = input<any[] | undefined>([]);
+  activityDates = input<any[] | undefined>([]);
   
   addLog = output<void>();
   removeLog = output<number>();
