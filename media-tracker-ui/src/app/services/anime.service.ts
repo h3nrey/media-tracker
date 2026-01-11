@@ -33,10 +33,12 @@ export class AnimeService {
         const meta = await db.animeMetadata.get(item.id!);
         return {
           ...item,
-          mediaItemId: 1,
+          // mediaItemId is redundant if we have id, but keeping for compatibility if needed
+          mediaItemId: item.id!, 
           progressCurrent: item.progressCurrent,
           progressTotal: item.progressTotal,
-          studios: meta?.studios || []
+          studios: meta?.studios || [],
+          malId: meta?.malId
         } as Anime;
       }));
       return withMeta.filter(a => !a.isDeleted);
@@ -101,6 +103,7 @@ export class AnimeService {
       progressCurrent: item.progressCurrent,
       progressTotal: item.progressTotal,
       studios: meta?.studios || [],
+      malId: meta?.malId,
       logs: logs.filter(l => !l.isDeleted)
     } as Anime;
   }

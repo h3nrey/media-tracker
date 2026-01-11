@@ -88,6 +88,20 @@
   gap: 20px;
 }
 
+.options-area {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    
+    label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--app-text-muted);
+        text-transform: uppercase;
+        margin-left: 4px;
+    }
+}
+
 .info-card {
     background: rgba(var(--app-primary), 0.1);
     border: 1px solid rgba(var(--app-primary), 0.2);

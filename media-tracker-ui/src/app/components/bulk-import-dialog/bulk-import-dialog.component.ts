@@ -1,27 +1,49 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, X, Upload, Info, AlertCircle, CheckCircle } from 'lucide-angular';
-import { AnimeService } from '../../services/anime.service';
+import { LucideAngularModule, X, Upload, Info, AlertCircle, CheckCircle, Download } from 'lucide-angular';
 import { CategoryService } from '../../services/status.service';
 import { Category } from '../../models/status.model';
-import { Anime } from '../../models/anime.model';
+import { MediaType } from '../../models/media-type.model';
+import { SelectComponent } from '../ui/select/select';
+import { ExcelExportService } from '../../services/excel-export.service';
+import { ImportProcessorService } from '../../services/import-processor.service';
+import { MediaService } from '../../services/media.service';
+import { NumberInputComponent } from '../ui/number-input/number-input.component';
 
 @Component({
   selector: 'app-bulk-import-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, SelectComponent, NumberInputComponent],
   templateUrl: './bulk-import-dialog.component.html',
   styleUrl: './bulk-import-dialog.component.scss'
 })
 export class BulkImportDialogComponent {
-  private animeService = inject(AnimeService);
   private categoryService = inject(CategoryService);
+  private excelService = inject(ExcelExportService);
+  private importService = inject(ImportProcessorService);
+  private mediaService = inject(MediaService); // Needed for fetching media for export
+  
+  MediaType = MediaType;
+  selectedMediaType = signal<MediaType>(MediaType.ANIME);
 
   isOpen = signal(false);
   categories = signal<Category[]>([]);
   selectedCategoryId = signal<number | null>(null);
-  skipFirstX = signal(35);
+  
+  mediaTypeOptions = [
+      { value: MediaType.ANIME, label: 'Anime' },
+      { value: MediaType.GAME, label: 'Game' }
+  ];
+
+  categoryOptions = computed(() => {
+      return this.categories().map(c => ({
+          value: c.supabaseId ?? c.id!, 
+          label: c.name
+      }));
+  });
+
+  skipFirstX = signal(0);
   importData = '';
   
   status = signal<'idle' | 'processing' | 'success' | 'error'>('idle');
@@ -33,12 +55,14 @@ export class BulkImportDialogComponent {
   readonly InfoIcon = Info;
   readonly AlertIcon = AlertCircle;
   readonly CheckIcon = CheckCircle;
+  readonly DownloadIcon = Download;
 
   constructor() {
     this.categoryService.getAllCategories$().subscribe(cats => {
       this.categories.set(cats);
       if (cats.length > 0 && !this.selectedCategoryId()) {
-        this.selectedCategoryId.set(cats[0].id!);
+        const first = cats[0];
+        this.selectedCategoryId.set(first.supabaseId ?? first.id!);
       }
     });
   }
@@ -49,7 +73,7 @@ export class BulkImportDialogComponent {
     this.message.set('');
     this.importData = '';
     this.progress.set(0);
-    this.skipFirstX.set(35);
+    this.skipFirstX.set(0);
     document.body.style.overflow = 'hidden';
   }
 
@@ -70,6 +94,36 @@ export class BulkImportDialogComponent {
     reader.readAsText(file);
   }
 
+  async exportData() {
+    try {
+      this.status.set('processing');
+      this.message.set('Generating export...');
+      
+      const mediaItems = await this.mediaService.getAllMedia(this.selectedMediaType());
+      
+      await this.excelService.exportMedia(
+          mediaItems, 
+          this.selectedMediaType(), 
+          this.categories()
+      );
+      
+      this.status.set('success');
+      this.message.set('Export completed successfully.');
+      
+      setTimeout(() => {
+          if (this.status() === 'success') {
+              this.status.set('idle');
+              this.message.set('');
+          }
+      }, 3000);
+
+    } catch (error) {
+      console.error('Export failed:', error);
+      this.status.set('error');
+      this.message.set('Failed to export data.');
+    }
+  }
+
   async processImport() {
     if (!this.importData.trim() || !this.selectedCategoryId()) {
       this.status.set('error');
@@ -81,78 +135,26 @@ export class BulkImportDialogComponent {
     this.message.set('Reading data...');
     
     try {
-      const lines = this.importData.split(/\r?\n/).filter(l => l.trim().length > 0);
-      let importedCount = 0;
-      let skippedCount = 0;
-      let alreadySkippedByCounter = 0;
-      const total = lines.length;
+        const result = await this.importService.processImport(
+            this.importData,
+            this.selectedMediaType(),
+            this.selectedCategoryId()!,
+            this.skipFirstX(),
+            (progress, msg) => {
+                this.progress.set(progress);
+                this.message.set(msg);
+            }
+        );
 
-      const existingAnime = await this.animeService.searchAnimeByTitle('');
-      const existingTitles = new Set(existingAnime.map(a => a.title.toLowerCase()));
-
-      for (const line of lines) {
-        // Robust CSV/TSV regex
-        const regex = /(".*?"|[^,\t\r\n]+)(?=\s*[,|\t]|\s*$)/g;
-        const parts = (line.match(regex) || []).map(p => p.trim().replace(/^"|"$/g, ''));
-        
-        if (parts.length < 1) continue;
-
-        let titleIdx = 0;
-        if (!isNaN(Number(parts[0])) && parts[0] !== '') {
-            titleIdx = parts[1] === '' ? 2 : 1; 
-        }
-
-        const title = parts[titleIdx];
-        if (!title || title.toLowerCase() === 'title') continue;
-
-        // Skip logic: Jump over the first X animes as requested
-        if (alreadySkippedByCounter < this.skipFirstX()) {
-          alreadySkippedByCounter++;
-          skippedCount++;
-          continue;
-        }
-
-        if (existingTitles.has(title.toLowerCase())) {
-          skippedCount++;
-          continue;
-        }
-
-        // Mapping strategy: Title, Genres, Studio, Year, Score
-        const genres = parts[titleIdx + 1] ? parts[titleIdx + 1].split(/[;/]/).map(g => g.trim()) : [];
-        const studios = parts[titleIdx + 2] ? parts[titleIdx + 2].split(/[;/]/).map(s => s.trim()) : [];
-        const yearPart = parts[titleIdx + 3];
-        const scorePart = parts[titleIdx + 4];
-
-        const year = yearPart ? parseInt(yearPart.replace(/\D/g, ''), 10) : undefined;
-        const score = scorePart ? parseInt(scorePart.replace(/\D/g, ''), 10) : 0;
-
-        await this.animeService.addAnime({
-          title,
-          genres,
-          studios,
-          releaseYear: isNaN(Number(year)) ? undefined : year,
-          score: isNaN(score) ? 0 : score,
-          statusId: this.selectedCategoryId()!,
-          progressCurrent: 0,
-          progressTotal: 0,
-          sourceLinks: [],
-          activityDates: []
-        } as any);
-
-        importedCount++;
-        existingTitles.add(title.toLowerCase());
-        this.progress.set(Math.round(((importedCount + skippedCount) / total) * 100));
-        this.message.set(`Progress: ${importedCount} added, ${skippedCount} skipped`);
-      }
-
-      this.status.set('success');
-      this.message.set(`Success! Added ${importedCount} items, skipped ${skippedCount} duplicates.`);
-      this.importData = '';
-      this.animeService.triggerFilterUpdate();
+        this.status.set('success');
+        this.message.set(`Success! Added ${result.importedCount} items, skipped ${result.skippedCount}.`);
+        this.importData = '';
     } catch (error) {
       console.error('Import failed:', error);
       this.status.set('error');
       this.message.set('Failed to import. The format might be incorrect.');
     }
   }
+
+
 }
