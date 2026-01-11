@@ -7,6 +7,7 @@ import { ListService } from '../../services/list.service';
 import { DialogService } from '../../services/dialog.service';
 import { ToastService } from '../../services/toast.service';
 import { Anime } from '../../models/anime.model';
+import { MediaLog } from '../../models/media-log.model';
 import { Category } from '../../models/status.model';
 import { List } from '../../models/list.model';
 import { take, Subscription } from 'rxjs';
@@ -167,31 +168,31 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     const currentAnime = this.anime();
     if (!currentAnime || !currentAnime.id) return;
 
-    const activityDates = [...(currentAnime.activityDates || []), new Date()];
-    await this.animeService.updateAnime(currentAnime.id, { activityDates });
-    this.anime.update(a => a ? { ...a, activityDates } : null);
+    const logs = [...(currentAnime.logs || []), { mediaItemId: currentAnime.id, startDate: new Date(), endDate: new Date() }];
+    await this.animeService.updateAnime(currentAnime.id, { logs });
+    this.anime.update(a => a ? { ...a, logs } : null);
   }
 
   async onRemoveLog(index: number) {
     const currentAnime = this.anime();
-    if (!currentAnime || !currentAnime.id || !currentAnime.activityDates) return;
+    if (!currentAnime || !currentAnime.id || !currentAnime.logs) return;
 
-    const activityDates = [...currentAnime.activityDates];
-    activityDates.splice(index, 1);
+    const logs = [...currentAnime.logs];
+    logs.splice(index, 1);
     
-    await this.animeService.updateAnime(currentAnime.id, { activityDates });
-    this.anime.update(a => a ? { ...a, activityDates } : null);
+    await this.animeService.updateAnime(currentAnime.id, { logs });
+    this.anime.update(a => a ? { ...a, logs } : null);
   }
 
-  async onUpdateLog(event: { index: number, date: Date }) {
+  async onUpdateLog(event: { index: number, log: Partial<MediaLog> }) {
     const currentAnime = this.anime();
-    if (!currentAnime || !currentAnime.id || !currentAnime.activityDates) return;
+    if (!currentAnime || !currentAnime.id || !currentAnime.logs) return;
 
-    const activityDates = [...currentAnime.activityDates];
-    activityDates[event.index] = event.date;
+    const logs = [...currentAnime.logs];
+    logs[event.index] = { ...logs[event.index], ...event.log };
 
-    await this.animeService.updateAnime(currentAnime.id, { activityDates });
-    this.anime.update(a => a ? { ...a, activityDates } : null);
+    await this.animeService.updateAnime(currentAnime.id, { logs });
+    this.anime.update(a => a ? { ...a, logs } : null);
   }
 
   async onUpdateScore(score: number) {

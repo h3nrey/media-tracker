@@ -102,16 +102,22 @@
                     <lucide-icon [img]="ClockIcon" [size]="14"></lucide-icon>
                     Histórico de Atividade
                   </div>
-                  <button class="add-date-btn" (click)="addWatchDate()">
+                  <button class="add-date-btn" (click)="addLog()">
                     <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon>
-                    Adicionar Data
+                    Adicionar Log
                   </button>
                 </div>
-                <div class="watch-dates-list">
-                  @if (media()?.activityDates && (media()?.activityDates?.length ?? 0) > 0) {
-                    @for (date of media()?.activityDates; track date) {
-                      <div class="watch-date-chip">
-                        {{ date | date:'mediumDate' }}
+                <div class="watch-logs-list">
+                  @if (media()?.logs && (media()?.logs?.length ?? 0) > 0) {
+                    @for (log of media()?.logs; track $index) {
+                      <div class="watch-log-item">
+                        <div class="log-period">
+                          <span class="date">{{ log.startDate | date:'mediumDate' }}</span>
+                          @if (log.endDate && (log.startDate | date:'shortDate') !== (log.endDate | date:'shortDate')) {
+                            <span class="separator">→</span>
+                            <span class="date">{{ log.endDate | date:'mediumDate' }}</span>
+                          }
+                        </div>
                       </div>
                     }
                   } @else {

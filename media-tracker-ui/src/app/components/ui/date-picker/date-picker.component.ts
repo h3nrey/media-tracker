@@ -10,9 +10,16 @@ import { LucideAngularModule, ChevronLeft, ChevronRight, X } from 'lucide-angula
   styleUrl: './date-picker.component.scss'
 })
 export class DatePickerComponent {
-  selectedDate = input<Date>(new Date());
+  // Using any to satisfy strict template checking when passing string | Date | undefined from models
+  selectedDate = input<Date | string | undefined | null>(new Date());
   dateChange = output<Date>();
   close = output<void>();
+
+  private normalizedDate = computed(() => {
+    const val = this.selectedDate();
+    if (!val) return new Date();
+    return typeof val === 'string' ? new Date(val) : val;
+  });
 
   viewDate = signal(new Date());
 
@@ -125,7 +132,7 @@ export class DatePickerComponent {
   }
 
   isSelected(d: any) {
-    const sel = this.selectedDate();
+    const sel = this.normalizedDate();
     return d.day === sel.getDate() && 
            d.month === sel.getMonth() && 
            d.year === sel.getFullYear();

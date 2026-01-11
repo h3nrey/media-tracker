@@ -32,7 +32,7 @@
             </div>
             <div class="section-group">
               <app-anime-history 
-                [activityDates]="anime()?.activityDates"
+                [logs]="anime()?.logs"
                 (addLog)="onAddLog()"
                 (removeLog)="onRemoveLog($event)"
                 (updateLog)="onUpdateLog($event)">

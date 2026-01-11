@@ -8,6 +8,7 @@ import { DatePickerComponent } from '../../../ui/date-picker/date-picker.compone
 import { Category } from '../../../../models/status.model';
 import { WatchSource } from '../../../../models/watch-source.model';
 import { MediaType } from '../../../../models/media-type.model';
+import { MediaLog } from '../../../../models/media-log.model';
 
 @Component({
   selector: 'app-game-form',
@@ -43,6 +44,7 @@ export class GameFormComponent {
   releaseYear = signal<number | undefined>(undefined);
   notes = signal('');
   activityDates = signal<Date[]>([]);
+  logs = signal<MediaLog[]>([]);
   sourceLinks = signal<any[]>([]);
   platforms = signal<string[]>([]);
 
@@ -50,6 +52,9 @@ export class GameFormComponent {
   tempDate = signal(new Date());
   newLinkSourceId = signal<number | null>(null);
   newLinkUrl = signal('');
+
+  activeLogPicker = signal<{index: number, field: 'startDate' | 'endDate'} | null>(null);
+  today = new Date();
 
   constructor() {
     effect(() => {
@@ -94,6 +99,22 @@ export class GameFormComponent {
     this.activityDates.update(dates => dates.filter((_, i) => i !== index));
   }
 
+  addLog() {
+    this.logs.update(logs => [...logs, { mediaItemId: 0, startDate: new Date() }]);
+  }
+
+  removeLog(index: number) {
+    this.logs.update(logs => logs.filter((_, i) => i !== index));
+  }
+
+  updateLogDate(index: number, field: 'startDate' | 'endDate', date: Date | string) {
+    this.logs.update(logs => {
+      const newLogs = [...logs];
+      newLogs[index] = { ...newLogs[index], [field]: date };
+      return newLogs;
+    });
+  }
+
   addLink() {
     if (this.newLinkSourceId() && this.newLinkUrl().trim()) {
       this.sourceLinks.update(links => [...links, {
@@ -129,6 +150,7 @@ export class GameFormComponent {
       statusId: this.selectedCategoryId(),
       notes: this.notes(),
       activityDates: this.activityDates(),
+      logs: this.logs(),
       source_links: this.sourceLinks(),
       platforms: this.platforms()
     };

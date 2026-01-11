@@ -82,7 +82,7 @@ export class MetadataSyncDialogComponent {
                     coverImage: malData.images.webp.large_image_url || malData.images.jpg.large_image_url,
                     bannerImage: bannerImage || anime.bannerImage,
                     trailerUrl: malData.trailer?.embed_url || anime.trailerUrl,
-                    totalEpisodes: malData.episodes || anime.progressTotal || 0,
+                    progressTotal: malData.episodes || anime.progressTotal || 0,
                     genres: malData.genres?.map((g: any) => g.name) || anime.genres,
                     studios: malData.studios?.map((s: any) => s.name) || anime.studios,
                     releaseYear: malData.year || malData.aired?.prop?.from?.year || anime.releaseYear,

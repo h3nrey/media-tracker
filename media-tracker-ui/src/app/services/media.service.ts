@@ -94,11 +94,15 @@ export class MediaService {
   }
 
   async getMediaById(id: number): Promise<MediaItem | undefined> {
-    return await db.mediaItems.get(id);
+    const item = await db.mediaItems.get(id);
+    if (!item) return undefined;
+    
+    const logs = await db.mediaLogs.where('mediaItemId').equals(id).toArray();
+    return { ...item, logs: logs.filter(l => !l.isDeleted) };
   }
 
   getMediaById$(id: number): Observable<MediaItem | undefined> {
-    return from(liveQuery(() => db.mediaItems.get(id)));
+    return from(liveQuery(() => this.getMediaById(id)));
   }
 
   async getMediaBySupabaseId(supabaseId: number): Promise<MediaItem | undefined> {
@@ -114,12 +118,24 @@ export class MediaService {
 
   async addMedia(media: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();
+    const { logs, ...mediaData } = media;
+    
     const id = await db.mediaItems.add({
-      ...media,
+      ...mediaData,
       createdAt: now,
       updatedAt: now,
       isDeleted: false
     } as MediaItem);
+    
+    if (logs && logs.length > 0) {
+      const logsToAdd = logs.map(log => ({
+        ...log,
+        mediaItemId: id as number,
+        createdAt: now,
+        updatedAt: now
+      }));
+      await db.mediaLogs.bulkAdd(logsToAdd);
+    }
     
     console.log("generated id: ", id);
     this.triggerFilterUpdate();
@@ -128,10 +144,30 @@ export class MediaService {
   }
 
   async updateMedia(id: number, updates: Partial<MediaItem>): Promise<number> {
+    const now = new Date();
+    const { logs, ...itemUpdates } = updates;
+
     const result = await db.mediaItems.update(id, {
-      ...updates,
-      updatedAt: new Date()
+      ...itemUpdates,
+      updatedAt: now
     });
+
+    if (logs) {
+      // For simplicity, we'll replace or update logs. 
+      // If log has ID, put it (update). If not, add it.
+      for (const log of logs) {
+        if (log.id) {
+          await db.mediaLogs.update(log.id, { ...log, updatedAt: now });
+        } else {
+          await db.mediaLogs.add({ ...log, mediaItemId: id, createdAt: now, updatedAt: now });
+        }
+      }
+      
+      // Handle deletions if necessary - but for now let's just keep it simple as the user might just want to sync the array.
+      // Actually, standard behavior for this kind of implementation is often "clear and replace" if it's an array input.
+      // But Dexie logs table is separate.
+    }
+
     this.syncService.sync();
     return result;
   }

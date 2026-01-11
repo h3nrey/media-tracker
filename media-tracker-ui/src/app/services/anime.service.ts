@@ -53,8 +53,8 @@ export class AnimeService {
         const meta = await db.animeMetadata.get(item.id!);
         return {
           ...item,
-          progressCurrent: meta?.progressCurrent,
-          progressTotal: meta?.progressTotal,
+          progressCurrent: item.progressCurrent,
+          progressTotal: item.progressTotal,
           studios: meta?.studios || []
         } as MediaItem;
       }));
@@ -95,11 +95,13 @@ export class AnimeService {
     const item = await db.mediaItems.get(id);
     if (!item || item.mediaTypeId !== MediaType.ANIME) return undefined;
     const meta = await db.animeMetadata.get(id);
+    const logs = await db.mediaLogs.where('mediaItemId').equals(id).toArray();
     return {
       ...item,
       progressCurrent: item.progressCurrent,
       progressTotal: item.progressTotal,
-      studios: meta?.studios || []
+      studios: meta?.studios || [],
+      logs: logs.filter(l => !l.isDeleted)
     } as Anime;
   }
 
@@ -126,23 +128,47 @@ export class AnimeService {
 
   async addAnime(anime: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();
+    const { logs, ...animeData } = anime;
     const id = await db.mediaItems.add({
-      ...anime,
+      ...animeData,
       mediaTypeId: MediaType.ANIME,
       createdAt: now,
       updatedAt: now,
       isDeleted: false
     } as MediaItem);
     
+    if (logs && logs.length > 0) {
+      const logsToAdd = logs.map(log => ({
+        ...log,
+        mediaItemId: id as number,
+        createdAt: now,
+        updatedAt: now
+      }));
+      await db.mediaLogs.bulkAdd(logsToAdd);
+    }
+
     this.syncService.sync();
     return id as number;
   }
 
   async updateAnime(id: number, updates: Partial<MediaItem>): Promise<number> {
+    const now = new Date();
+    const { logs, ...itemUpdates } = updates;
     const result = await db.mediaItems.update(id, {
-      ...updates,
-      updatedAt: new Date()
+      ...itemUpdates,
+      updatedAt: now
     });
+
+    if (logs) {
+      for (const log of logs) {
+        if (log.id) {
+          await db.mediaLogs.update(log.id, { ...log, updatedAt: now });
+        } else {
+          await db.mediaLogs.add({ ...log, mediaItemId: id, createdAt: now, updatedAt: now });
+        }
+      }
+    }
+
     this.syncService.sync();
     return result;
   }

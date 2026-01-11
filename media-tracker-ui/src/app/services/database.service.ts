@@ -8,6 +8,7 @@ import { AnimeMetadata } from '../models/anime-metadata.model';
 import { MangaMetadata } from '../models/manga-metadata.model';
 import { GameMetadata } from '../models/game-metadata.model';
 import { MovieMetadata } from '../models/movie-metadata.model';
+import { MediaLog } from '../models/media-log.model';
 
 export class AnimeTrackerDatabase extends Dexie {
   anime!: Table<Anime, number>;
@@ -23,6 +24,7 @@ export class AnimeTrackerDatabase extends Dexie {
   mangaMetadata!: Table<MangaMetadata, number>;
   gameMetadata!: Table<GameMetadata, number>;
   movieMetadata!: Table<MovieMetadata, number>;
+  mediaLogs!: Table<MediaLog, number>;
 
   constructor() {
     super('AnimeTrackerDB');
@@ -117,6 +119,21 @@ export class AnimeTrackerDatabase extends Dexie {
           }
         }
       }
+    });
+
+    this.version(6).stores({
+      mediaTypes: '++id, name, createdAt',
+      mediaItems: '++id, supabaseId, mediaTypeId, title, externalId, externalApi, statusId, score, releaseYear, createdAt, updatedAt, isDeleted',
+      animeMetadata: 'mediaItemId, malId',
+      mangaMetadata: 'mediaItemId, malId',
+      gameMetadata: 'mediaItemId, igdbId',
+      movieMetadata: 'mediaItemId, tmdbId',
+      mediaLogs: '++id, supabaseId, mediaItemId, startDate, endDate, createdAt, updatedAt, isDeleted',
+      // Keep legacy stores for migration
+      anime: '++id, supabaseId, title, malId, statusId, score, releaseYear, createdAt, updatedAt, isDeleted',
+      categories: '++id, supabaseId, name, order, createdAt, updatedAt, isDeleted',
+      watchSources: '++id, supabaseId, name, baseUrl, createdAt, updatedAt, isDeleted',
+      lists: '++id, supabaseId, name, folderId, createdAt, updatedAt, isDeleted'
     });
   }
 

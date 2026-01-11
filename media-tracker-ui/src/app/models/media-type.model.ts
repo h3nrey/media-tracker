@@ -1,3 +1,5 @@
+import { MediaLog } from "./media-log.model";
+
 export enum MediaType {
   ANIME = 1,
   MANGA = 2,
@@ -38,6 +40,7 @@ export interface MediaItem {
   lastSyncedAt?: Date;
   progressCurrent?: number;
   progressTotal?: number;
+  logs?: MediaLog[];
   isDeleted?: boolean;
 }
 

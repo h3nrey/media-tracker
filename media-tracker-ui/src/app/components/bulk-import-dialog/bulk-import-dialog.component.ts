@@ -133,10 +133,10 @@ export class BulkImportDialogComponent {
           releaseYear: isNaN(Number(year)) ? undefined : year,
           score: isNaN(score) ? 0 : score,
           statusId: this.selectedCategoryId()!,
-          episodesWatched: 0,
-          totalEpisodes: 0,
-          watchLinks: [],
-          watchDates: []
+          progressCurrent: 0,
+          progressTotal: 0,
+          sourceLinks: [],
+          activityDates: []
         } as any);
 
         importedCount++;

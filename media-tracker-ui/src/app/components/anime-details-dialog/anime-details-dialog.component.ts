@@ -92,18 +92,26 @@ export class AnimeDetailsDialogComponent {
     }
   }
 
-  async addWatchDate() {
+  async addLog() {
     const currentMedia = this.media();
     if (!currentMedia || !currentMedia.id) return;
 
-    const newDate = new Date();
-    const updatedDates = [...(currentMedia.activityDates || []), newDate];
+    const newLog = { 
+      mediaItemId: currentMedia.id, 
+      startDate: new Date(),
+      endDate: new Date() 
+    };
     
     // Persist
-    await this.mediaService.updateMedia(currentMedia.id, { activityDates: updatedDates });
+    await this.mediaService.updateMedia(currentMedia.id, { 
+      logs: [...(currentMedia.logs || []), newLog] 
+    });
     
     // Update local state
-    this.media.update(m => m ? { ...m, activityDates: updatedDates } : null);
+    this.media.update(m => m ? { 
+      ...m, 
+      logs: [...(m.logs || []), newLog] 
+    } : null);
   }
 
   async incrementEpisode() {

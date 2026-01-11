@@ -1,6 +1,7 @@
 import { Component, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Anime } from '../../../../models/anime.model';
+import { MediaLog } from '../../../../models/media-log.model';
 import { Category } from '../../../../models/status.model';
 import { AnimeLinksComponent } from '../anime-links/anime-links.component';
 import { LucideAngularModule, Play, Edit3, Plus, Star, Minus, RotateCcw, CheckCheck } from 'lucide-angular';
@@ -8,7 +9,7 @@ import { LucideAngularModule, Play, Edit3, Plus, Star, Minus, RotateCcw, CheckCh
 
 export interface AnimeDetails extends Anime {
   sourceLinks?: any[];
-  activityDates?: any[];
+  logs?: MediaLog[];
 }
 
 @Component({
