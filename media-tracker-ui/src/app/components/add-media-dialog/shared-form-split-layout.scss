@@ -1,0 +1,467 @@
+@use 'sass:color';
+
+// Shared styles between Anime/Game/Manga/Movie forms for the Split Layout
+
+.form-container-split {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: visible; // Allow internal dropdowns to break out
+
+  @media (max-width: 768px) {
+    height: auto;
+    overflow-y: auto;
+  }
+}
+
+.form-content {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 2rem;
+  overflow: visible; // Allow internal dropdowns to break out
+  position: relative;
+  z-index: 10; // High enough to cover footer
+}
+
+
+
+// --- Left Sidebar ---
+.left-sidebar {
+  width: 220px;
+  min-width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto; // Allow sidebar to scroll if it's too tall
+  padding-bottom: 1rem;
+  padding-left: 2rem;
+  min-height: 0;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--app-border); border-radius: 4px; }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    align-items: center;
+  }
+}
+
+.poster-wrapper {
+  width: 100%;
+  aspect-ratio: 2/3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--app-surface-light);
+  border: 1px solid var(--app-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  position: relative;
+
+  .form-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .form-poster-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--app-text-muted);
+    background: var(--app-surface);
+  }
+}
+
+.status-selector {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--app-text-secondary);
+    text-transform: uppercase;
+  }
+}
+
+// --- Right Content Area ---
+.right-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: visible;
+}
+
+.form-header-row {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-right: 2rem;
+
+  .header-title-group {
+     h2 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+      margin: 0;
+      line-height: 1.1;
+
+      .year {
+        font-size: 1.25rem;
+        color: var(--app-text-muted);
+        font-weight: 400;
+        margin-left: 0.5rem;
+      }
+    }
+  }
+}
+
+
+// --- Tabs ---
+.tabs-nav {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--app-border);
+  margin-bottom: 1.5rem;
+
+  .tab-btn {
+    background: transparent;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    color: var(--app-text-muted);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--app-text-primary);
+    }
+
+    &.active {
+      color: var(--app-primary);
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--app-primary);
+        border-radius: 2px 2px 0 0;
+      }
+    }
+  }
+}
+
+// --- Tab Content Area ---
+.tab-content {
+  flex: 1;
+  overflow-y: auto; 
+  overflow-x: visible; // Crucial for dropdowns to break out of the width
+  padding-right: 2rem; 
+  padding-bottom: 2rem;
+  min-height: 0;
+  
+  // Custom scrollbar
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-thumb { background: var(--app-border); border-radius: 10px; }
+  
+  .tab-pane {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+
+// --- Details Grid ---
+
+.form-grid-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+
+  .full { grid-column: 1 / -1; }
+}
+
+.card-section-title {
+  margin: 1.5rem 0 1rem 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--app-text-primary);
+  border-bottom: 1px solid var(--app-border);
+  padding-bottom: 0.75rem;
+  grid-column: 1 / -1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+// --- Footer ---
+.footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.25rem 2rem;
+  border-top: 1px solid var(--app-border);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1; // Lower than content
+  background: var(--app-surface); // Ensure it has background to cover scrolling content
+  
+  .footer-btn {
+      padding: 0.75rem 1.75rem;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      font-size: 0.95rem;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      letter-spacing: 0.02em;
+      
+      &.secondary {
+        background: transparent;
+        color: var(--app-text-secondary);
+        border-color: transparent;
+        
+        &:hover {
+          background: var(--app-surface-hover);
+          color: var(--app-text-primary);
+        }
+      }
+      
+      &.primary {
+        background: var(--app-primary);
+        color: white; // Force white text
+        box-shadow: 0 4px 12px rgba(var(--app-primary-rgb), 0.3);
+        
+        &:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(var(--app-primary-rgb), 0.4);
+        }
+        
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
+        }
+      }
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// --- Premium Inputs Overrides/Helpers ---
+.premium-input, .premium-textarea, .premium-select {
+  width: 100%;
+  background: var(--app-bg);
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+  color: var(--app-text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: var(--app-primary);
+    box-shadow: 0 0 0 3px var(--app-primary-glow);
+    background: var(--app-surface);
+  }
+  
+  &::placeholder {
+     color: var(--app-text-muted);
+     opacity: 0.6;
+  }
+}
+
+.premium-textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--app-text-secondary);
+}
+
+// --- Form Sections ---
+.rating-section, .progress-section, .notes-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.section-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--app-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  
+  .progress-input-group {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    background: var(--app-surface-light);
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    border: 1px solid var(--app-border);
+
+    .field-item.mini {
+       display: flex;
+       flex-direction: column;
+       gap: 0.25rem;
+       align-items: center;
+
+       .mini-label {
+          font-size: 0.65rem;
+          font-weight: 700;
+          color: var(--app-text-muted);
+          text-transform: uppercase;
+          margin: 0;
+       }
+    }
+
+    .sep {
+      font-size: 1.25rem;
+      font-weight: 300;
+      color: var(--app-text-muted);
+      opacity: 0.4;
+      margin-bottom: 0.5rem; // Align with inputs center
+    }
+  }
+
+  .icon-btn-complete {
+    background: var(--app-surface-light);
+    border: 1px solid var(--app-border);
+    color: var(--app-text-secondary);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--app-success);
+      color: white;
+      border-color: var(--app-success);
+      transform: scale(1.05);
+    }
+  }
+
+  .unit-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--app-text-muted);
+  }
+}
+
+
+// Chips & Actions
+.action-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chip-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.source-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--app-surface-hover);
+  border: 1px solid var(--app-border);
+  padding: 0.35rem 0.75rem;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  
+  &:hover {
+     border-color: var(--app-primary-muted);
+     background: var(--app-surface-light);
+  }
+  
+  .badge { font-weight: 700; color: var(--app-primary); }
+  a { color: var(--app-text-primary); text-decoration: none; &:hover { text-decoration: underline; } }
+  button { background: none; border: none; cursor: pointer; color: var(--app-text-muted); display: flex; &:hover { color: var(--app-danger); } }
+}
+
+.btn-add-circle, .btn-remove-log {
+  background: var(--app-surface-hover);
+  border: 1px solid var(--app-border);
+  color: var(--app-text-primary);
+  border-radius: 50%;
+  width: 5rem;
+  height: 5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { background: var(--app-surface-light); border-color: var(--app-primary); color: var(--app-primary);transform: scale(1.05); }
+}
+
+// Specific for Toggle buttons like Add Log
+.btn-premium-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    color: var(--app-text-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover {
+        border-color: var(--app-primary);
+        color: var(--app-primary);
+        background: var(--app-surface-hover);
+    }
+    
+    &.small {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+    }
+}

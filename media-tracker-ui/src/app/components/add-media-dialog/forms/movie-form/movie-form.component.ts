@@ -77,8 +77,9 @@ export class MovieFormComponent {
     this.bannerImage.set(data.bannerImage || '');
     this.trailerUrl.set(data.trailerUrl || '');
     this.externalId.set(data.externalId);
-    this.progressCurrent.set(data.progress_current || 0);
-    this.progressTotal.set(data.progress_total || 0);
+    this.progressCurrent.set(data.progressCurrent || data.progress_current || 0);
+    this.progressTotal.set(data.progressTotal || data.progress_total || 0);
+
     this.selectedCategoryId.set(data.statusId);
     this.score.set(data.score || 0);
     this.genres.set(data.genres || []);
@@ -146,8 +147,9 @@ export class MovieFormComponent {
       trailerUrl: this.trailerUrl(),
       externalId: this.externalId(),
       mediaTypeId: MediaType.MOVIE,
-      progress_current: this.progressCurrent(),
-      progress_total: this.progressTotal(),
+      progressCurrent: this.progressCurrent(),
+      progressTotal: this.progressTotal(),
+
       statusId: this.selectedCategoryId(),
       score: this.score(),
       genres: this.genres(),

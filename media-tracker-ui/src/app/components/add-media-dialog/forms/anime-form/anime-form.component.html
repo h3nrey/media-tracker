@@ -1,203 +1,145 @@
-<div class="form-container">
-  <div class="premium-form-grid">
-    <!-- Status & Score -->
-    <div class="form-card full-width primary-fields">
-      <div class="form-row">
-        <div class="field-item grow">
-          <label>Status</label>
-          <div class="custom-select-wrapper">
-            <select
-              class="premium-select"
-              [value]="selectedCategoryId()"
-              (change)="selectedCategoryId.set(+$any($event.target).value)"
-            >
-              @for (category of categories(); track category.id) {
-                <option [value]="category.supabaseId">{{ category.name }}</option>
-              }
-            </select>
+<div class="form-container-split">
+  <!-- Left Side -->
+  <div class="form-content">
+    <aside class="left-sidebar">
+      <div class="poster-wrapper">
+        @if (coverImage()) {
+          <img [src]="coverImage()" [alt]="title()" class="form-poster" />
+        } @else {
+          <div class="form-poster-placeholder">
+            <lucide-icon name="image" size="32"></lucide-icon>
           </div>
-        </div>
-        <div class="field-item">
-          <label>Score (0-11)</label>
-          <app-number-input
-            [value]="score()"
-            [min]="0"
-            [max]="11"
-            (valueChange)="score.set($event)"
-          ></app-number-input>
-        </div>
-      </div>
-    </div>
-
-    <!-- General Info -->
-    <div class="form-card full-width">
-      <div class="field-item spacing-bottom">
-        <label>Title *</label>
-        <input
-          type="text"
-          class="premium-input"
-          [value]="title()"
-          (input)="title.set($any($event.target).value)"
-          placeholder="Enter anime title..."
-        />
+        }
       </div>
 
-      <div class="form-row">
-        <div class="field-item grow">
-          <label>Episodes Watched</label>
-          <div class="progress-input-group">
-            <app-number-input
-              [value]="progressCurrent()"
-              [min]="0"
-              [max]="progressTotal() > 0 ? progressTotal() : undefined"
-              (valueChange)="progressCurrent.set($event)"
-            ></app-number-input>
-            
-            @if (progressTotal() > 0 && progressCurrent() < progressTotal()) {
-              <button class="complete-btn-action" (click)="markAsComplete()" title="Finish">
-                <lucide-icon [img]="CheckCircleIcon" [size]="18"></lucide-icon>
-              </button>
-            }
-          </div>
-        </div>
-        <div class="field-item grow">
-          <label>Total Episodes</label>
-          <app-number-input
-            [value]="progressTotal()"
-            [min]="0"
-            (valueChange)="progressTotal.set($event)"
-          ></app-number-input>
-        </div>
+      <div class="status-selector">
+        <label>Status</label>
+        <ui-select
+          [options]="categoryOptions"
+          [value]="selectedCategoryId()"
+          (valueChange)="selectedCategoryId.set($event)"
+          placeholder="Select Status"
+          [variant]="'default'"
+          [rounding]="'full'"
+        ></ui-select>
       </div>
-    </div>
+    </aside>
 
-    <!-- Visuals & Media -->
-    <div class="form-card full-width">
-      <h4 class="card-section-title">Visuals & Media</h4>
-      <div class="field-item spacing-bottom">
-        <label>Cover Image URL</label>
-        <input type="text" class="premium-input" [value]="coverImage()" (input)="coverImage.set($any($event.target).value)" placeholder="https://..." />
+    <!-- Right Side -->
+    <div class="right-content">
+      <header class="form-header-row">
+        <div class="header-title-group">
+          <h2>{{ title() || 'New Anime' }} <span class="year" *ngIf="releaseYear()">{{ releaseYear() }}</span></h2>
+        </div>
+        <button class="btn-premium-toggle small" (click)="changeSource.emit()">
+          <lucide-icon [img]="SearchIcon" [size]="14"></lucide-icon>
+          Edit Source
+        </button>
+      </header>
+
+      <div class="tabs-nav">
+        <button class="tab-btn" [class.active]="activeTab() === 'main'" (click)="activeTab.set('main')">Main</button>
+        <button class="tab-btn" [class.active]="activeTab() === 'journal'" (click)="activeTab.set('journal')">Journal</button>
+        <button class="tab-btn" [class.active]="activeTab() === 'details'" (click)="activeTab.set('details')">Details</button>
       </div>
 
-      <div class="field-item spacing-bottom">
-        <label>Banner Image URL</label>
-        <input type="text" class="premium-input" [value]="bannerImage()" (input)="bannerImage.set($any($event.target).value)" placeholder="Banner URL..." />
-      </div>
+      <div class="tab-content custom-scrollbar">
+        <!-- MAIN TAB -->
+        @if (activeTab() === 'main') {
+          <div class="tab-pane fade-in">
+            <div class="rating-section">
+              <label class="section-label">Rating</label>
+              <app-star-rating-input [value]="score()" (valueChange)="score.set($event)"></app-star-rating-input>
+            </div>
 
-      <div class="field-item">
-        <label>Trailer URL (YouTube)</label>
-        <input type="text" class="premium-input" [value]="trailerUrl()" (input)="trailerUrl.set($any($event.target).value)" placeholder="YouTube Link..." />
-      </div>
-    </div>
-
-    <!-- Details -->
-    <div class="form-card full-width">
-      <h4 class="card-section-title">Details</h4>
-      <div class="form-grid-inner">
-        <div class="field-item">
-          <label>Release Year</label>
-          <app-number-input
-            [value]="releaseYear() || 0"
-            [min]="1900"
-            (valueChange)="releaseYear.set($event || undefined)"
-          ></app-number-input>
-        </div>
-        <div class="field-item full">
-          <label>Studios</label>
-          <app-tag-input [tags]="studios()" (tagsChange)="studios.set($event)" placeholder="Search/Add..."></app-tag-input>
-        </div>
-        <div class="field-item full">
-          <label>Genres</label>
-          <app-tag-input [tags]="genres()" (tagsChange)="genres.set($event)" placeholder="Action, Adventure..."></app-tag-input>
-        </div>
-      </div>
-    </div>
-
-    <!-- Activity & Sources -->
-    <div class="form-card full-width">
-      <h4 class="card-section-title">Timeline & Sources</h4>
-      
-      <div class="field-item spacing-bottom">
-        <div class="meta-header">
-          <label>Watch Logs</label>
-          <button class="btn-premium-toggle small" (click)="addLog()">
-            <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon>
-            Add Log
-          </button>
-        </div>
-        
-        <div class="logs-list">
-          @for (log of logs(); track $index; let i = $index) {
-            <div class="log-item">
-              <div class="log-dates">
-                <div class="date-input-group">
-                  <span class="date-label">Start</span>
-                  <div class="date-picker-trigger" (click)="activeLogPicker.set({index: i, field: 'startDate'})">
-                    {{ (log.startDate | date:'MMM d, y') || 'Set Start' }}
+            <div class="progress-section">
+              <label class="section-label">Progress</label>
+              <div class="progress-row">
+                <div class="progress-input-group">
+                  <div class="field-item mini">
+                    <label class="mini-label">Watched</label>
+                    <app-number-input [value]="progressCurrent()" [min]="0" [max]="progressTotal() > 0 ? progressTotal() : undefined" (valueChange)="progressCurrent.set($event)"></app-number-input>
+                  </div>
+                  <span class="sep">/</span>
+                  <div class="field-item mini">
+                    <label class="mini-label">Episodes</label>
+                    <app-number-input [value]="progressTotal()" [min]="0" (valueChange)="progressTotal.set($event)"></app-number-input>
                   </div>
                 </div>
-                <div class="date-input-group">
-                  <span class="date-label">End</span>
-                  <div class="date-picker-trigger" (click)="activeLogPicker.set({index: i, field: 'endDate'})">
-                    {{ (log.endDate | date:'MMM d, y') || 'Set End' }}
-                  </div>
-                </div>
+                @if (progressTotal() > 0 && progressCurrent() < progressTotal()) {
+                  <button class="icon-btn-complete" (click)="markAsComplete()" title="Mark Completed">
+                    <lucide-icon [img]="CheckCircleIcon" [size]="20"></lucide-icon>
+                  </button>
+                }
               </div>
-              <button class="btn-remove-log" (click)="removeLog(i)" title="Remove Log">
-                <lucide-icon [img]="XIcon" [size]="14"></lucide-icon>
-              </button>
-              
-              @if (activeLogPicker()?.index === i) {
-                <div class="log-date-picker-popover">
-                  <app-date-picker 
-                    [selectedDate]="$any((activeLogPicker()?.field === 'startDate' ? log.startDate : log.endDate) || today)"
-                    (dateChange)="updateLogDate(i, activeLogPicker()!.field, $event); activeLogPicker.set(null)" 
-                    (close)="activeLogPicker.set(null)">
-                  </app-date-picker>
-                </div>
-              }
             </div>
-          }
-          @if (logs().length === 0) {
-            <div class="empty-logs">No logs recorded yet</div>
-          }
-        </div>
-      </div>
 
-      <div class="field-item">
-        <label>Watch Sources</label>
-        <div class="action-row">
-          <select class="premium-select" [ngModel]="newLinkSourceId()" (ngModelChange)="newLinkSourceId.set(+$event || null)">
-            <option [ngValue]="null">Select Source</option>
-            @for (source of sources(); track source.id) { <option [value]="source.id">{{ source.name }}</option> }
-          </select>
-          <input type="text" class="premium-input grow" placeholder="URL" [ngModel]="newLinkUrl()" (ngModelChange)="newLinkUrl.set($event)" />
-          <button class="btn-add-circle" (click)="addLink()" [disabled]="!newLinkSourceId() || !newLinkUrl()"><lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon></button>
-        </div>
-        <div class="chip-container">
-          @for (link of sourceLinks(); track $index) {
-            <div class="source-chip">
-              <span class="badge">{{ getLinkSourceName(link.sourceId) }}</span>
-              <a [href]="link.url" target="_blank" (click)="$event.stopPropagation()">Watch</a>
-              <button (click)="removeLink($index)"><lucide-icon [img]="XIcon" [size]="12"></lucide-icon></button>
+
+            <div class="notes-section">
+              <label class="section-label">Review / Notes</label>
+              <textarea class="premium-textarea" rows="6" [value]="notes()" (input)="notes.set($any($event.target).value)" placeholder="What did you think?"></textarea>
             </div>
-          }
-        </div>
+          </div>
+        }
+
+        <!-- JOURNAL TAB -->
+        @if (activeTab() === 'journal') {
+          <div class="tab-pane fade-in">
+             <app-media-journal 
+               [logs]="logs()" 
+               [emptyMessage]="'Track when you watched this anime.'"
+               (logsChange)="logs.set($event)">
+             </app-media-journal>
+          </div>
+        }
+
+
+        <!-- DETAILS TAB -->
+        @if (activeTab() === 'details') {
+          <div class="tab-pane fade-in form-grid-inner">
+            <div class="field-item full"><label>Title</label><input type="text" class="premium-input" [value]="title()" (input)="title.set($any($event.target).value)" /></div>
+            <div class="field-item"><label>Release Year</label><app-number-input [value]="releaseYear() || 0" [min]="1900" (valueChange)="releaseYear.set($event || undefined)"></app-number-input></div>
+            <div class="field-item"><label>Studios</label><app-tag-input [tags]="studios()" (tagsChange)="studios.set($event)" placeholder="Add studio..."></app-tag-input></div>
+            <div class="field-item full"><label>Genres</label><app-tag-input [tags]="genres()" (tagsChange)="genres.set($event)" placeholder="Action, Adventure..."></app-tag-input></div>
+            
+            <h4 class="card-section-title">Media Links & Images</h4>
+            <div class="field-item full"><label>Cover Image URL</label><input type="text" class="premium-input" [value]="coverImage()" (input)="coverImage.set($any($event.target).value)" /></div>
+            <div class="field-item full"><label>Banner Image URL</label><input type="text" class="premium-input" [value]="bannerImage()" (input)="bannerImage.set($any($event.target).value)" /></div>
+            <div class="field-item full"><label>Trailer URL</label><input type="text" class="premium-input" [value]="trailerUrl()" (input)="trailerUrl.set($any($event.target).value)" /></div>
+
+            <!-- Watch Sources -->
+            <div class="field-item full">
+              <label>Watch Sources</label>
+              <div class="action-row">
+                <select class="premium-select" [ngModel]="newLinkSourceId()" (ngModelChange)="newLinkSourceId.set(+$event || null)">
+                  <option [ngValue]="null">Select Source</option>
+                  @for (source of sources(); track source.id) { <option [value]="source.id">{{ source.name }}</option> }
+                </select>
+                <input type="text" class="premium-input grow" placeholder="URL" [ngModel]="newLinkUrl()" (ngModelChange)="newLinkUrl.set($event)" />
+                <button class="btn-add-circle" (click)="addLink()" [disabled]="!newLinkSourceId() || !newLinkUrl()"><lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon></button>
+              </div>
+              <div class="chip-container">
+                @for (link of sourceLinks(); track $index) {
+                  <div class="source-chip">
+                    <span class="badge">{{ getLinkSourceName(link.sourceId) }}</span>
+                    <a [href]="link.url" target="_blank" (click)="$event.stopPropagation()">Link</a>
+                    <button (click)="removeLink($index)"><lucide-icon [img]="XIcon" [size]="12"></lucide-icon></button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
       </div>
     </div>
-
-    <div class="form-card full-width">
-      <label>Notes</label>
-      <textarea class="premium-textarea" rows="4" [value]="notes()" (input)="notes.set($any($event.target).value)" placeholder="Write your thoughts..."></textarea>
-    </div>
-
   </div>
 
-  <div class="form-actions-fixed">
+  <div class="footer-actions">
     <button class="footer-btn secondary" (click)="cancel.emit()">Cancel</button>
     <button class="footer-btn primary" (click)="submit()" [disabled]="isSaving() || !title().trim()">
-      @if (isSaving()) { <span>Saving...</span> }
-      @else { <span>Save Anime</span> }
+      @if (isSaving()) { Saving... }
+      @else { Save Anime }
     </button>
   </div>
 </div>
+

@@ -194,7 +194,7 @@ export class AddMediaDialogComponent {
       };
       
       if (type === MediaType.ANIME) {
-        mappedData.progress_total = result.episodes || 0;
+        mappedData.progressTotal = result.episodes || 0;
         mappedData.trailerUrl = result.trailer?.embed_url || '';
         mappedData.studios = result.studios?.map((s: any) => s.name) || [];
         mappedData.releaseYear = result.year || result.aired?.prop?.from?.year;
@@ -202,10 +202,11 @@ export class AddMediaDialogComponent {
         const banner = await this.malService.getBannerFromAnilist(result.mal_id);
         if (banner) mappedData.bannerImage = banner;
       } else {
-        mappedData.progress_total = result.chapters || 0;
+        mappedData.progressTotal = result.chapters || 0;
         mappedData.studios = result.authors?.map((a: any) => a.name) || [];
         mappedData.releaseYear = result.published?.prop?.from?.year;
       }
+
 
       const combinedGenres = [
         ...(result.genres?.map((g: any) => g.name) || []),
@@ -221,10 +222,18 @@ export class AddMediaDialogComponent {
     this.searchResults.set([]);
   }
 
+
   enableManualMode() {
     this.manualMode.set(true);
     this.selectedMediaApiResult.set(null);
     this.initialFormData.set({});
+    this.searchQuery.set('');
+    this.searchResults.set([]);
+  }
+
+  enableSearchMode() {
+    this.manualMode.set(false);
+    this.selectedMediaApiResult.set(null);
     this.searchQuery.set('');
     this.searchResults.set([]);
   }
@@ -270,7 +279,8 @@ export class AddMediaDialogComponent {
       await this.mediaService.saveAnimeMetadata({
         mediaItemId: mediaId,
         malId: mediaData.externalId,
-        studios: mediaData.studios
+        studios: mediaData.studios,
+        totalEpisodes: mediaData.progressTotal
       });
     } else if (type === MediaType.MANGA) {
       await this.mediaService.saveMangaMetadata({
@@ -278,7 +288,8 @@ export class AddMediaDialogComponent {
         malId: mediaData.externalId,
         authors: mediaData.studios,
         publishers: [],
-        publicationStatus: ''
+        publicationStatus: '',
+        progressTotal: mediaData.progressTotal
       });
     } else if (type === MediaType.GAME) {
       await this.mediaService.saveGameMetadata({
@@ -286,10 +297,21 @@ export class AddMediaDialogComponent {
         igdbId: mediaData.externalId,
         developers: mediaData.studios || [],
         publishers: [],
-        platforms: mediaData.platforms || []
+        platforms: mediaData.platforms || [],
+        progressTotal: mediaData.progressTotal
+      });
+    } else if (type === MediaType.MOVIE) {
+      await this.mediaService.saveMovieMetadata({
+        mediaItemId: mediaId,
+        tmdbId: mediaData.externalId,
+        directors: mediaData.studios || [],
+        cast: [],
+        studios: [],
+        progressTotal: mediaData.progressTotal
       });
     }
   }
+
 
   private resetForm() {
     this.searchQuery.set('');

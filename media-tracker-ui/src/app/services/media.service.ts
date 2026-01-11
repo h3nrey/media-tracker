@@ -111,10 +111,12 @@ export class MediaService {
 
   async getMediaByExternalId(externalId: number, externalApi: string): Promise<MediaItem | undefined> {
     return await db.mediaItems
-      .where('externalId').equals(externalId)
-      .and(item => item.externalApi === externalApi)
+      .where('externalId')
+      .equals(externalId)
+      .and(item => item.externalApi === externalApi && !item.isDeleted)
       .first();
   }
+
 
   async addMedia(media: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();

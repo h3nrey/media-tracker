@@ -1,0 +1,72 @@
+<div class="journal-container">
+  <div class="logs-list">
+    @for (log of logs(); track $index; let i = $index) {
+      <div class="log-card fade-in">
+        <div class="log-header">
+          <div class="log-title">
+            <div class="session-badge">Session {{ i + 1 }}</div>
+          </div>
+          <button class="btn-remove" (click)="removeLog(i)" title="Remove Session">
+            <lucide-icon [img]="XIcon" [size]="18"></lucide-icon>
+          </button>
+        </div>
+
+        <div class="log-body">
+          <div class="date-fields">
+            <div class="date-field">
+              <label>Started</label>
+              <div class="date-input-trigger" 
+                   cdkOverlayOrigin #startTrigger="cdkOverlayOrigin"
+                   [class.active]="activeLogPicker()?.index === i && activeLogPicker()?.field === 'startDate'"
+                   (click)="togglePicker(i, 'startDate', $event)">
+                <span class="date-value">{{ (log.startDate | date:'MMM d, y') || 'Set Date' }}</span>
+              </div>
+
+              <app-date-picker 
+                [trigger]="startTrigger"
+                [isOpen]="activeLogPicker()?.index === i && activeLogPicker()?.field === 'startDate'"
+                [xPosition]="'start'"
+                [yPosition]="'top'"
+                [selectedDate]="$any(log.startDate || today)" 
+                (dateChange)="updateLogDate(i, 'startDate', $event)" 
+                (close)="activeLogPicker.set(null)">
+              </app-date-picker>
+            </div>
+
+            <lucide-icon [img]="ArrowRightIcon" [size]="16" class="arrow-sep"></lucide-icon>
+
+            <div class="date-field">
+              <label>Finished</label>
+              <div class="date-input-trigger" 
+                   cdkOverlayOrigin #endTrigger="cdkOverlayOrigin"
+                   [class.active]="activeLogPicker()?.index === i && activeLogPicker()?.field === 'endDate'"
+                   (click)="togglePicker(i, 'endDate', $event)">
+                <span class="date-value">{{ (log.endDate | date:'MMM d, y') || '—' }}</span>
+              </div>
+
+              <app-date-picker 
+                [trigger]="endTrigger"
+                [isOpen]="activeLogPicker()?.index === i && activeLogPicker()?.field === 'endDate'"
+                [xPosition]="'end'"
+                [yPosition]="'top'"
+                [selectedDate]="$any(log.endDate || today)" 
+                (dateChange)="updateLogDate(i, 'endDate', $event)" 
+                (close)="activeLogPicker.set(null)">
+              </app-date-picker>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-journal">
+        <lucide-icon [img]="CalendarIcon" [size]="64" class="ghost-icon"></lucide-icon>
+        <p>{{ emptyMessage() }}</p>
+      </div>
+    }
+  </div>
+
+  <button class="add-log-bar" (click)="addLog()">
+    <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
+    <span>Add Log</span>
+  </button>
+</div>

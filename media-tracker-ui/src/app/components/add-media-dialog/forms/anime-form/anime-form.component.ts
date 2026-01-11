@@ -1,19 +1,23 @@
 import { Component, input, output, signal, effect, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Plus, X, CheckCircle, ExternalLink, Calendar } from 'lucide-angular';
+import { LucideAngularModule, Plus, X, CheckCircle, ExternalLink, Calendar, Search } from 'lucide-angular';
 import { NumberInputComponent } from '../../../ui/number-input/number-input.component';
 import { TagInputComponent } from '../../../ui/tag-input/tag-input.component';
 import { DatePickerComponent } from '../../../ui/date-picker/date-picker.component';
+import { StarRatingInputComponent } from '../../../ui/star-rating-input/star-rating-input.component';
+import { SelectComponent } from '../../../ui/select/select';
 import { Category } from '../../../../models/status.model';
 import { WatchSource } from '../../../../models/watch-source.model';
 import { MediaType } from '../../../../models/media-type.model';
 import { MediaLog } from '../../../../models/media-log.model';
 
+import { MediaJournalComponent } from '../shared/media-journal/media-journal';
+
 @Component({
   selector: 'app-anime-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, DatePickerComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, DatePickerComponent, StarRatingInputComponent, SelectComponent, MediaJournalComponent],
   templateUrl: './anime-form.component.html',
   styleUrl: './anime-form.component.scss'
 })
@@ -27,6 +31,7 @@ export class AnimeFormComponent {
   // Outputs
   save = output<any>();
   cancel = output<void>();
+  changeSource = output<void>();
 
   // Icons
   readonly PlusIcon = Plus;
@@ -34,6 +39,11 @@ export class AnimeFormComponent {
   readonly CheckCircleIcon = CheckCircle;
   readonly ExternalLinkIcon = ExternalLink;
   readonly CalendarIcon = Calendar;
+  readonly SearchIcon = Search;
+  
+  get categoryOptions() {
+    return this.categories().map(c => ({ value: c.supabaseId || c.id, label: c.name }));
+  }
 
   // Form Signals
   title = signal('');
@@ -59,8 +69,7 @@ export class AnimeFormComponent {
   newLinkSourceId = signal<number | null>(null);
   newLinkUrl = signal('');
 
-  activeLogPicker = signal<{index: number, field: 'startDate' | 'endDate'} | null>(null);
-  today = new Date();
+  activeTab = signal<'main' | 'journal' | 'details'>('main');
 
   constructor() {
     effect(() => {
@@ -73,7 +82,7 @@ export class AnimeFormComponent {
     effect(() => {
         const cats = this.categories();
         if (cats.length > 0 && this.selectedCategoryId() === undefined) {
-            this.selectedCategoryId.set(cats[0].supabaseId);
+            this.selectedCategoryId.set(cats[0].supabaseId || cats[0].id);
         }
     });
   }
@@ -84,9 +93,10 @@ export class AnimeFormComponent {
     this.bannerImage.set(data.bannerImage || '');
     this.trailerUrl.set(data.trailerUrl || '');
     this.externalId.set(data.externalId);
-    this.progressCurrent.set(data.progress_current || 0);
-    this.progressTotal.set(data.progress_total || 0);
-    this.selectedCategoryId.set(data.statusId);
+    this.progressCurrent.set(data.progressCurrent || data.progress_current || 0);
+    this.progressTotal.set(data.progressTotal || data.progress_total || 0);
+
+    this.selectedCategoryId.set(data.statusId || data.categoryId);
     this.score.set(data.score || 0);
     this.genres.set(data.genres || []);
     this.studios.set(data.studios || []);
@@ -110,22 +120,6 @@ export class AnimeFormComponent {
 
   removeDate(index: number) {
     this.activityDates.update(dates => dates.filter((_, i) => i !== index));
-  }
-
-  addLog() {
-    this.logs.update(logs => [...logs, { mediaItemId: 0, startDate: new Date() }]);
-  }
-
-  removeLog(index: number) {
-    this.logs.update(logs => logs.filter((_, i) => i !== index));
-  }
-
-  updateLogDate(index: number, field: 'startDate' | 'endDate', date: Date | string) {
-    this.logs.update(logs => {
-      const newLogs = [...logs];
-      newLogs[index] = { ...newLogs[index], [field]: date };
-      return newLogs;
-    });
   }
 
   addLink() {
@@ -155,8 +149,8 @@ export class AnimeFormComponent {
       trailerUrl: this.trailerUrl(),
       externalId: this.externalId(),
       mediaTypeId: MediaType.ANIME,
-      progress_current: this.progressCurrent(),
-      progress_total: this.progressTotal(),
+      progressCurrent: this.progressCurrent(),
+      progressTotal: this.progressTotal(),
       statusId: this.selectedCategoryId(),
       score: this.score(),
       genres: this.genres(),

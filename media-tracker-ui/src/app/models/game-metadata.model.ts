@@ -5,4 +5,6 @@ export interface GameMetadata {
   platforms: string[]; // 'PC', 'PlayStation 5', 'Xbox Series X', 'Nintendo Switch'
   igdbId?: number;
   playtimeHours?: number;
+  progressTotal?: number;
 }
+

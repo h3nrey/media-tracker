@@ -40,6 +40,8 @@ export class AnimeSyncService {
         trailer_url: local.trailerUrl,
         notes: local.notes,
         source_links: local.sourceLinks,
+        progress_current: local.progressCurrent,
+        progress_total: local.progressTotal,
         is_deleted: !!local.isDeleted,
         updated_at: local.updatedAt.toISOString()
       };
@@ -90,6 +92,8 @@ export class AnimeSyncService {
             trailerUrl: remote.trailer_url,
             notes: remote.notes,
             sourceLinks: remote.source_links || [],
+            progressCurrent: remote.progress_current,
+            progressTotal: remote.progress_total,
             isDeleted: remote.is_deleted,
             updatedAt: remoteUpdatedAt,
             lastSyncedAt: new Date(),
@@ -122,8 +126,8 @@ export class AnimeSyncService {
           createdAt: new Date(remote.created_at),
           updatedAt: new Date(remote.updated_at),
           lastSyncedAt: new Date(),
-          progressCurrent: 0,
-          progressTotal: 0
+          progressCurrent: remote.progress_current || 0,
+          progressTotal: remote.progress_total || 0
         });
         await this.syncAnimeMetadata(localId as number, remote.id, 'pull');
       }
@@ -145,6 +149,7 @@ export class AnimeSyncService {
         media_item_id: remoteMediaId,
         mal_id: localMeta.malId,
         studios: localMeta.studios,
+        total_episodes: localMeta.totalEpisodes,
         publication_status: '' // Could be synced later
       };
 
@@ -158,12 +163,14 @@ export class AnimeSyncService {
         mediaItemId: localMediaId,
         malId: remoteMeta.mal_id,
         studios: remoteMeta.studios || [],
+        totalEpisodes: remoteMeta.total_episodes,
       });
       // Update progress and studios on mediaItem
       await db.mediaItems.update(localMediaId, {
         studios: remoteMeta.studios || [],
       });
     } else if (!direction) {
+
       // Fallback for cases where direction is not provided
       if (localMeta) {
         const localItem = await db.mediaItems.get(localMediaId);

@@ -22,60 +22,64 @@
 
       <div class="dialog-body">
         @if (!manualMode() && !selectedMediaApiResult()) {
-          <div class="search-section">
-            <div class="search-input-wrapper">
-              <lucide-icon [img]="SearchIcon" class="search-icon"></lucide-icon>
-              <input
-                type="text"
-                class="premium-search-input"
-                [placeholder]="searchPlaceholder()"
-                [value]="searchQuery()"
-                (input)="onSearchInput($any($event.target).value)"
-                autofocus
-              />
-            </div>
-
-            @if (isSearching()) {
-              <div class="searching-state">
-                <div class="loader-ring"></div>
-                <span>Searching database...</span>
+          <div class="body-scroll-container">
+            <div class="search-section">
+              <div class="search-input-wrapper">
+                <lucide-icon [img]="SearchIcon" class="search-icon"></lucide-icon>
+                <input
+                  type="text"
+                  class="premium-search-input"
+                  [placeholder]="searchPlaceholder()"
+                  [value]="searchQuery()"
+                  (input)="onSearchInput($any($event.target).value)"
+                  autofocus
+                />
               </div>
-            }
 
-            @if (searchResults().length > 0) {
-              <div class="search-results-grid">
-                @for (media of searchResults(); track media.id || media.mal_id) {
-                  <div class="premium-result-card" (click)="selectMediaFromApi(media)">
-                    <div class="result-cover-wrapper">
-                      <img [src]="getResultCover(media)" [alt]="getResultTitle(media)" />
-                    </div>
-                    <div class="result-details">
-                      <span class="result-name">{{ getResultTitle(media) }}</span>
-                      <div class="result-meta-info">
-                        <span class="meta-tag">{{ getResultMeta(media) }}</span>
-                        @if (getResultYear(media)) {
-                          <span class="meta-separator">•</span>
-                          <span class="meta-year">{{ getResultYear(media) }}</span>
-                        }
+              @if (isSearching()) {
+                <div class="searching-state">
+                  <div class="loader-ring"></div>
+                  <span>Searching database...</span>
+                </div>
+              }
+
+              @if (searchResults().length > 0) {
+                <div class="search-results-grid">
+                  @for (media of searchResults(); track media.id || media.mal_id) {
+                    <div class="premium-result-card" (click)="selectMediaFromApi(media)">
+                      <div class="result-cover-wrapper">
+                        <img [src]="getResultCover(media)" [alt]="getResultTitle(media)" />
+                      </div>
+                      <div class="result-details">
+                        <span class="result-name">{{ getResultTitle(media) }}</span>
+                        <div class="result-meta-info">
+                          <span class="meta-tag">{{ getResultMeta(media) }}</span>
+                          @if (getResultYear(media)) {
+                            <span class="meta-separator">•</span>
+                            <span class="meta-year">{{ getResultYear(media) }}</span>
+                          }
+                        </div>
                       </div>
                     </div>
-                  </div>
-                }
+                  }
+                </div>
+              }
+
+              @if(!isSearching()) {
+              <div class="search-empty-action">
+                <p>Can't find what you're looking for?</p>
+                <button class="manual-trigger-btn" (click)="enableManualMode()">
+                  <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
+                  Add Details Manually
+                </button>
               </div>
             }
-
-            <div class="search-empty-action">
-              <p>Can't find what you're looking for?</p>
-              <button class="manual-trigger-btn" (click)="enableManualMode()">
-                <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
-                Add Details Manually
-              </button>
             </div>
           </div>
         }
 
         @if (manualMode() || selectedMediaApiResult()) {
-          <div class="forms-wrapper">
+          <div class="body-full-container">
             @if (selectedMediaType() === 1) {
               <app-anime-form 
                 [initialData]="initialFormData()" 
@@ -84,6 +88,7 @@
                 [isSaving]="isSaving()"
                 (save)="onSave($event)"
                 (cancel)="close()"
+                (changeSource)="enableSearchMode()"
               ></app-anime-form>
             } @else if (selectedMediaType() === 2) {
               <app-manga-form 
@@ -102,6 +107,7 @@
                 [isSaving]="isSaving()"
                 (save)="onSave($event)"
                 (cancel)="close()"
+                (changeSource)="enableSearchMode()"
               ></app-game-form>
             } @else if (selectedMediaType() === 4) {
               <app-movie-form 

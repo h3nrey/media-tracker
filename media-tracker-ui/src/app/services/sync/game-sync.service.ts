@@ -40,6 +40,8 @@ export class GameSyncService {
         trailer_url: local.trailerUrl,
         notes: local.notes,
         source_links: local.sourceLinks,
+        progress_current: local.progressCurrent,
+        progress_total: local.progressTotal,
         is_deleted: !!local.isDeleted,
         updated_at: local.updatedAt.toISOString()
       };
@@ -90,6 +92,8 @@ export class GameSyncService {
             trailerUrl: remote.trailer_url,
             notes: remote.notes,
             sourceLinks: remote.source_links || [],
+            progressCurrent: remote.progress_current,
+            progressTotal: remote.progress_total,
             isDeleted: remote.is_deleted,
             updatedAt: remoteUpdatedAt,
             lastSyncedAt: new Date(),
@@ -122,6 +126,8 @@ export class GameSyncService {
           createdAt: new Date(remote.created_at),
           updatedAt: new Date(remote.updated_at),
           lastSyncedAt: new Date(),
+          progressCurrent: remote.progress_current || 0,
+          progressTotal: remote.progress_total || 0
         });
         await this.syncGameMetadata(localId as number, remote.id, 'pull');
       }
@@ -146,7 +152,8 @@ export class GameSyncService {
         developers: localMeta.developers,
         publishers: localMeta.publishers,
         platforms: localMeta.platforms,
-        hours_played: localMeta.playtimeHours || 0
+        hours_played: localMeta.playtimeHours || 0,
+        progress_total: localMeta.progressTotal
       };
 
       if (!remoteMeta) {
@@ -162,6 +169,7 @@ export class GameSyncService {
         publishers: remoteMeta.publishers || [],
         platforms: remoteMeta.platforms || [],
         playtimeHours: remoteMeta.hours_played,
+        progressTotal: remoteMeta.progress_total
       });
       // Sync progress and studios (developers) back to media_item
       await db.mediaItems.update(localMediaId, {
