@@ -1,57 +1,22 @@
-@if(anime) {
-<div class="anime-card" cdkDrag [routerLink]="['/media', anime.id]">
-  <div class="card-actions">
-    <button class="menu-btn" (click)="toggleMenu($event)">
-      <lucide-icon [img]="MoreVerticalIcon" [size]="16"></lucide-icon>
-    </button>
-
-    @if (menuOpen()) {
-      <div class="dropdown-menu">
-        <button class="menu-item" (click)="onEdit($event)">
-          <lucide-icon [img]="EditIcon" [size]="14"></lucide-icon>
-          Edit
-        </button>
-        <button class="menu-item delete" (click)="onDelete($event)">
-          <lucide-icon [img]="TrashIcon" [size]="14"></lucide-icon>
-          Delete
-        </button>
-      </div>
-      <div class="menu-backdrop" (click)="toggleMenu($event)"></div>
-    }
-  </div>
-  <div class="anime-card-content">
-    <div class="cover-wrapper" (click)="playFirstSource($event)" [class.has-links]="hasSources()">
-      @if (anime.coverImage) {
-        <img [src]="anime.coverImage" [alt]="anime.title" class="cover-image" />
-      }
-      @if (hasSources()) {
-        <div class="play-overlay">
-          <lucide-icon [img]="PlayIcon" [size]="32"></lucide-icon>
-        </div>
-      }
-    </div>
+@if (anime) {
+  <app-kanban-card 
+    [media]="anime" 
+    (edit)="edit.emit($event)" 
+    (delete)="delete.emit($event)" 
+    (increment)="increment.emit($event)"
+  >
     <div class="anime-info">
       <h3>{{ anime.title }}</h3>
       @if (anime.studios && anime.studios.length > 0) {
         <div class="studio-name">{{ anime.studios[0] }}</div>
       }
-      @if (anime.mediaTypeId === 3 && anime.platforms && anime.platforms.length > 0) {
-        <div class="platforms-info">
-          @for (platform of anime.platforms.slice(0, 2); track platform) {
-            <span class="platform-badge">{{ platform }}</span>
-          }
-        </div>
-      }
       <div class="meta">
-        @if (anime.mediaTypeId === 1) {
-          <span>{{ anime.progressCurrent }}h</span>
-        } @else {
-          <span>{{ anime.progressCurrent }} / {{ anime.progressTotal || '?' }}</span>
-        }
+        <span>{{ anime.progressCurrent }} / {{ anime.progressTotal || '?' }}</span>
+        
         @if (anime.score > 0) {
           <span class="score" [ngClass]="getScoreColorClass(anime.score)">
             <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
-            {{ anime.score }}/10
+            {{ anime.score }}/6
           </span>
         }
       </div>
@@ -63,11 +28,5 @@
         </div>
       }
     </div>
-  </div>
-  @if (2==2) {
-    <button class="track-btn" (click)="onIncrement($event)">
-      <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
-    </button>
-  }
-</div>
+  </app-kanban-card>
 }

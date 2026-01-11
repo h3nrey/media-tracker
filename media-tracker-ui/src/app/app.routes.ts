@@ -38,11 +38,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/list-details/list-details').then(m => m.ListDetailsComponent)
   },
   {
-    path: 'anime/:id',
+    path: 'media/:id',
     loadComponent: () => import('./pages/animes-details/animes-details').then(m => m.AnimesDetailsComponent)
   },
   {
-    path: 'anime/:animeId/reviews/:id',
+    path: 'media/:animeId/reviews/:id',
     loadComponent: () => import('./pages/review-detail/review-detail.component').then(m => m.ReviewDetailComponent)
   },
   {

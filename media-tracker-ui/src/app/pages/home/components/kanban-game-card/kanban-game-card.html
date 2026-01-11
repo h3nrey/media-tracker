@@ -1,0 +1,37 @@
+@if (game) {
+  <app-kanban-card 
+    [media]="game" 
+    (edit)="edit.emit($event)" 
+    (delete)="delete.emit($event)" 
+    (increment)="increment.emit($event)"
+  >
+    <div class="game-info">
+      <h3>{{ game.title }}</h3>
+      @if (game.platforms && game.platforms.length > 0) {
+        <div class="platforms-info">
+          @for (platform of game.platforms.slice(0, 2); track platform) {
+            <span class="platform-badge">{{ platform }}</span>
+          }
+        </div>
+      }
+      <div class="meta">
+        <!-- Games usually show hours played or completion status, for now generic progress -->
+        <span>{{ game.progressCurrent }} hrs</span>
+        
+        @if (game.score > 0) {
+          <span class="score" [ngClass]="getScoreColorClass(game.score)">
+            <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
+            {{ game.score }}/6
+          </span>
+        }
+      </div>
+      @if (game.genres.length > 0) {
+        <div class="genres">
+          @for (genre of game.genres.slice(0, 3); track genre) {
+            <span class="genre-tag">{{ genre }}</span>
+          }
+        </div>
+      }
+    </div>
+  </app-kanban-card>
+}

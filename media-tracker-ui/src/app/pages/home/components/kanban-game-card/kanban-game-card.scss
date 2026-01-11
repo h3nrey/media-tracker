@@ -1,5 +1,5 @@
 
-.anime-info {
+.game-info {
   h3 {
     margin: 0 0 0.625rem 0;
     font-size: 1rem;
@@ -13,11 +13,22 @@
     -webkit-box-orient: vertical;
   }
 
-  .studio-name {
-    font-size: 0.75rem;
-    color: var(--app-text-muted);
-    margin-bottom: 0.25rem;
-    font-weight: 500;
+  .platforms-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+
+    .platform-badge {
+      font-size: 0.65rem;
+      padding: 0.125rem 0.375rem;
+      background: rgba(var(--app-primary), 0.1);
+      color: var(--app-text-primary);
+      border: 1px solid rgba(var(--app-primary), 0.2);
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
   }
 }
 

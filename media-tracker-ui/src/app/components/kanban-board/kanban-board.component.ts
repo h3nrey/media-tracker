@@ -9,13 +9,14 @@ import { FilterService } from '../../services/filter.service';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { AlertService } from '../../services/alert.service';
 import { KanbanAnimeCard } from '../../pages/home/components/kanban-anime-card/kanban-anime-card';
+import { KanbanGameCard } from '../../pages/home/components/kanban-game-card/kanban-game-card.component';
 import { BoardFiltersComponent } from '../board-filters/board-filters.component';
 import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-kanban-board',
   standalone: true,
-  imports: [CommonModule, DragDropModule, KanbanAnimeCard, BoardFiltersComponent, LucideAngularModule],
+  imports: [CommonModule, DragDropModule, KanbanAnimeCard, KanbanGameCard, BoardFiltersComponent, LucideAngularModule],
   templateUrl: './kanban-board.component.html',
   styleUrl: './kanban-board.component.scss'
 })

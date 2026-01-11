@@ -6,14 +6,14 @@ import { getScoreColorClass } from '../../../../utils/anime-utils';
 import { KanbanCardComponent } from '../kanban-card/kanban-card.component';
 
 @Component({
-  selector: 'app-kanban-anime-card',
+  selector: 'app-kanban-game-card',
   standalone: true,
   imports: [CommonModule, LucideAngularModule, NgClass, KanbanCardComponent],
-  templateUrl: './kanban-anime-card.html',
-  styleUrl: './kanban-anime-card.scss'
+  templateUrl: './kanban-game-card.html',
+  styleUrl: './kanban-game-card.scss'
 })
-export class KanbanAnimeCard {
-  @Input() anime!: MediaItem;
+export class KanbanGameCard {
+  @Input() game!: MediaItem;
   @Output() edit = new EventEmitter<MediaItem>();
   @Output() delete = new EventEmitter<MediaItem>();
   @Output() increment = new EventEmitter<MediaItem>();

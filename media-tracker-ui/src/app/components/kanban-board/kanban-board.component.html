@@ -33,13 +33,23 @@
             (cdkDropListDropped)="onDrop($event, column.category.supabaseId!)"
           >
             @for (media of column.media; track trackByMediaId($index, media)) {
-              <app-kanban-anime-card 
-                [anime]="media"
-                (click)="animeClick.emit(media)"
-                (edit)="onEdit($event)"
-                (delete)="onDelete($event)"
-                (increment)="onIncrement($event)"
-              ></app-kanban-anime-card>
+              @if (media.mediaTypeId === 1) {
+                <app-kanban-anime-card 
+                  [anime]="media"
+                  (click)="animeClick.emit(media)"
+                  (edit)="onEdit($event)"
+                  (delete)="onDelete($event)"
+                  (increment)="onIncrement($event)"
+                ></app-kanban-anime-card>
+              } @else if (media.mediaTypeId === 3) {
+                 <app-kanban-game-card 
+                  [game]="media"
+                  (click)="animeClick.emit(media)"
+                  (edit)="onEdit($event)"
+                  (delete)="onDelete($event)"
+                  (increment)="onIncrement($event)"
+                ></app-kanban-game-card>
+              }
             } @empty {
               <div class="empty-column">
                 <p>No media in this category</p>
