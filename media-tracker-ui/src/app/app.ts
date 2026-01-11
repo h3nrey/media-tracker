@@ -11,7 +11,6 @@ import { ManageCategoriesDialogComponent } from './components/manage-categories-
 import { ManageSourcesDialogComponent } from './components/manage-sources-dialog/manage-sources-dialog.component';
 import { BulkImportDialogComponent } from './components/bulk-import-dialog/bulk-import-dialog.component';
 import { MetadataSyncDialogComponent } from './components/metadata-sync-dialog/metadata-sync-dialog.component';
-import { AnimeDetailsDialogComponent } from './components/anime-details-dialog/anime-details-dialog.component';
 import { ThemeSettingsDialogComponent } from './components/theme-settings-dialog/theme-settings-dialog.component';
 import { ToastComponent } from './components/ui/toast/toast.component';
 import { AlertComponent } from './components/ui/alert/alert.component';
@@ -28,7 +27,6 @@ import { AlertComponent } from './components/ui/alert/alert.component';
     ManageSourcesDialogComponent,
     BulkImportDialogComponent,
     MetadataSyncDialogComponent,
-    AnimeDetailsDialogComponent,
     ThemeSettingsDialogComponent,
     ToastComponent,
     AlertComponent
