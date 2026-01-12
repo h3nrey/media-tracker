@@ -1,26 +1,22 @@
 <div class="media-dropdown-wrapper">
-  <button class="logo-btn" (click)="toggle()" [class.active]="isOpen()">
-    <span class="logo-text">🎌 Tracker</span>
-    <div class="current-selection">
-       <lucide-icon [img]="getCurrentTypeIcon(selectedType$ | async)" [size]="16"></lucide-icon>
-       <span>{{ getCurrentTypeLabel(selectedType$ | async) }}</span>
-       <lucide-icon [img]="ChevronIcon" [size]="12"></lucide-icon>
-    </div>
-  </button>
-
-  @if (isOpen()) {
+  <div class="logo-container">
+    <span class="logo-text" routerLink="/">Tracker</span>
+    
     <div class="dropdown-menu">
-      @for (type of mediaTypes; track type.id) {
-        <button 
-          class="dropdown-item"
-          [class.active]="(selectedType$ | async) === type.id"
-          (click)="selectType(type.id)"
-        >
-          <lucide-icon [img]="type.icon" [size]="16"></lucide-icon>
-          <span>{{ type.name }}</span>
-        </button>
-      }
+      <div class="dropdown-arrow"></div>
+      <div class="dropdown-content">
+        @for (type of mediaTypes; track type.id) {
+          <button 
+            class="dropdown-item"
+            [class.active]="(selectedType$ | async) === type.id"
+            (click)="selectType(type.id)"
+          >
+            <lucide-icon [img]="type.icon" [size]="14"></lucide-icon>
+            <span>{{ type.name }}</span>
+            <div class="active-dot" *ngIf="(selectedType$ | async) === type.id"></div>
+          </button>
+        }
+      </div>
     </div>
-    <div class="dropdown-backdrop" (click)="isOpen.set(false)"></div>
-  }
+  </div>
 </div>

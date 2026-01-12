@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
 import { LucideAngularModule, PlayCircle, BookOpen, Gamepad2, Clapperboard, Layers, ChevronDown } from 'lucide-angular';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { MediaType } from '../../models/media-type.model';
@@ -7,12 +8,13 @@ import { MediaType } from '../../models/media-type.model';
 @Component({
   selector: 'app-media-type-selector',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, RouterModule],
   templateUrl: './media-type-selector.component.html',
   styleUrl: './media-type-selector.component.scss'
 })
 export class MediaTypeSelectorComponent {
   private mediaTypeState = inject(MediaTypeStateService);
+  private router = inject(Router);
   
   isOpen = signal(false);
   selectedType$ = this.mediaTypeState.getSelectedMediaType$();
@@ -47,5 +49,6 @@ export class MediaTypeSelectorComponent {
   selectType(id: number | null) {
     this.mediaTypeState.setSelectedMediaType(id);
     this.isOpen.set(false);
+    this.router.navigate(['/']);
   }
 }
