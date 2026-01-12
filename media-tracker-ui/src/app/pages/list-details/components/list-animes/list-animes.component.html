@@ -1,11 +1,11 @@
 <div class="animes-section">
     <div class="section-header">
-        <h2>Animes ({{ animes().length }})</h2>
+        <h2>{{ title() }} ({{ animes().length }})</h2>
     </div>
     
     <div class="animes-grid">
         @for(anime of animes(); track anime.id) {
-            <app-anime-card [anime]="anime"></app-anime-card>
+            <app-anime-card [item]="anime"></app-anime-card>
         } @empty {
             <div class="empty-state">
                 <p>Nenhum anime nesta lista ainda.</p>

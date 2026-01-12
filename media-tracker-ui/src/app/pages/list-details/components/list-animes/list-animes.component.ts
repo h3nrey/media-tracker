@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AnimeCard } from '../../../../components/cards/anime-card/anime-card';
-import { Anime } from '../../../../models/anime.model';
+import { MediaItem } from '../../../../models/media-type.model';
 
 @Component({
   selector: 'app-list-animes',
@@ -11,5 +11,6 @@ import { Anime } from '../../../../models/anime.model';
   styleUrl: './list-animes.component.scss'
 })
 export class ListAnimesComponent {
-  animes = input<Anime[]>([]);
+  title = input<string>('Animes');
+  animes = input<MediaItem[]>([]);
 }

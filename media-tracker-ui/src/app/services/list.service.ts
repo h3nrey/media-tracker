@@ -4,7 +4,7 @@ import { Observable, from, map } from 'rxjs';
 import { List, Folder, ListDetails } from '../models/list.model';
 import { db } from './database.service';
 import { SyncService } from './sync.service';
-import { Anime } from '../models/anime.model';
+import { MediaItem } from '../models/media-type.model';
 
 @Injectable({
   providedIn: 'root'
@@ -22,14 +22,14 @@ export class ListService {
       const folderId = await this.addFolder({ name: 'My Lists', order: 1 });
       await this.addFolder({ name: 'Top Lists', order: 2 });
       
-      // Get some anime IDs to create a dummy list
-      const animes = await db.anime.limit(5).toArray();
-      const animeIds = animes.map(a => a.id!);
+      const mediaItems = await db.mediaItems.limit(5).toArray();
+      const mediaItemIds = mediaItems.map(m => m.id!);
       
       await this.addList({
         name: 'My Awesome List',
-        description: 'A list of my favorite animes',
-        animeIds: animeIds,
+        description: 'A collection of my favorites',
+        mediaItemIds: mediaItemIds,
+        animeIds: mediaItemIds, // Legacy support
         folderId: folderId
       });
     }
@@ -43,22 +43,22 @@ export class ListService {
     );
   }
 
-  getListById$(id: number): Observable<ListDetails> {
+  getListById$(id: number): Observable<ListDetails | null> {
     return from(liveQuery(async () => {
       const list = await db.lists.get(id);
       if (!list) return null;
 
-      const animes = await Promise.all(
-        list.animeIds.map(animeId => db.anime.get(animeId))
+      const itemIds = list.mediaItemIds || list.animeIds || [];
+      const items = await Promise.all(
+        itemIds.map(itemId => db.mediaItems.get(itemId))
       );
 
       return {
         ...list,
-        animes: animes.filter(a => !!a) as Anime[]
+        mediaItems: items.filter(m => !!m) as MediaItem[],
+        animes: items.filter(m => !!m && m.mediaTypeId === 1) as any[] // For legacy components
       } as ListDetails;
-    })).pipe(
-      map(listDetails => listDetails as ListDetails)
-    );
+    }));
   }
 
   getFolders$(): Observable<Folder[]> {
@@ -137,10 +137,10 @@ export class ListService {
     this.syncService.sync();
   }
 
-  getListsContainingAnime$(animeId: number): Observable<List[]> {
+  getListsContainingItem$(itemId: number): Observable<List[]> {
     return from(liveQuery(async () => {
       const allLists = await db.lists.toArray();
-      return allLists.filter(l => !l.isDeleted && l.animeIds.includes(animeId));
+      return allLists.filter(l => !l.isDeleted && (l.mediaItemIds?.includes(itemId) || l.animeIds?.includes(itemId)));
     }));
   }
 }

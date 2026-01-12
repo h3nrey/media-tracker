@@ -1,8 +1,8 @@
-import { Component, input, inject } from '@angular/core';
+import { Component, input, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Anime } from '../../../models/anime.model';
+import { MediaItem, MediaType } from '../../../models/media-type.model';
 import { CommonModule } from '@angular/common';
-import { AnimeService } from '../../../services/anime.service';
+import { MediaService } from '../../../services/media.service';
 import { LucideAngularModule, Plus } from 'lucide-angular';
 
 @Component({
@@ -13,19 +13,28 @@ import { LucideAngularModule, Plus } from 'lucide-angular';
   styleUrl: './anime-card.scss',
 })
 export class AnimeCard {
-  anime = input.required<Anime>();
-  private animeService = inject(AnimeService);
+  item = input.required<MediaItem>();
+  private mediaService = inject(MediaService);
   readonly PlusIcon = Plus;
+
+  routePrefix = computed(() => {
+    switch (this.item().mediaTypeId) {
+      case MediaType.GAME: return 'game';
+      case MediaType.MANGA: return 'manga';
+      case MediaType.MOVIE: return 'movie';
+      default: return 'anime';
+    }
+  });
 
   incrementEpisode(event: Event) {
     event.stopPropagation();
     event.preventDefault();
 
-    const current = this.anime().progressCurrent || 0;
-    const total = this.anime().progressTotal;
+    const current = this.item().progressCurrent || 0;
+    const total = this.item().progressTotal;
 
     if (!total || current < total) {
-      this.animeService.updateAnime(this.anime().id!, {
+      this.mediaService.updateMedia(this.item().id!, {
         progressCurrent: current + 1
       });
     }

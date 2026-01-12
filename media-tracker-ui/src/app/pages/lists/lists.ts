@@ -2,11 +2,12 @@ import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Plus, Folder as FolderIcon, Layers, List as ListIcon } from 'lucide-angular';
 import { ListService } from '../../services/list.service';
-import { AnimeService } from '../../services/anime.service';
+import { MediaService } from '../../services/media.service';
 import { FilterService } from '../../services/filter.service';
 import { db } from '../../services/database.service';
 import { List, Folder } from '../../models/list.model';
-import { Anime } from '../../models/anime.model';
+import { MediaItem, MediaType } from '../../models/media-type.model';
+import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { BehaviorSubject, combineLatest, map, Observable, switchMap } from 'rxjs';
 
 import { ListSidebarComponent } from './components/list-sidebar/list-sidebar.component';
@@ -30,7 +31,8 @@ import { ListFormComponent } from './components/list-form/list-form.component';
 })
 export class Lists implements OnInit {
   private listService = inject(ListService);
-  private animeService = inject(AnimeService);
+  private mediaService = inject(MediaService);
+  private mediaTypeState = inject(MediaTypeStateService);
   private filterService = inject(FilterService);
 
   @ViewChild(ListFormComponent) listForm!: ListFormComponent;
@@ -45,33 +47,41 @@ export class Lists implements OnInit {
 
   private selectedFolderSubject = new BehaviorSubject<number | 'all'>('all');
   selectedFolderId$ = this.selectedFolderSubject.asObservable();
+  selectedMediaType$ = this.mediaTypeState.getSelectedMediaType$();
   
   folders$ = this.listService.getFolders$();
   
   lists$ = combineLatest([
     this.listService.getLists$(),
     this.selectedFolderId$,
-    this.animeService.getAllAnime$(),
-    this.animeService.filterUpdate$
+    this.selectedMediaType$,
+    this.mediaService.getAllMedia$(),
+    this.mediaService.filterUpdate$
   ]).pipe(
-    map(([lists, folderId, allAnime]) => {
+    map(([lists, folderId, selectedMediaType, allMedia]: [List[], number | 'all', number | null, MediaItem[], number]) => {
       let filteredLists = lists;
       
+      // Filter by media type
+      if (selectedMediaType !== null) {
+        filteredLists = filteredLists.filter((l: List) => l.mediaTypeId === selectedMediaType || !l.mediaTypeId);
+      }
+
       if (folderId !== 'all') {
-        filteredLists = filteredLists.filter(l => l.folderId === folderId);
+        filteredLists = filteredLists.filter((l: List) => l.folderId === folderId);
       }
 
       const filters = this.currentFilters();
       if ((filters.genres && filters.genres.length > 0) || (filters.studios && filters.studios.length > 0)) {
-        filteredLists = filteredLists.filter(list => {
-          const listAnimes = list.animeIds.map(id => allAnime.find(a => a.id === id)).filter(a => !!a) as Anime[];
+        filteredLists = filteredLists.filter((list: List) => {
+          const itemIds = list.mediaItemIds || list.animeIds || [];
+          const listItems = itemIds.map(id => allMedia.find(m => m.id === id)).filter(m => !!m) as MediaItem[];
           
           const matchesGenre = filters.genres && filters.genres.length > 0 
-            ? listAnimes.some(a => filters.genres!.every(g => a.genres?.includes(g)))
+            ? listItems.some(item => filters.genres!.every(g => item.genres?.includes(g)))
             : true;
           
           const matchesStudio = filters.studios && filters.studios.length > 0
-            ? listAnimes.some(a => filters.studios!.some(s => a.studios?.includes(s)))
+            ? listItems.some(item => filters.studios!.some(s => item.studios?.includes(s)))
             : true;
             
           return matchesGenre && matchesStudio;
@@ -80,7 +90,7 @@ export class Lists implements OnInit {
 
       if (filters.query) {
         const q = filters.query.toLowerCase();
-        filteredLists = filteredLists.filter(l => l.name.toLowerCase().includes(q));
+        filteredLists = filteredLists.filter((l: List) => l.name.toLowerCase().includes(q));
       }
 
       return filteredLists;
@@ -88,26 +98,29 @@ export class Lists implements OnInit {
   );
 
   enrichedLists$: Observable<any[]> = this.lists$.pipe(
-    switchMap(lists => {
-      return this.animeService.getAllAnime$().pipe(
-        map(allAnime => {
-          const result = lists.map(list => {
-            const covers = list.animeIds
-              .map(id => allAnime.find(a => a.id === id)?.coverImage)
+    switchMap((lists: List[]) => {
+      return this.mediaService.getAllMedia$().pipe(
+        map((allMedia: MediaItem[]) => {
+          const result = lists.map((list: List) => {
+            const itemIds = list.mediaItemIds || list.animeIds || [];
+            const items = itemIds.map(id => allMedia.find(m => m.id === id)).filter(m => !!m) as MediaItem[];
+            
+            const covers = items
+              .map(item => item.coverImage)
               .filter(img => !!img)
               .slice(0, 5);
             
             return {
               ...list,
               covers,
-              animeCount: list.animeIds.length
+              itemCount: items.length
             };
           });
 
-          const filters = this.currentFilters();
+          const filters = this.filterService.currentFilters();
           const mult = filters.sortOrder === 'asc' ? 1 : -1;
           
-          result.sort((a, b) => {
+          result.sort((a: any, b: any) => {
             if (filters.sortBy === 'title') {
               return a.name.localeCompare(b.name) * mult;
             }
@@ -123,12 +136,12 @@ export class Lists implements OnInit {
   );
 
   ngOnInit() {
-    this.animeService.getAllAnime$().subscribe(all => {
+    this.mediaService.getAllMedia$().subscribe((all: MediaItem[]) => {
       const genres = new Set<string>();
       const studios = new Set<string>();
-      all.forEach(anime => {
-        anime.genres?.forEach(g => genres.add(g));
-        anime.studios?.forEach(s => studios.add(s));
+      all.forEach((item: MediaItem) => {
+        item.genres?.forEach(g => genres.add(g));
+        item.studios?.forEach(s => studios.add(s));
       });
       this.availableGenres.set([...genres].sort());
       this.availableStudios.set([...studios].sort());
@@ -141,10 +154,10 @@ export class Lists implements OnInit {
 
   openCreateListDialog() {
     const currentFolder = this.selectedFolderSubject.value === 'all' ? undefined : this.selectedFolderSubject.value as number;
-    this.listForm.open(currentFolder);
+    this.listForm.open(undefined, currentFolder);
   }
 
   onListSaved() {
-    this.animeService.triggerFilterUpdate();
+    this.mediaService.triggerFilterUpdate();
   }
 }

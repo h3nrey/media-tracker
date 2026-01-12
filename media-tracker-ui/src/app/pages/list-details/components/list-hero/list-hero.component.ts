@@ -41,14 +41,16 @@ export class ListHeroComponent implements OnInit, OnDestroy {
 
   nextSlide() {
     const listData = this.list();
-    if (!listData?.animes?.length) return;
-    this.currentSlide.update(i => (i + 1) % listData.animes.length);
+    const itemCount = listData?.mediaItems?.length || 0;
+    if (itemCount === 0) return;
+    this.currentSlide.update(i => (i + 1) % itemCount);
   }
 
   prevSlide() {
     const listData = this.list();
-    if (!listData?.animes?.length) return;
-    this.currentSlide.update(i => (i - 1 + listData.animes.length) % listData.animes.length);
+    const itemCount = listData?.mediaItems?.length || 0;
+    if (itemCount === 0) return;
+    this.currentSlide.update(i => (i - 1 + itemCount) % itemCount);
   }
 
   setSlide(index: number) {

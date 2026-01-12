@@ -117,6 +117,7 @@ export class ListSyncService {
         description: local.description,
         folder_id: mapLocalToSupabaseFolder(local.folderId),
         media_item_ids: mapLocalToSupabaseMediaIds(local.mediaItemIds || []),
+        media_type_id: local.mediaTypeId,
         is_deleted: !!local.isDeleted,
         updated_at: local.updatedAt.toISOString()
       };
@@ -154,6 +155,7 @@ export class ListSyncService {
             description: remote.description,
             folderId: mapSupabaseToLocalFolder(remote.folder_id),
             mediaItemIds: mapSupabaseToLocalMediaIds(remote.media_item_ids || []),
+            mediaTypeId: remote.media_type_id,
             isDeleted: remote.is_deleted,
             updatedAt: remoteUpdatedAt,
             lastSyncedAt: new Date()
@@ -171,6 +173,7 @@ export class ListSyncService {
           description: remote.description,
           folderId: mapSupabaseToLocalFolder(remote.folder_id),
           mediaItemIds: mapSupabaseToLocalMediaIds(remote.media_item_ids || []),
+          mediaTypeId: remote.media_type_id,
           isDeleted: remote.is_deleted,
           createdAt: new Date(remote.created_at),
           updatedAt: new Date(remote.updated_at),

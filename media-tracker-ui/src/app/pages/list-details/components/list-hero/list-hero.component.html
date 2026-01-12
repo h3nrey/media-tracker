@@ -1,15 +1,18 @@
     <div class="hero-carousel">
-        @for (anime of list()?.animes; track anime.id; let i = $index) {
+        @for (item of list()?.mediaItems; track item.id; let i = $index) {
             <div class="carousel-slide" [class.active]="currentSlide() === i">
-                <div class="slide-background" [style.background-image]="'url(' + (anime.bannerImage || anime.coverImage) + ')'"></div>
+                <div class="slide-background" [style.background-image]="'url(' + (item.bannerImage || item.coverImage) + ')'"></div>
                 <div class="slide-overlay"></div>
                 <div class="slide-content">
                     <div class="slide-info">
-                        <span class="anime-status-tag">Featured</span>
-                        <h2>{{ anime.title }}</h2>
+                        <span class="anime-status-tag">{{ item.mediaTypeId === 1 ? 'Anime' : (item.mediaTypeId === 3 ? 'Game' : 'Media') }}</span>
+                        <h2>{{ item.title }}</h2>
                         <div class="slide-meta">
-                            <span class="score">★ {{ anime.score }}/10</span>
-                            <span class="episodes">{{ anime.progressCurrent }} / {{ anime.progressTotal || '?' }} Eps</span>
+                            @if (item.score) { <span class="score">★ {{ item.score }}/10</span> }
+                            <span class="episodes">
+                                {{ item.progressCurrent || 0 }} / {{ item.progressTotal || '?' }}
+                                {{ item.mediaTypeId === 1 ? 'Eps' : (item.mediaTypeId === 2 ? 'Ch' : '') }}
+                            </span>
                         </div>
                     </div>
                 </div>

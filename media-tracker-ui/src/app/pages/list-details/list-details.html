@@ -12,15 +12,27 @@
 
             <div class="content-layout">
                 <div class="main-column">
-                    <app-list-animes [animes]="list()?.animes || []"></app-list-animes>
+                    @if (animes().length > 0) {
+                        <app-list-animes [animes]="animes()" title="Animes"></app-list-animes>
+                    }
+                    
+                    @if (games().length > 0) {
+                        <app-list-animes [animes]="games()" title="Games"></app-list-animes>
+                    }
+
+                    @if (animes().length === 0 && games().length === 0) {
+                        <div class="empty-list-state">
+                            <p>No items added to this list yet.</p>
+                        </div>
+                    }
                 </div>
 
                 <aside class="sidebar-column">
                     <app-list-stats 
                         [percentage]="stats().percentage"
-                        [watchedEpisodes]="stats().watched"
-                        [totalEpisodes]="stats().total"
-                        [animeCount]="list()?.animes?.length || 0">
+                        [progressCurrent]="stats().watched"
+                        [progressTotal]="stats().total"
+                        [itemCount]="list()?.mediaItems?.length || 0">
                     </app-list-stats>
                 </aside>
             </div>

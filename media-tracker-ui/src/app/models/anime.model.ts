@@ -2,7 +2,7 @@ import { AnimeMetadata } from "./anime-metadata.model";
 import { MediaItem } from "./media-type.model";
 
 export interface Anime extends MediaItem {
-  mediaItemId: number;
+  mediaItemId?: number;
   studios: string[];
   malId?: number;
   t?: number;

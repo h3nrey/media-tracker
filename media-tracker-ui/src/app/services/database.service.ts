@@ -135,6 +135,22 @@ export class AnimeTrackerDatabase extends Dexie {
       watchSources: '++id, supabaseId, name, baseUrl, createdAt, updatedAt, isDeleted',
       lists: '++id, supabaseId, name, folderId, createdAt, updatedAt, isDeleted'
     });
+
+    this.version(7).stores({
+      mediaTypes: '++id, name, createdAt',
+      mediaItems: '++id, supabaseId, mediaTypeId, title, externalId, externalApi, statusId, score, releaseYear, createdAt, updatedAt, isDeleted',
+      animeMetadata: 'mediaItemId, malId',
+      mangaMetadata: 'mediaItemId, malId',
+      gameMetadata: 'mediaItemId, igdbId',
+      movieMetadata: 'mediaItemId, tmdbId',
+      mediaLogs: '++id, supabaseId, mediaItemId, startDate, endDate, createdAt, updatedAt, isDeleted',
+      lists: '++id, supabaseId, name, folderId, mediaTypeId, createdAt, updatedAt, isDeleted',
+      // Legacy
+      anime: '++id, supabaseId, title, malId, statusId, score, releaseYear, createdAt, updatedAt, isDeleted',
+      categories: '++id, supabaseId, name, order, createdAt, updatedAt, isDeleted',
+      watchSources: '++id, supabaseId, name, baseUrl, createdAt, updatedAt, isDeleted',
+      folders: '++id, supabaseId, name, order, createdAt, updatedAt, isDeleted'
+    });
   }
 
   async seedDefaultCategories(): Promise<void> {

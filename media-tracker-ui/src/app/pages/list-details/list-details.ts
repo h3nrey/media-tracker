@@ -30,7 +30,7 @@ export class ListDetailsComponent {
   private readonly route = inject(ActivatedRoute);
   
   listForm = viewChild(ListFormComponent);
-
+  
   list = toSignal(
     this.route.paramMap.pipe(
       map(params => Number(params.get('id'))),
@@ -38,13 +38,17 @@ export class ListDetailsComponent {
     )
   );
 
+  animes = computed(() => this.list()?.mediaItems?.filter(m => m.mediaTypeId === 1) || []);
+  games = computed(() => this.list()?.mediaItems?.filter(m => m.mediaTypeId === 3) || []);
+
   stats = computed(() => {
     const listData = this.list();
-    if (!listData || !listData.animes) return { watched: 0, total: 0, percentage: 0 };
+    const items = listData?.mediaItems || [];
+    if (items.length === 0) return { watched: 0, total: 0, percentage: 0 };
     
-    const stats = listData.animes.reduce((acc, anime) => ({
-      watched: acc.watched + (anime.progressCurrent || 0),
-      total: acc.total + (anime.progressTotal || 0)
+    const stats = items.reduce((acc, item) => ({
+      watched: acc.watched + (item.progressCurrent || 0),
+      total: acc.total + (item.progressTotal || 0)
     }), { watched: 0, total: 0 });
 
     const percentage = stats.total > 0 ? Math.round((stats.watched / stats.total) * 100) : 0;

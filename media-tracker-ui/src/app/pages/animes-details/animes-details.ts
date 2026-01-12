@@ -81,7 +81,7 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
             this.category.set(cat || null);
           }
 
-          this.listService.getListsContainingAnime$(id).pipe(take(1)).subscribe(listsData => {
+          this.listService.getListsContainingItem$(id).pipe(take(1)).subscribe((listsData: List[]) => {
               this.lists.set(listsData);
           });
         } else {

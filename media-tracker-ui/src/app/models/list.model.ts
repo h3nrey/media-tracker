@@ -8,6 +8,7 @@ export interface List {
   description?: string;
   animeIds: number[];
   mediaItemIds?: number[];
+  mediaTypeId?: number | null;
   folderId?: number;
   createdAt: Date;
   updatedAt: Date;
