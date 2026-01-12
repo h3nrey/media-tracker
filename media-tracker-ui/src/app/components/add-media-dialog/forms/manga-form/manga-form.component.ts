@@ -66,7 +66,7 @@ export class MangaFormComponent {
     effect(() => {
         const cats = this.categories();
         if (cats.length > 0 && this.selectedCategoryId() === undefined) {
-            this.selectedCategoryId.set(cats[0].supabaseId);
+            this.selectedCategoryId.set(cats[0].supabaseId || cats[0].id);
         }
     });
   }
@@ -80,7 +80,7 @@ export class MangaFormComponent {
     this.progressCurrent.set(data.progressCurrent || data.progress_current || 0);
     this.progressTotal.set(data.progressTotal || data.progress_total || 0);
 
-    this.selectedCategoryId.set(data.statusId);
+    this.selectedCategoryId.set(data.statusId || data.categoryId);
     this.score.set(data.score || 0);
     this.genres.set(data.genres || []);
     this.studios.set(data.studios || []); // Authors

@@ -180,7 +180,9 @@ export class AddMediaDialogComponent {
     console.log("categories", this.categories());
     
     let mappedData: any = {};
-    const categoryId = this.categories()[0].supabaseId || 26;
+    const categoryToSet = this.dialogService.categoryToSet();
+    const fallbackCategory = this.categories()[0]?.supabaseId || this.categories()[0]?.id || 26;
+    const categoryId = categoryToSet !== undefined ? categoryToSet : fallbackCategory;
 
     if (type === MediaType.GAME) {
       mappedData = this.igdbService.convertIGDBToMediaItem(result, categoryId);
@@ -190,7 +192,7 @@ export class AddMediaDialogComponent {
         title: result.title_english || result.title,
         coverImage: result.images?.webp?.large_image_url || result.images?.jpg?.large_image_url,
         externalId: result.mal_id,
-        statusId: this.categories()[0].supabaseId
+        statusId: categoryId
       };
       
       if (type === MediaType.ANIME) {
@@ -224,9 +226,10 @@ export class AddMediaDialogComponent {
 
 
   enableManualMode() {
+    const statusId = this.dialogService.categoryToSet();
+    this.initialFormData.set(statusId ? { statusId } : {});
     this.manualMode.set(true);
     this.selectedMediaApiResult.set(null);
-    this.initialFormData.set({});
     this.searchQuery.set('');
     this.searchResults.set([]);
   }
