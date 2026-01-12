@@ -31,6 +31,15 @@
 
       @if (showToolsDropdown()) {
         <div class="dropdown-menu" (click)="showToolsDropdown.set(false)">
+          <button class="dropdown-item" (click)="manageSources.emit()" title="Manage Sources">
+            <lucide-icon [name]="MonitorIcon" [size]="16"></lucide-icon>
+            Sources
+          </button>
+          <button class="dropdown-item" (click)="manageCategories.emit()" title="Manage Categories">
+            <lucide-icon [name]="LayersIcon" [size]="16"></lucide-icon>
+            Categories
+          </button>
+          <div class="dropdown-divider"></div>
           <button class="dropdown-item" (click)="refreshMetadata.emit()">
             <lucide-icon [name]="RefreshIcon" [size]="16"></lucide-icon>
             Refetch Metadata
@@ -44,17 +53,10 @@
             <lucide-icon [name]="SettingsIcon" [size]="16"></lucide-icon>
             UI Customization
           </button>
+         
+          
         </div>
       }
     </div>
-
-    <button class="nav-btn" (click)="manageSources.emit()" title="Manage Sources">
-      <lucide-icon [name]="MonitorIcon" [size]="18"></lucide-icon>
-      <span>Sources</span>
-    </button>
-    <button class="nav-btn" (click)="manageCategories.emit()" title="Manage Categories">
-      <lucide-icon [name]="LayersIcon" [size]="18"></lucide-icon>
-      <span>Categories</span>
-    </button>
   </div>
 </header>

@@ -6,8 +6,8 @@
           <lucide-icon [img]="SparklesIcon" [size]="24"></lucide-icon>
         </div>
         <div>
-          <h1>Anime Discovery</h1>
-          <p>Find your next obsession</p>
+          <h1>Media Discovery</h1>
+          <p>Find your next obsession among {{ mediaType() === 1 ? 'anime' : 'games' }}</p>
         </div>
       </div>
     </header>
@@ -27,9 +27,9 @@
               <button 
                 [class.active]="source() === 'jikan'" 
                 (click)="source.set('jikan')"
-                title="External">
+                [title]="mediaType() === 1 ? 'Jikan' : 'IGDB'">
                 <lucide-icon [img]="GlobeIcon" [size]="14"></lucide-icon>
-                <span>Jikan</span>
+                <span>{{ mediaType() === 1 ? 'Jikan' : 'IGDB' }}</span>
               </button>
               <button 
                 [class.active]="source() === 'backlog'" 
@@ -50,30 +50,81 @@
             </ui-select>
           </div>
 
-          <div class="filter-group">
-            <label>Genres</label>
-            
+          <div class="filter-group expandable" [class.expanded]="isGenresExpanded()">
+            <div class="filter-header" (click)="isGenresExpanded.set(!isGenresExpanded())">
+              <div class="label-group">
+                <label>Genres</label>
+                @if (selectedGenres().length > 0) {
+                  <span class="count-badge">{{ selectedGenres().length }}</span>
+                }
+              </div>
+              <lucide-icon [img]="ChevronDownIcon" [size]="14" class="chevron"></lucide-icon>
+            </div>
+
             @if (getSelectedGenreObjects().length > 0) {
               <div class="selected-genres-list">
                 @for (genre of getSelectedGenreObjects(); track genre.mal_id) {
-                  <button class="genre-chip active" (click)="toggleGenre(genre.mal_id)">
-                    <lucide-icon [img]="getGenreIcon(genre.name)" [size]="12"></lucide-icon>
-                    {{ genre.name }}
-                    <lucide-icon [img]="XIcon" [size]="10" class="remove-icon"></lucide-icon>
-                  </button>
+                  <app-tag-chip 
+                    [label]="genre.name" 
+                    [icon]="getGenreIcon(genre.name)" 
+                    [active]="true" 
+                    [removable]="true"
+                    (clicked)="toggleGenre(genre.mal_id)">
+                  </app-tag-chip>
+                }
+              </div>
+            }
+            
+            <div class="expand-content">
+              <div class="genres-grid">
+                @for (genre of getUnselectedGenres(); track genre.mal_id) {
+                  <app-tag-chip 
+                    [label]="genre.name" 
+                    [icon]="getGenreIcon(genre.name)" 
+                    (clicked)="toggleGenre(genre.mal_id)">
+                  </app-tag-chip>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-group expandable" [class.expanded]="isPlatformsExpanded()" *ngIf="mediaType() === 3">
+            <div class="filter-header" (click)="isPlatformsExpanded.set(!isPlatformsExpanded())">
+              <div class="label-group">
+                <label>Platforms</label>
+                @if (selectedPlatforms().length > 0) {
+                  <span class="count-badge">{{ selectedPlatforms().length }}</span>
+                }
+              </div>
+              <lucide-icon [img]="ChevronDownIcon" [size]="14" class="chevron"></lucide-icon>
+            </div>
+
+            @if (selectedPlatforms().length > 0) {
+              <div class="selected-genres-list">
+                @for (platform of platforms(); track platform.id) {
+                  @if (selectedPlatforms().includes(platform.id)) {
+                    <app-tag-chip 
+                      [label]="platform.name" 
+                      [active]="true"
+                      [removable]="true"
+                      (clicked)="togglePlatform(platform.id)">
+                    </app-tag-chip>
+                  }
                 }
               </div>
             }
 
-            <div class="genres-grid">
-              @for (genre of getUnselectedGenres(); track genre.mal_id) {
-                <button 
-                  class="genre-chip" 
-                  (click)="toggleGenre(genre.mal_id)">
-                  <lucide-icon [img]="getGenreIcon(genre.name)" [size]="12"></lucide-icon>
-                  {{ genre.name }}
-                </button>
-              }
+            <div class="expand-content">
+              <div class="genres-grid">
+                @for (platform of platforms(); track platform.id) {
+                  @if (!selectedPlatforms().includes(platform.id)) {
+                    <app-tag-chip 
+                      [label]="platform.name" 
+                      (clicked)="togglePlatform(platform.id)">
+                    </app-tag-chip>
+                  }
+                }
+              </div>
             </div>
           </div>
         </div>
@@ -87,35 +138,45 @@
       <!-- Result Section -->
       <main class="result-area">
         @if (recommendedAnime()) {
-          @let anime = recommendedAnime();
+          @let item = recommendedAnime();
           <div class="recommendation-card" [class.animate-in]="recommendedAnime()">
             <div class="anime-hero">
-              <img [src]="anime.coverImage || anime.images?.webp?.large_image_url" [alt]="anime.title" class="hero-image">
+              <img [src]="getImageUrl(item)" [alt]="item.title || item.name" class="hero-image">
               <div class="hero-overlay">
                 <div class="meta-badges">
-                  <span class="score-badge" *ngIf="anime.score">
-                    ⭐ {{ anime.score }}
+                  <span class="score-badge" *ngIf="item.score || item.rating">
+                    ⭐ {{ item.score || (item.rating / 10 | number:'1.1-1') }}
                   </span>
                   <span class="year-badge">
-                    {{ anime.releaseYear || anime.year }}
+                    {{ item.releaseYear || item.year || (item.first_release_date ? (item.first_release_date * 1000 | date:'yyyy') : '') }}
                   </span>
                 </div>
               </div>
             </div>
             <div class="anime-details">
-              <h1>{{ anime.title }}</h1>
+              <h1>{{ item.title || item.name }}</h1>
               
               <div class="genres-list">
-                @for (genre of (anime.genres || []); track genre) {
-                  <span class="genre-tag">
-                    <lucide-icon [img]="getGenreIcon(genre.name || genre)" [size]="10"></lucide-icon>
-                    {{ genre.name || genre }}
-                  </span>
+                @for (genre of (item.genres || []); track genre) {
+                  <app-tag-chip 
+                    [label]="genre.name || genre" 
+                    [icon]="getGenreIcon(genre.name || genre)">
+                  </app-tag-chip>
                 }
               </div>
 
-              <div class="synopsis" *ngIf="anime.synopsis">
-                <p>{{ anime.synopsis }}</p>
+              <div class="genres-list" *ngIf="item.platforms?.length">
+                @for (platform of (item.platforms || []); track (platform.name || platform)) {
+                  <app-tag-chip 
+                    class="platform-tag-wrapper"
+                    [label]="platform.name || platform" 
+                    [icon]="MonitorIcon">
+                  </app-tag-chip>
+                }
+              </div>
+
+              <div class="synopsis" *ngIf="item.synopsis || item.summary">
+                <p>{{ item.synopsis || item.summary }}</p>
               </div>
 
               <div class="card-footer-actions">

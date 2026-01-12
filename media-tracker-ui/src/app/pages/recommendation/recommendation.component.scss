@@ -48,7 +48,7 @@
 
 .discovery-grid {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 24rem 1fr;
   gap: 1.5rem;
   align-items: start;
 
@@ -102,6 +102,92 @@
     letter-spacing: 0.05em;
     color: var(--app-text-muted);
   }
+
+  &.expandable {
+    background: var(--app-bg);
+    border-radius: 12px;
+    padding: 0.75rem;
+    border: 1px solid var(--app-border);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    .filter-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      
+      .label-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        label {
+          cursor: pointer;
+          margin: 0;
+        }
+
+        .count-badge {
+          background: var(--app-primary);
+          color: white;
+          font-size: 0.65rem;
+          font-weight: 800;
+          padding: 0.1rem 0.4rem;
+          border-radius: 20px;
+          min-width: 1.2rem;
+          text-align: center;
+        }
+      }
+
+      .chevron {
+        color: var(--app-text-muted);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      &:hover {
+        .chevron {
+          color: var(--app-primary);
+        }
+      }
+    }
+
+    .selected-genres-list {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--app-border);
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .expand-content {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+
+      > div {
+        min-height: 0;
+      }
+    }
+
+    &.expanded {
+      background: var(--app-surface);
+      border-color: var(--app-primary-glow);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+      .chevron {
+        transform: rotate(180deg);
+        color: var(--app-primary);
+      }
+
+      .expand-content {
+        grid-template-rows: 1fr;
+        padding-top: 0.75rem;
+        margin-top: 0.75rem;
+        border-top: 1px dashed var(--app-border);
+      }
+    }
+  }
 }
 
 .source-toggle {
@@ -148,57 +234,30 @@
   cursor: pointer;
 }
 
-.selected-genres-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--app-border);
-  margin-bottom: 0.5rem;
-}
 
 .genres-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  max-height: 200px;
+  max-height: 250px;
   overflow-y: auto;
   padding-right: 0.4rem;
+  padding-bottom: 0.5rem;
 
   &::-webkit-scrollbar {
-    width: 3px;
+    width: 4px;
   }
   &::-webkit-scrollbar-thumb {
     background: var(--app-border);
     border-radius: 10px;
+    
+    &:hover {
+      background: var(--app-text-muted);
+    }
   }
 }
 
-.genre-chip {
-  padding: 0.35rem 0.65rem;
-  border-radius: 6px;
-  border: 1px solid var(--app-border);
-  background: var(--app-bg);
-  color: var(--app-text-secondary);
-  font-size: 0.7rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  transition: all 0.2s;
-
-  &:hover {
-    border-color: var(--app-primary);
-    color: var(--app-text-primary);
-  }
-
-  &.active {
-    background: var(--app-primary-glow);
-    color: var(--app-primary);
-    border-color: var(--app-primary);
-  }
-}
+// Genre chips styles are now handled by app-tag-chip component
 
 .generate-btn {
   width: 100%;
@@ -241,7 +300,10 @@
   overflow: hidden;
   display: flex;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  max-width: 100%;
+  max-width: 650px;
+  width: 100%;
+  align-self: start;
+  min-height: 380px;
 
   @media (max-width: 600px) {
     flex-direction: column;
@@ -249,18 +311,17 @@
 
   .anime-hero {
     position: relative;
-    width: 200px;
+    width: 220px;
     flex-shrink: 0;
-
-    @media (max-width: 600px) {
-      width: 100%;
-      height: 250px;
-    }
+    overflow: hidden;
+    background: var(--app-bg);
 
     .hero-image {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      object-position: center;
+      display: block;
     }
 
     .hero-overlay {
@@ -292,17 +353,22 @@
   }
 
   .anime-details {
-    padding: 1.5rem;
+    padding: 1rem 1.25rem;
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    justify-content: space-between;
 
     h1 {
-      font-size: 1.5rem;
-      font-weight: 800;
-      margin: 0 0 0.75rem 0;
-      line-height: 1.2;
+      font-size: 1.25rem;
+      font-weight: 850;
+      margin: 0 0 0.5rem 0;
+      line-height: 1.3;
       color: var(--app-text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .genres-list {
@@ -312,15 +378,26 @@
       margin-bottom: 1rem;
 
       .genre-tag {
-        padding: 0.25rem 0.65rem;
-        border-radius: 12px;
+        padding: 0.2rem 0.5rem;
+        border-radius: 10px;
         background: var(--app-surface-light);
         color: var(--app-text-secondary);
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
         display: flex;
         align-items: center;
-        gap: 0.35rem;
+        gap: 0.3rem;
+
+      .platform-tag-wrapper ::ng-deep .tag-chip {
+        background: var(--app-primary-glow);
+        color: var(--app-primary);
+        border: 1px solid var(--app-primary);
+        
+        &:hover {
+          background: var(--app-primary);
+          color: white;
+        }
+      }
 
         lucide-icon {
           opacity: 0.7;

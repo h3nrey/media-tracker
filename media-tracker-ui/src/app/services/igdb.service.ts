@@ -26,6 +26,32 @@ interface TwitchToken {
   token_type: string;
 }
 
+const RECOMMENDED_PLATFORMS = {
+  NES: 18,
+  SNES: 19,
+  MASTER_SYSTEM: 64,
+  MEGA_DRIVE: 29,
+  PS1: 7,
+  PS2: 8,
+  PS3: 9,
+  PSP: 38,
+  PS4: 48,
+  GAMECUBE: 21,
+  N64: 4,
+  WII: 5,
+  SWITCH: 130,
+  PC: 6,
+  SATURN: 32,
+  DREAMCAST: 23,
+  GAMEBOY: 33,
+  GAMEBOY_COLOR: 22,
+  GAMEBOY_ADVANCE: 24,
+  NDS: 20,
+  N3DS: 37,
+  WII_U: 41,
+  JAGUAR: 62
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -178,5 +204,96 @@ export class IgdbService {
       notes: game.summary || '',
       platforms: game.platforms?.map(p => p.name) || []
     };
+  }
+
+  getGenres(): Observable<any[]> {
+    return this.getValidToken().pipe(
+      switchMap(token => {
+        const headers = this.getHeaders(token);
+        const body = `fields name; limit 50; sort name asc;`;
+        return this.http.post<any[]>(`${this.API_URL}/genres`, body, { headers });
+      }),
+      catchError(err => {
+        console.error('Error fetching IGDB genres:', err);
+        return of([]);
+      })
+    );
+  }
+
+  getPlatforms(): Observable<any[]> {
+    return this.getValidToken().pipe(
+      switchMap(token => {
+        const headers = this.getHeaders(token);
+        const platformIds = Object.values(RECOMMENDED_PLATFORMS);
+        const body = `fields name, id; limit 50; sort name asc; where id = (${platformIds.join(',')});`;
+        return this.http.post<any[]>(`${this.API_URL}/platforms`, body, { headers });
+      }),
+      catchError(err => {
+        console.error('Error fetching IGDB platforms:', err);
+        return of([]);
+      })
+    );
+  }
+
+  getRecommendations(params: { genres?: number[], platforms?: number[], startDate?: string, endDate?: string, limit?: number }): Observable<IGDBGame[]> {
+    return this.getValidToken().pipe(
+      switchMap(token => {
+        const headers = this.getHeaders(token);
+        const limit = params.limit || 20;
+        let whereClauses: string[] = ['rating > 70', 'rating_count > 5'];
+        
+        if (params.genres && params.genres.length > 0) {
+          whereClauses.push(`genres = (${params.genres.join(',')})`);
+        }
+
+        if (params.platforms && params.platforms.length > 0) {
+          whereClauses.push(`platforms = (${params.platforms.join(',')})`);
+        }
+        
+        if (params.startDate) {
+          const startTimestamp = Math.floor(new Date(params.startDate).getTime() / 1000);
+          whereClauses.push(`first_release_date >= ${startTimestamp}`);
+        }
+        
+        if (params.endDate) {
+          const endTimestamp = Math.floor(new Date(params.endDate).getTime() / 1000);
+          whereClauses.push(`first_release_date <= ${endTimestamp}`);
+        }
+
+        const body = `fields name, summary, cover.url, genres.name, involved_companies.company.name, involved_companies.developer, first_release_date, platforms.name, screenshots.url, videos.video_id, rating; 
+                      where ${whereClauses.join(' & ')}; 
+                      sort rating desc; 
+                      limit ${limit};`;
+
+        return this.http.post<IGDBGame[]>(`${this.API_URL}/games`, body, { headers });
+      }),
+      catchError(err => {
+        console.error('Error fetching IGDB recommendations:', err);
+        return of([]);
+      })
+    );
+  }
+
+  getRandomGame(): Observable<IGDBGame | null> {
+    return this.getValidToken().pipe(
+      switchMap(token => {
+        const headers = this.getHeaders(token);
+        // Get a random high-rated game by using a random offset
+        const totalCount = 500; // Assume 500 high rated games
+        const randomOffset = Math.floor(Math.random() * totalCount);
+        const body = `fields name, summary, cover.url, genres.name, involved_companies.company.name, involved_companies.developer, first_release_date, platforms.name, screenshots.url, videos.video_id, rating; 
+                      where rating > 80 & rating_count > 10; 
+                      limit 1; 
+                      offset ${randomOffset};`;
+
+        return this.http.post<IGDBGame[]>(`${this.API_URL}/games`, body, { headers }).pipe(
+          map(games => games.length > 0 ? games[0] : null)
+        );
+      }),
+      catchError(err => {
+        console.error('Error fetching random IGDB game:', err);
+        return of(null);
+      })
+    );
   }
 }
