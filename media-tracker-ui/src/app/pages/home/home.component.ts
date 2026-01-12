@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { KanbanBoardComponent } from '../../components/kanban-board/kanban-board.component';
 import { ListViewComponent } from '../../components/list-view/list-view.component';
 import { DialogService } from '../../services/dialog.service';
@@ -48,6 +49,8 @@ export class HomeComponent {
     }
   }
 
+  private router = inject(Router);
+
   openAddDialog() {
     this.dialogService.openAddMedia();
   }
@@ -57,7 +60,15 @@ export class HomeComponent {
   }
 
   openAnimeDetails(media: MediaItem | Anime) {
-    this.dialogService.openMediaDetails(media);
+    if (!media.id) return;
+    const type = (media as MediaItem).mediaTypeId;
+    if (type === 1) { // Anime
+      this.router.navigate(['/anime', media.id]);
+    } else if (type === 3) { // Game
+      this.router.navigate(['/game', media.id]);
+    } else {
+      this.router.navigate(['/media', media.id]);
+    }
   }
 
   openEditAnime(media: MediaItem | Anime) {

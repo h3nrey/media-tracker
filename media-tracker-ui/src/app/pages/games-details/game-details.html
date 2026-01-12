@@ -1,49 +1,41 @@
 @if(!isLoading()) {
   <div class="details-page">
-    <div class="backdrop-container" [style.background-image]="'url(' + (anime()?.bannerImage || anime()?.coverImage) + ')'">
+    <div class="backdrop-container" [style.background-image]="'url(' + (game()?.bannerImage || game()?.coverImage) + ')'">
       <div class="backdrop-gradient"></div>
     </div>
 
     <div class="page-content">
       <div class="content-layout">
-        <app-anime-sidebar 
-          [anime]="anime()" 
+        <app-game-sidebar 
+          [game]="game()" 
           [category]="category()" 
           [categories]="categories()"
           (edit)="onEdit()" 
-          (incrementEpisode)="incrementEpisode()"
-          (decrementEpisode)="decrementEpisode()"
-          (resetEpisodes)="resetEpisodes()"
-          (completeEpisodes)="completeEpisodes()"
           (updateScore)="onUpdateScore($event)"
           (updateCategory)="onUpdateCategory($event)"
           (saveLinks)="onSaveLinks($event)">
-        </app-anime-sidebar>
+        </app-game-sidebar>
 
         <div class="main-column-wrapper">
-          <app-anime-info 
-            [anime]="anime()" 
+          <app-game-info 
+            [game]="game()" 
             [tagline]="getTagline()">
-          </app-anime-info>
+          </app-game-info>
 
           <div class="divider"></div>
 
           <div class="details-sections">
             <div class="section-group">
-              <app-anime-lists [lists]="lists()"></app-anime-lists>
+              <app-game-lists [lists]="lists()"></app-game-lists>
             </div>
             <div class="section-group">
-              <app-anime-history 
-                [logs]="anime()?.logs"
+              <app-game-history 
+                [logs]="game()?.logs"
                 (addLog)="onAddLog()"
                 (removeLog)="onRemoveLog($event)"
                 (updateLog)="onUpdateLog($event)">
-              </app-anime-history>
+              </app-game-history>
             </div>
-          </div>
-
-          <div class="reviews-wrapper">
-            <app-anime-reviews [supabaseId]="anime()?.supabaseId"></app-anime-reviews>
           </div>
         </div>
       </div>

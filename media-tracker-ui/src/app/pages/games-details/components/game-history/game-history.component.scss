@@ -1,0 +1,178 @@
+.details-card {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--app-border);
+        padding-bottom: 1rem;
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+
+            lucide-icon {
+                color: var(--app-primary);
+            }
+
+            h2 {
+                font-size: 1.1rem;
+                font-weight: 700;
+                margin: 0;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+        }
+
+        .add-btn {
+            background: var(--app-surface-light);
+            color: var(--app-primary);
+            border: 1px solid var(--app-border);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            &:hover {
+                background: var(--app-primary);
+                color: var(--app-bg);
+                border-color: var(--app-primary);
+                transform: scale(1.05);
+            }
+        }
+    }
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+
+    .history-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        border-radius: 12px;
+        background: var(--app-bg);
+        border: 1px solid var(--app-border);
+        transition: all 0.2s;
+        position: relative;
+
+        &:hover {
+            border-color: var(--app-primary);
+            background: var(--app-surface-light);
+            .remove-btn { opacity: 1; }
+        }
+
+        .item-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+
+            .dot {
+                width: 8px;
+                height: 8px;
+                background: var(--app-primary);
+                border-radius: 50%;
+                box-shadow: 0 0 12px var(--app-primary);
+                flex-shrink: 0;
+            }
+
+            .log-info {
+                display: flex;
+                align-items: center;
+                gap: 1.5rem;
+
+                .separator {
+                    opacity: 0.3;
+                    font-weight: 800;
+                }
+
+                .date-group {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.2rem;
+                    cursor: pointer;
+                    position: relative;
+
+                    &:hover .date-value {
+                        color: var(--app-primary);
+                    }
+
+                    .label {
+                        font-size: 0.7rem;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        color: var(--app-text-muted);
+                        font-weight: 700;
+                    }
+
+                    .date-value {
+                        font-size: 0.9rem;
+                        font-weight: 600;
+                        color: var(--app-text-primary);
+                        transition: color 0.2s;
+                    }
+                }
+            }
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .remove-btn {
+            background: transparent;
+            border: none;
+            color: var(--app-text-muted);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            opacity: 0;
+            transition: all 0.2s;
+
+            &:hover {
+                background: rgba(248, 81, 73, 0.15);
+                color: var(--app-accent-red);
+            }
+        }
+
+        .picker-overlay {
+            position: absolute;
+            bottom: calc(100% + 0.5rem);
+            left: 0;
+            z-index: 100;
+            background: var(--app-surface);
+            border: 1px solid var(--app-border);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: slideUp 0.2s ease-out;
+        }
+    }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.empty-state {
+    color: var(--app-text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 1.5rem 0;
+}

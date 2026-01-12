@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AnimeService } from '../../services/anime.service';
 import { CategoryService } from '../../services/status.service';
 import { ListService } from '../../services/list.service';
@@ -42,14 +42,20 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
   private listService = inject(ListService);
   private dialogService = inject(DialogService);
   private toastService = inject(ToastService);
+  private router = inject(Router);
 
   anime = signal<AnimeDetails | null>(null);
   category = signal<Category | null>(null);
+  categories = signal<Category[]>([]);
   lists = signal<List[]>([]);
   isLoading = signal(true);
   private sub = new Subscription();
 
   async ngOnInit() {
+    this.categoryService.getAllCategories$().subscribe(cats => {
+      this.categories.set(cats);
+    });
+
     this.route.params.subscribe(params => {
       const id = +params['id'];
       if (id) {
@@ -78,6 +84,9 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
           this.listService.getListsContainingAnime$(id).pipe(take(1)).subscribe(listsData => {
               this.lists.set(listsData);
           });
+        } else {
+          // If no data found, redirect to 404
+          this.router.navigate(['/404']);
         }
         this.isLoading.set(false);
       })
@@ -209,5 +218,16 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
 
     await this.animeService.updateAnime(currentAnime.id, { sourceLinks });
     this.anime.update(a => a ? { ...a, sourceLinks } : null);
+  }
+
+  async onUpdateCategory(statusId: number) {
+    const currentAnime = this.anime();
+    if (!currentAnime || !currentAnime.id) return;
+
+    await this.animeService.updateAnime(currentAnime.id, { statusId });
+    // Reload category object
+    const cat = await this.categoryService.getCategoryById(statusId);
+    this.category.set(cat || null);
+    this.anime.update(a => a ? { ...a, statusId } : null);
   }
 }

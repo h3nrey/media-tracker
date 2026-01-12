@@ -1,12 +1,18 @@
 <aside class="side-column">
   <div class="main-poster">
     <img [src]="anime()?.coverImage" [alt]="anime()?.title">
-    @if (category()) {
-      <div class="category-pill" [style.background-color]="category()?.color">
-        {{ category()?.name }}
-      </div>
-    }
   </div>
+
+  <div class="sidebar-content">
+    <div class="category-selector">
+      <ui-select 
+        [options]="categoryOptions" 
+        [value]="anime()?.statusId" 
+        (valueChange)="onCategoryChange($event)"
+        variant="prominent"
+        rounding="full">
+      </ui-select>
+    </div>
 
   <div class="score-rating" (mouseleave)="onHover(null)">
     <div class="stars">
@@ -78,4 +84,5 @@
   <div class="side-links">
     <app-anime-links [sourceLinks]="anime()?.sourceLinks" (saveLinks)="onSaveLinks($event)"></app-anime-links>
   </div>
+</div>
 </aside>

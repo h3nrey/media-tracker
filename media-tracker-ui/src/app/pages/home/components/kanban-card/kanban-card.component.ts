@@ -18,6 +18,7 @@ export class KanbanCardComponent implements OnInit {
   @Output() edit = new EventEmitter<MediaItem>();
   @Output() delete = new EventEmitter<MediaItem>();
   @Output() increment = new EventEmitter<MediaItem>();
+  @Input() url = 'anime';
   
   readonly StarIcon = Star;
   readonly MoreVerticalIcon = MoreVertical;

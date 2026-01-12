@@ -1,0 +1,61 @@
+<section class="details-card side-card">
+  <div class="section-header">
+    <div class="header-left">
+      <lucide-icon [img]="ClockIcon" [size]="18"></lucide-icon>
+      <h2>History ({{ logs()?.length || 0 }})</h2>
+    </div>
+    <button class="add-btn" (click)="onAddLog()" title="Add new log">
+      <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
+    </button>
+  </div>
+  
+  <div class="history-list">
+    @for (log of logs(); track $index; let i = $index) {
+      <div class="history-item">
+        <div class="item-content">
+          <div class="dot"></div>
+          <div class="log-info">
+            <div class="date-group" (click)="togglePicker(i, 'startDate', $event)">
+              <span class="label">Start</span>
+              <span class="date-value">{{ (log.startDate | date:'MMM d, y') || 'Set Start' }}</span>
+              @if (activePicker()?.index === i && activePicker()?.field === 'startDate') {
+                <div class="picker-overlay" (click)="$event.stopPropagation()">
+                  <app-date-picker 
+                    [selectedDate]="$any(log.startDate)" 
+                    (dateChange)="handlePickerChange(i, 'startDate', $event)"
+                    (close)="activePicker.set(null)"
+                  ></app-date-picker>
+                </div>
+              }
+            </div>
+            <div class="separator">→</div>
+            <div class="date-group" (click)="togglePicker(i, 'endDate', $event)">
+              <span class="label">End</span>
+              <span class="date-value">{{ (log.endDate | date:'MMM d, y') || 'Set End' }}</span>
+              @if (activePicker()?.index === i && activePicker()?.field === 'endDate') {
+                <div class="picker-overlay" (click)="$event.stopPropagation()">
+                  <app-date-picker 
+                    [selectedDate]="$any(log.endDate)" 
+                    (dateChange)="handlePickerChange(i, 'endDate', $event)"
+                    (close)="activePicker.set(null)"
+                  ></app-date-picker>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+        
+        <div class="actions">
+          <button class="remove-btn" (click)="onRemoveLog(i); $event.stopPropagation()" title="Remove log">
+            <lucide-icon [img]="TrashIcon" [size]="14"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    }
+    @if (!logs()?.length) {
+      <div class="empty-state">
+        No history recorded yet.
+      </div>
+    }
+  </div>
+</section>
