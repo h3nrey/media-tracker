@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   background: var(--app-bg);
-  min-height: calc(100vh - 64px); // Adjust based on header height
+  min-height: calc(100vh - 5.5rem);
 
   .view-toggle {
     display: flex;

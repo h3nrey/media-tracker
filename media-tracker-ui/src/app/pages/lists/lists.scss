@@ -1,10 +1,9 @@
 .lists-container {
   display: flex;
-  height: 100vh;
+  min-height: calc(100vh - 5.5rem);
   background: var(--app-bg);
   color: var(--app-text-primary);
   font-family: var(--app-font-main);
-  overflow: hidden;
   padding: 1.5rem;
   gap: 1.5rem;
 }
@@ -106,9 +105,8 @@
 
 .lists-scroll-area {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: visible;
   padding: 1rem 1.5rem 3rem;
-  scrollbar-gutter: stable;
 
   &::-webkit-scrollbar {
     width: 8px;

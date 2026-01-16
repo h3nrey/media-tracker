@@ -2,7 +2,14 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #121418;
+  background-color: var(--app-bg);
+}
+
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: 5.5rem; // Space for fixed header + gap
 }
 
 .mobile-only {

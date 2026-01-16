@@ -2,15 +2,27 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1.5rem;
+  padding: 0.6rem 2rem;
   background: var(--app-surface);
   border-bottom: 1px solid var(--app-border);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
   backdrop-filter: blur(12px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: auto;
+
+  &.scrolled {
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    border: 1px solid var(--app-border);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    padding: 0.6rem 1.5rem;
+  }
 }
 
 .header-actions {

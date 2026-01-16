@@ -1,4 +1,4 @@
-<header class="app-header">
+<header class="app-header" [class.scrolled]="isScrolled()">
   <app-media-type-selector></app-media-type-selector>
   <div class="header-actions">
     <a class="nav-btn" routerLink="/timeline" title="Yearly Timeline">

@@ -4,7 +4,9 @@
   background-color: var(--app-surface);
   border-radius: 20px;
   border: 1px solid var(--app-border);
-  height: calc(100vh - 3rem);
+  position: sticky;
+  top: 6.5rem;
+  height: calc(100vh - 8rem);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
