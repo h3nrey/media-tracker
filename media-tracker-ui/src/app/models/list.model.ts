@@ -25,6 +25,7 @@ export interface Folder {
   id?: number;
   supabaseId?: number;
   name: string;
+  icon?: string;
   order: number;
   createdAt: Date;
   updatedAt: Date;

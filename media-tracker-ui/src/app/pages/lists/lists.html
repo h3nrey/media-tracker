@@ -1,4 +1,4 @@
-<div class="lists-container">
+<div class="lists-container" cdkDropListGroup>
   <app-list-sidebar
     [selectedFolderId]="(selectedFolderId$ | async)!"
     [folders]="folders$ | async"
@@ -24,14 +24,21 @@
       </header>
 
       <div class="lists-scroll-area">
-        <div class="lists-grid">
-
+        <div class="lists-grid" cdkDropList cdkDropListSortingDisabled="true">
           @for (list of enrichedLists$ | async; track list.id) {
-            <div class="list-card-wrapper">
+            <div class="list-card-wrapper" cdkDrag [cdkDragData]="list">
               <app-list-card
                 [list]="list"
                 (cardClick)="onListSaved()" 
               ></app-list-card>
+
+              <!-- Drag Preview -->
+              <div *cdkDragPreview class="list-drag-preview">
+                <div class="preview-content">
+                  <lucide-icon [img]="ListIcon" [size]="20"></lucide-icon>
+                  <span>{{ list.name }}</span>
+                </div>
+              </div>
             </div>
           }
         </div>

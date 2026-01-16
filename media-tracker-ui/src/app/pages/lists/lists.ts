@@ -8,7 +8,8 @@ import { db } from '../../services/database.service';
 import { List, Folder } from '../../models/list.model';
 import { MediaItem, MediaType } from '../../models/media-type.model';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
-import { BehaviorSubject, combineLatest, map, Observable, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { ListSidebarComponent } from './components/list-sidebar/list-sidebar.component';
 import { ListFiltersComponent } from './components/list-filters/list-filters.component';
@@ -24,7 +25,8 @@ import { ListFormComponent } from './components/list-form/list-form.component';
     ListSidebarComponent,
     ListFiltersComponent,
     ListCardComponent,
-    ListFormComponent
+    ListFormComponent,
+    DragDropModule
   ],
   templateUrl: './lists.html',
   styleUrl: './lists.scss',
@@ -57,7 +59,7 @@ export class Lists implements OnInit {
     this.mediaService.getAllMedia$(),
     this.mediaService.filterUpdate$
   ]).pipe(
-    map(([lists, folderId, allMedia]) => {
+    map(([lists, folderId, allMedia]: [List[], number | 'all', MediaItem[], number]) => {
       return this.listService.filterLists(
         lists, 
         folderId, 

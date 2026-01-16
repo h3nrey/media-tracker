@@ -92,12 +92,10 @@
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 8px 20px var(--app-primary-glow);
   white-space: nowrap;
 
   &:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 24px var(--app-primary-glow);
     background: var(--app-primary-hover);
   }
 
@@ -131,68 +129,50 @@
 
 .list-card-wrapper {
   perspective: 1000px;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &.cdk-drag-placeholder {
+    opacity: 0.3;
+    filter: grayscale(1);
+    transition: opacity 0.2s;
+  }
+
+  &.cdk-drag-animating {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
 }
 
-.premium-add-card {
-  height: 200px;
-  background: var(--app-surface);
-  border: 2px dashed var(--app-border);
-  border-radius: 20px;
-  padding: 2rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+.list-drag-preview {
+  background: var(--app-surface-light);
+  border: 1px solid var(--app-primary);
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+  color: var(--app-primary);
+  pointer-events: none;
+  display: inline-flex;
+  min-width: 180px;
 
-  .card-inner {
+  .preview-content {
     display: flex;
-    flex-direction: column;
     align-items: center;
     gap: 1rem;
-  }
-
-  .icon-circle {
-    width: 56px;
-    height: 56px;
-    background: var(--app-surface-light);
-    color: var(--app-text-muted);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    border: 1px solid var(--app-border);
-  }
-
-  h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--app-text-primary);
-  }
-
-  p {
-    margin: 0;
-    font-size: 0.85rem;
-    color: var(--app-text-muted);
-  }
-
-  &:hover {
-    border-color: var(--app-primary);
-    background: rgba(var(--app-primary), 0.03);
-    transform: translateY(-5px);
-
-    .icon-circle {
-      background: var(--app-primary);
-      color: white;
-      transform: scale(1.1);
-      box-shadow: 0 4px 15px var(--app-primary-glow);
-    }
-
-    h3 {
+    
+    lucide-icon {
+      display: flex;
+      align-items: center;
       color: var(--app-primary);
+    }
+    
+    span {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--app-text-primary);
+      white-space: nowrap;
     }
   }
 }

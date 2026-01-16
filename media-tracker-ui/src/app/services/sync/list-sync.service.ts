@@ -28,6 +28,7 @@ export class ListSyncService {
       
       const supabaseData = {
         name: local.name,
+        icon: local.icon,
         order: local.order,
         is_deleted: !!local.isDeleted,
         updated_at: local.updatedAt.toISOString()
@@ -63,6 +64,7 @@ export class ListSyncService {
         } else if (remoteUpdatedAt > (local.lastSyncedAt || local.updatedAt)) {
           await db.folders.update(local.id!, {
             name: remote.name,
+            icon: remote.icon,
             order: remote.order,
             isDeleted: remote.is_deleted,
             updatedAt: remoteUpdatedAt,
@@ -78,6 +80,7 @@ export class ListSyncService {
         await db.folders.add({
           supabaseId: remote.id,
           name: remote.name,
+          icon: remote.icon,
           order: remote.order,
           isDeleted: remote.is_deleted,
           createdAt: new Date(remote.created_at),
