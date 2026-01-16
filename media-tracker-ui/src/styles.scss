@@ -73,3 +73,9 @@ html, body {
   color: #A855F7 !important;
   font-weight: 700;
 }
+
+// CDK Overlay Backdrop
+.cdk-overlay-transparent-backdrop {
+  background: transparent;
+  pointer-events: auto;
+}

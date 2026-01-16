@@ -1,6 +1,6 @@
 import { Component, signal, inject, Output, EventEmitter, OnDestroy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, X, Search, Plus, Trash2 } from 'lucide-angular';
+import { LucideAngularModule, X, Search, Plus, Trash2, Save } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 import { ListService } from '../../../../services/list.service';
 import { MediaService } from '../../../../services/media.service';
@@ -12,21 +12,19 @@ import { JikanAnime } from '../../../../models/mal-anime.model';
 import { CategoryService } from '../../../../services/status.service';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of, map, catchError, combineLatest as combineLatestRxjs } from 'rxjs';
 import { Folder } from '../../../../models/list.model';
+import { SelectComponent } from '../../../../components/ui/select/select';
 
 @Component({
   selector: 'app-list-form',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, FormsModule],
+  imports: [CommonModule, LucideAngularModule, FormsModule, SelectComponent],
   templateUrl: './list-form.component.html',
   styleUrl: './list-form.component.scss'
 })
 export class ListFormComponent implements OnDestroy {
-  private listService = inject(ListService);
   private mediaService = inject(MediaService);
-  private malService = inject(MalService);
-  private igdbService = inject(IgdbService);
-  private categoryService = inject(CategoryService);
   private mediaTypeState = inject(MediaTypeStateService);
+  private listService = inject(ListService);
 
   private searchSubject = new Subject<string>();
   apiResults = signal<any[]>([]);
@@ -44,6 +42,10 @@ export class ListFormComponent implements OnDestroy {
   editingListId = signal<number | undefined>(undefined);
   
   folders = signal<Folder[]>([]);
+  folderOptions = computed(() => [
+    { value: undefined, label: 'No Folder' },
+    ...this.folders().map(f => ({ value: f.id, label: f.name }))
+  ]);
   allMedia = signal<MediaItem[]>([]);
   searchQuery = signal('');
 
@@ -59,25 +61,21 @@ export class ListFormComponent implements OnDestroy {
   readonly SearchIcon = Search;
   readonly PlusIcon = Plus;
   readonly TrashIcon = Trash2;
+  readonly SaveIcon = Save;
+  readonly CloseIcon = X;
+
+  hovering = signal(false);
 
   constructor() {
     this.searchSubscription = this.searchSubject.pipe(
       debounceTime(500),
       distinctUntilChanged(),
       switchMap(query => {
-        if (!query || query.length < 3) return of([]);
         this.isSearching.set(true);
-        
-        return combineLatestRxjs([
-          this.malService.searchAnime(query).pipe(catchError(() => of([]))),
-          this.igdbService.searchGames(query).pipe(catchError(() => of([])))
-        ]).pipe(
-          map(([anime, games]) => {
+        return this.mediaService.searchExternalApi(query, this.mediaTypeId()).pipe(
+          map(results => {
             this.isSearching.set(false);
-            return [
-              ...anime.map(a => ({ ...a, _type: 'anime' })),
-              ...games.map(g => ({ ...g, _type: 'game' }))
-            ];
+            return results;
           })
         );
       })
@@ -126,63 +124,35 @@ export class ListFormComponent implements OnDestroy {
   }
 
   get filteredLocalMedia() {
-    const query = this.searchQuery().toLowerCase();
-    if (!query || query.length < 2) return [];
-    return this.allMedia().filter(m => 
-      m.title.toLowerCase().includes(query) && 
-      !this.selectedMediaIds().includes(m.id!)
-    ).slice(0, 5);
+    return this.mediaService.filterLocalMedia(
+      this.searchQuery(),
+      this.mediaTypeId(),
+      this.allMedia(),
+      this.selectedMediaIds()
+    );
   }
 
   get filteredApiResults() {
-    // Filter out API results that are already in our local collection
-    return this.apiResults().filter(api => {
-      if (api._type === 'anime') {
-        const localExternalIds = this.allMedia().filter(m => m.mediaTypeId === MediaType.ANIME).map(m => m.externalId);
-        return !localExternalIds.includes(api.mal_id);
-      } else {
-        const localExternalIds = this.allMedia().filter(m => m.mediaTypeId === MediaType.GAME).map(m => m.externalId);
-        return !localExternalIds.includes(api.id);
-      }
-    });
+    return this.mediaService.filterApiResults(
+      this.apiResults(),
+      this.allMedia()
+    );
   }
 
   async addMediaFromApi(apiItem: any) {
-    const categories = await this.categoryService.getAllCategories();
-    const backlogCat = categories.find(c => c.name.toLowerCase().includes('plan') || c.name.toLowerCase().includes('backlog')) || categories[0];
-    
-    let mediaItem: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>;
-    let id: number;
-
-    if (apiItem._type === 'anime') {
-      mediaItem = this.malService.convertJikanToAnime(apiItem as JikanAnime, backlogCat.id!);
-      id = await this.mediaService.addMedia({ ...mediaItem, externalId: (apiItem as JikanAnime).mal_id, externalApi: 'mal' });
-    } else {
-      mediaItem = this.igdbService.convertIGDBToMediaItem(apiItem as IGDBGame, backlogCat.id!);
-      id = await this.mediaService.addMedia(mediaItem);
-      const metadata = {
-        mediaItemId: id,
-        developers: apiItem.involved_companies?.filter((c: any) => c.developer).map((c: any) => c.company.name) || [],
-        publishers: apiItem.involved_companies?.filter((c: any) => c.publisher).map((c: any) => c.company.name) || [],
-        platforms: apiItem.platforms?.map((p: any) => p.name) || [],
-        igdbId: apiItem.id
-      };
-      await this.mediaService.saveGameMetadata(metadata);
-    }
-    
+    const id = await this.mediaService.importMediaFromApi(apiItem);
     this.addMedia(id);
     this.apiResults.set([]);
     this.searchQuery.set('');
   }
 
-  selectedAnimes = computed(() => {
+  selectedMediaItems = computed(() => {
     const ids = this.selectedMediaIds();
-    return this.allMedia().filter(m => ids.includes(m.id!) && m.mediaTypeId === 1);
-  });
-
-  selectedGames = computed(() => {
-    const ids = this.selectedMediaIds();
-    return this.allMedia().filter(m => ids.includes(m.id!) && m.mediaTypeId === 3);
+    const type = this.mediaTypeId();
+    return this.allMedia().filter(m => 
+      ids.includes(m.id!) && 
+      (!type || m.mediaTypeId === type)
+    );
   });
 
   get totalSelectedCount(): number {
@@ -205,23 +175,12 @@ export class ListFormComponent implements OnDestroy {
   async save() {
     if (!this.name()) return;
 
-    if (this.editingListId()) {
-      await this.listService.updateList(this.editingListId()!, {
-        name: this.name(),
-        folderId: this.selectedFolderId(),
-        mediaTypeId: this.mediaTypeId(),
-        mediaItemIds: this.selectedMediaIds(),
-        animeIds: this.selectedMediaIds(), // Keep for compatibility
-      });
-    } else {
-      await this.listService.addList({
-        name: this.name(),
-        folderId: this.selectedFolderId(),
-        mediaTypeId: this.mediaTypeId(),
-        mediaItemIds: this.selectedMediaIds(),
-        animeIds: this.selectedMediaIds(), // Keep for compatibility
-      });
-    }
+    await this.listService.saveList(this.editingListId(), {
+      name: this.name(),
+      folderId: this.selectedFolderId(),
+      mediaTypeId: this.mediaTypeId(),
+      mediaItemIds: this.selectedMediaIds()
+    });
 
     this.saved.emit();
     this.closeDialog();

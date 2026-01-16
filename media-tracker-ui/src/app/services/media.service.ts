@@ -9,6 +9,11 @@ import { AnimeMetadata } from '../models/anime-metadata.model';
 import { MangaMetadata } from '../models/manga-metadata.model';
 import { GameMetadata } from '../models/game-metadata.model';
 import { MovieMetadata } from '../models/movie-metadata.model';
+import { MalService } from './mal.service';
+import { IgdbService, IGDBGame } from './igdb.service';
+import { CategoryService } from './status.service';
+import { JikanAnime } from '../models/mal-anime.model';
+import { of, catchError, combineLatest as combineLatestRxjs } from 'rxjs';
 
 export interface MediaByCategory {
   category: Category;
@@ -20,6 +25,10 @@ export interface MediaByCategory {
 })
 export class MediaService {
   private syncService = inject(SyncService);
+  private malService = inject(MalService);
+  private igdbService = inject(IgdbService);
+  private categoryService = inject(CategoryService);
+
   public filterUpdate$ = new BehaviorSubject<number>(0);
   public metadataSyncRequested = signal(false);
 
@@ -288,5 +297,91 @@ export class MediaService {
     }
 
     return result;
+  }
+
+  async importMediaFromApi(apiItem: any): Promise<number> {
+    const categories = await this.categoryService.getAllCategories();
+    const backlogCat = categories.find(c => 
+      c.name.toLowerCase().includes('plan') || 
+      c.name.toLowerCase().includes('backlog')
+    ) || categories[0];
+    
+    let mediaItem: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>;
+    let id: number;
+
+    if (apiItem._type === 'anime') {
+      mediaItem = this.malService.convertJikanToAnime(apiItem as JikanAnime, backlogCat.id!);
+      id = await this.addMedia({ 
+        ...mediaItem, 
+        externalId: (apiItem as JikanAnime).mal_id, 
+        externalApi: 'mal' 
+      });
+    } else {
+      mediaItem = this.igdbService.convertIGDBToMediaItem(apiItem as IGDBGame, backlogCat.id!);
+      id = await this.addMedia(mediaItem);
+      const metadata = {
+        mediaItemId: id,
+        developers: apiItem.involved_companies?.filter((c: any) => c.developer).map((c: any) => c.company.name) || [],
+        publishers: apiItem.involved_companies?.filter((c: any) => c.publisher).map((c: any) => c.company.name) || [],
+        platforms: apiItem.platforms?.map((p: any) => p.name) || [],
+        igdbId: apiItem.id
+      };
+      await this.saveGameMetadata(metadata);
+    }
+    
+    return id;
+  }
+
+  filterLocalMedia(query: string, mediaTypeId: number | null, allMedia: MediaItem[], excludedIds: number[]): MediaItem[] {
+    const q = query.toLowerCase();
+    if (!q || q.length < 2) return [];
+    
+    return allMedia.filter(m => 
+      m.title.toLowerCase().includes(q) && 
+      !excludedIds.includes(m.id!) &&
+      (!mediaTypeId || m.mediaTypeId === mediaTypeId)
+    ).slice(0, 5);
+  }
+
+  filterApiResults(apiResults: any[], allMedia: MediaItem[]): any[] {
+    return apiResults.filter(api => {
+      if (api._type === 'anime') {
+        const localExternalIds = allMedia
+          .filter(m => m.mediaTypeId === MediaType.ANIME)
+          .map(m => m.externalId);
+        return !localExternalIds.includes(api.mal_id);
+      } else {
+        const localExternalIds = allMedia
+          .filter(m => m.mediaTypeId === MediaType.GAME)
+          .map(m => m.externalId);
+        return !localExternalIds.includes(api.id);
+      }
+    });
+  }
+
+  searchExternalApi(query: string, type: number | null): Observable<any[]> {
+    if (!query || query.length < 3) return of([]);
+
+    const searches = [];
+
+    if (!type || type === MediaType.ANIME) {
+      searches.push(this.malService.searchAnime(query).pipe(
+        map(results => results.map(a => ({ ...a, _type: 'anime' }))),
+        catchError(() => of([]))
+      ));
+    }
+
+    if (!type || type === MediaType.GAME) {
+      searches.push(this.igdbService.searchGames(query).pipe(
+        map(results => results.map(g => ({ ...g, _type: 'game' }))),
+        catchError(() => of([]))
+      ));
+    }
+
+    if (searches.length === 0) return of([]);
+
+    return combineLatestRxjs(searches).pipe(
+      map(results => results.flat())
+    );
   }
 }

@@ -137,6 +137,24 @@ export class ListService {
     this.syncService.sync();
   }
 
+  async saveList(id: number | undefined, data: { 
+    name: string, 
+    folderId?: number, 
+    mediaTypeId?: number | null, 
+    mediaItemIds: number[] 
+  }): Promise<number> {
+    const listData = {
+      ...data,
+      animeIds: data.mediaItemIds // Support legacy components that use animeIds
+    };
+
+    if (id) {
+      return await this.updateList(id, listData);
+    } else {
+      return await this.addList(listData);
+    }
+  }
+
   getListsContainingItem$(itemId: number): Observable<List[]> {
     return from(liveQuery(async () => {
       const allLists = await db.lists.toArray();

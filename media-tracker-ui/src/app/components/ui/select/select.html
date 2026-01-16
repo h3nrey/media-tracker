@@ -1,12 +1,29 @@
-<div class="ui-select-container" [class]="variant" [class.full-rounded]="rounding === 'full'" [class.is-open]="isOpen()">
+<div class="ui-select-container" 
+     [class]="variant()" 
+     [class.full-rounded]="rounding() === 'full'" 
+     [class.is-open]="isOpen()"
+     cdkOverlayOrigin 
+     #trigger="cdkOverlayOrigin">
+    
     <button class="ui-select-trigger" (click)="toggle()" type="button">
-        <span class="trigger-text" [class.is-placeholder]="!value">{{ getSelectedLabel() }}</span>
-        <lucide-icon [img]="ChevronIcon" [size]="variant === 'prominent' ? 18 : 16" class="chevron"></lucide-icon>
+        <span class="trigger-text" [class.is-placeholder]="!value()">{{ getSelectedLabel() }}</span>
+        <lucide-icon [img]="ChevronIcon" [size]="variant() === 'prominent' ? 18 : 16" class="chevron"></lucide-icon>
     </button>
 
-    @if (isOpen()) {
-        <div class="ui-select-dropdown" [class.align-right]="align === 'right'">
-            @for (opt of options; track opt.value) {
+    <ng-template
+        cdkConnectedOverlay
+        [cdkConnectedOverlayOrigin]="trigger"
+        [cdkConnectedOverlayOpen]="isOpen()"
+        [cdkConnectedOverlayPositions]="overlayPositions()"
+        [cdkConnectedOverlayHasBackdrop]="true"
+        [cdkConnectedOverlayBackdropClass]="'cdk-overlay-transparent-backdrop'"
+        (backdropClick)="close()">
+        
+        <div class="ui-select-dropdown portal-dropdown fade-in" 
+             [class.align-right]="align() === 'right'"
+             [style.min-width.px]="trigger.elementRef.nativeElement.offsetWidth"
+             (click)="$event.stopPropagation()">
+            @for (opt of options(); track opt.value) {
                 <div class="ui-select-option" 
                      [class.selected]="isSelected(opt.value)"
                      (click)="selectOption(opt.value)">
@@ -17,5 +34,5 @@
                 </div>
             }
         </div>
-    }
+    </ng-template>
 </div>
