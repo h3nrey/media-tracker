@@ -155,6 +155,66 @@ export class ListService {
     }
   }
 
+  filterLists(
+    lists: List[], 
+    folderId: number | 'all', 
+    allMedia: MediaItem[], 
+    filters: any
+  ): any[] {
+    let filtered = lists.filter(l => !l.isDeleted);
+    
+    if (folderId !== 'all') {
+      filtered = filtered.filter(l => l.folderId === folderId);
+    }
+
+    if ((filters.genres?.length > 0) || (filters.studios?.length > 0)) {
+      filtered = filtered.filter(list => {
+        const itemIds = list.mediaItemIds || list.animeIds || [];
+        const listItems = itemIds.map(id => allMedia.find(m => m.id === id)).filter(m => !!m) as MediaItem[];
+        
+        const matchesGenre = filters.genres?.length > 0 
+          ? listItems.some(item => filters.genres!.every((g: string) => item.genres?.includes(g)))
+          : true;
+        
+        const matchesStudio = filters.studios?.length > 0
+          ? listItems.some(item => filters.studios!.some((s: string) => item.studios?.includes(s)))
+          : true;
+          
+        return matchesGenre && matchesStudio;
+      });
+    }
+
+    if (filters.query) {
+      const q = filters.query.toLowerCase();
+      filtered = filtered.filter(l => l.name.toLowerCase().includes(q));
+    }
+
+    // Map enriched data
+    const enriched = filtered.map(list => {
+      const itemIds = list.mediaItemIds || list.animeIds || [];
+      const items = itemIds.map(id => allMedia.find(m => m.id === id)).filter(m => !!m) as MediaItem[];
+      
+      return {
+        ...list,
+        covers: items.map(item => item.coverImage).filter(img => !!img).slice(0, 5),
+        itemCount: items.length
+      };
+    });
+
+    // Sort
+    const mult = filters.sortOrder === 'asc' ? 1 : -1;
+    enriched.sort((a, b) => {
+      if (filters.sortBy === 'title') {
+        return a.name.localeCompare(b.name) * mult;
+      }
+      const valA = new Date(a.updatedAt || 0).getTime();
+      const valB = new Date(b.updatedAt || 0).getTime();
+      return (valA - valB) * mult;
+    });
+
+    return enriched;
+  }
+
   getListsContainingItem$(itemId: number): Observable<List[]> {
     return from(liveQuery(async () => {
       const allLists = await db.lists.toArray();

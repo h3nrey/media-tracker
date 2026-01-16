@@ -1,21 +1,25 @@
 .list-card {
+  display: block;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  text-decoration: none !important;
 
   &:hover {
-    transform: translateY(-5px);
+    transform: translateY(-8px);
 
     .cover-stack .cover-item {
-      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+      border-color: var(--app-primary);
     }
   }
 
   .cover-stack {
     position: relative;
     height: 180px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     display: flex;
     align-items: flex-end;
+    width: 320px; // Increased width for better spacing
 
     .cover-item {
       position: absolute;
@@ -23,11 +27,12 @@
       left: 0;
       width: 120px;
       height: 170px;
-      border-radius: 8px;
+      border-radius: 12px;
       overflow: hidden;
-      border: 2px solid #121418;
-      transition: transform 0.2s ease;
-      background-color: #2d3139;
+      border: 2px solid var(--app-border);
+      transition: all 0.3s ease;
+      background-color: var(--app-surface-light);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 
       img {
         width: 100%;
@@ -37,29 +42,33 @@
     }
 
     .empty-stack {
-      width: 100%;
-      height: 100%;
-      background-color: #2d3139;
+      width: 120px;
+      height: 170px;
+      background-color: var(--app-surface-light);
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #4b5563;
-      border: 2px dashed #4b5563;
+      color: var(--app-text-muted);
+      border: 2px dashed var(--app-border);
     }
   }
 
   .list-info {
     .list-name {
-      font-size: 18px;
+      font-size: 1.1rem;
       font-weight: 700;
-      margin: 0 0 4px 0;
-      color: #fff;
+      margin: 0 0 6px 0;
+      color: var(--app-text-primary);
+      text-decoration: none;
     }
 
-    .anime-count {
-      font-size: 14px;
-      color: #8b949e;
+    .item-count {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--app-text-muted);
+      text-decoration: none !important;
+      display: inline-block;
     }
   }
 }

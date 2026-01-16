@@ -5,6 +5,8 @@
   color: var(--app-text-primary);
   font-family: var(--app-font-main);
   overflow: hidden;
+  padding: 1.5rem;
+  gap: 1.5rem;
 }
 
 .content {
@@ -22,11 +24,8 @@
 }
 
 .lists-header {
-  padding: 3rem 3rem 2rem;
-  background: linear-gradient(to bottom, 
-    var(--app-surface-light) 0%, 
-    transparent 100%
-  );
+  padding: 1rem 1.5rem 1.5rem;
+  background: transparent;
   border-bottom: 1px solid var(--app-border);
 
   .header-main {
@@ -110,7 +109,7 @@
 .lists-scroll-area {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem 3rem 4rem;
+  padding: 1rem 1.5rem 3rem;
   scrollbar-gutter: stable;
 
   &::-webkit-scrollbar {
@@ -125,7 +124,7 @@
 .lists-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2.5rem;
+  gap: 1rem;
   max-width: 1400px;
   margin: 0 auto;
 }

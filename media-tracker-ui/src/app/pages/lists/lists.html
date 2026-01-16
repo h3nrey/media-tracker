@@ -9,10 +9,6 @@
     <div class="content-view">
       <header class="lists-header">
         <div class="header-main">
-          <div class="header-info">
-            <h1>Collections</h1>
-            <p>Curate your media collection into folders and custom selections.</p>
-          </div>
           <div class="header-actions">
             <app-list-filters
               [availableGenres]="availableGenres()"
@@ -29,18 +25,6 @@
 
       <div class="lists-scroll-area">
         <div class="lists-grid">
-          <!-- Create New List Card (Premium) -->
-          <div class="list-card-wrapper">
-            <div class="premium-add-card" (click)="openCreateListDialog()">
-              <div class="card-inner">
-                <div class="icon-circle">
-                  <lucide-icon [img]="PlusIcon" [size]="24"></lucide-icon>
-                </div>
-                <h3>New Collection</h3>
-                <p>Start grouping your favorites</p>
-              </div>
-            </div>
-          </div>
 
           @for (list of enrichedLists$ | async; track list.id) {
             <div class="list-card-wrapper">

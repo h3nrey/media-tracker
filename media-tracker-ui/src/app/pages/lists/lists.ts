@@ -51,86 +51,18 @@ export class Lists implements OnInit {
   
   folders$ = this.listService.getFolders$();
   
-  lists$ = combineLatest([
+  enrichedLists$: Observable<any[]> = combineLatest([
     this.listService.getLists$(),
     this.selectedFolderId$,
-    this.selectedMediaType$,
     this.mediaService.getAllMedia$(),
     this.mediaService.filterUpdate$
   ]).pipe(
-    map(([lists, folderId, selectedMediaType, allMedia]: [List[], number | 'all', number | null, MediaItem[], number]) => {
-      let filteredLists = lists;
-      
-      // Filter by media type
-      if (selectedMediaType !== null) {
-        filteredLists = filteredLists.filter((l: List) => l.mediaTypeId === selectedMediaType || !l.mediaTypeId);
-      }
-
-      if (folderId !== 'all') {
-        filteredLists = filteredLists.filter((l: List) => l.folderId === folderId);
-      }
-
-      const filters = this.currentFilters();
-      if ((filters.genres && filters.genres.length > 0) || (filters.studios && filters.studios.length > 0)) {
-        filteredLists = filteredLists.filter((list: List) => {
-          const itemIds = list.mediaItemIds || list.animeIds || [];
-          const listItems = itemIds.map(id => allMedia.find(m => m.id === id)).filter(m => !!m) as MediaItem[];
-          
-          const matchesGenre = filters.genres && filters.genres.length > 0 
-            ? listItems.some(item => filters.genres!.every(g => item.genres?.includes(g)))
-            : true;
-          
-          const matchesStudio = filters.studios && filters.studios.length > 0
-            ? listItems.some(item => filters.studios!.some(s => item.studios?.includes(s)))
-            : true;
-            
-          return matchesGenre && matchesStudio;
-        });
-      }
-
-      if (filters.query) {
-        const q = filters.query.toLowerCase();
-        filteredLists = filteredLists.filter((l: List) => l.name.toLowerCase().includes(q));
-      }
-
-      return filteredLists;
-    })
-  );
-
-  enrichedLists$: Observable<any[]> = this.lists$.pipe(
-    switchMap((lists: List[]) => {
-      return this.mediaService.getAllMedia$().pipe(
-        map((allMedia: MediaItem[]) => {
-          const result = lists.map((list: List) => {
-            const itemIds = list.mediaItemIds || list.animeIds || [];
-            const items = itemIds.map(id => allMedia.find(m => m.id === id)).filter(m => !!m) as MediaItem[];
-            
-            const covers = items
-              .map(item => item.coverImage)
-              .filter(img => !!img)
-              .slice(0, 5);
-            
-            return {
-              ...list,
-              covers,
-              itemCount: items.length
-            };
-          });
-
-          const filters = this.filterService.currentFilters();
-          const mult = filters.sortOrder === 'asc' ? 1 : -1;
-          
-          result.sort((a: any, b: any) => {
-            if (filters.sortBy === 'title') {
-              return a.name.localeCompare(b.name) * mult;
-            }
-            const valA = new Date(a.updatedAt || 0).getTime();
-            const valB = new Date(b.updatedAt || 0).getTime();
-            return (valA - valB) * mult;
-          });
-
-          return result;
-        })
+    map(([lists, folderId, allMedia]) => {
+      return this.listService.filterLists(
+        lists, 
+        folderId, 
+        allMedia, 
+        this.currentFilters()
       );
     })
   );

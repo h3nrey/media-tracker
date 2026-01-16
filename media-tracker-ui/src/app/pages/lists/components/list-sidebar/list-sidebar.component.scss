@@ -1,9 +1,10 @@
 .sidebar {
   width: 300px;
-  border-right: 1px solid var(--app-border);
   padding: 24px;
   background-color: var(--app-surface);
-  height: 100%;
+  border-radius: 20px;
+  border: 1px solid var(--app-border);
+  height: calc(100vh - 3rem);
 
   .sidebar-header {
     display: flex;

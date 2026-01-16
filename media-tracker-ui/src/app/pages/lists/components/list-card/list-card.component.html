@@ -1,10 +1,10 @@
 <a class="list-card" routerLink="/list-details/{{ list.id }}">
   <div class="cover-stack">
-    @for (cover of list.covers; track cover; let i = $index) {
+    @for (cover of list.covers.slice(0, 5); track cover; let i = $index) {
       <div 
         class="cover-item" 
         [style.z-index]="5 - i"
-        [style.transform]="'translateX(' + (i * 25) + 'px)'"
+        [style.transform]="'translateX(' + (i * 45) + 'px)'"
       >
         <img [src]="cover" [alt]="list.name">
       </div>
