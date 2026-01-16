@@ -1,23 +1,30 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Settings, X, RotateCcw, SortAsc, SortDesc, FunnelX } from 'lucide-angular';
+import { LucideAngularModule, Settings, X, RotateCcw, SortAsc, SortDesc, FunnelX, LayoutGrid, List } from 'lucide-angular';
 import { combineLatest } from 'rxjs';
 import { FilterService } from '../../services/filter.service';
 import { MediaService } from '../../services/media.service';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
+import { ViewModeService } from '../../services/view-mode.service';
 import { MediaItem } from '../../models/media-type.model';
 import { SelectComponent } from '../ui/select/select';
 import { SearchBarComponent } from '../ui/search-bar/search-bar';
+import { TooltipDirective } from '../ui/tooltip/tooltip.directive';
 
 @Component({
   selector: 'app-board-filters',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, SelectComponent, SearchBarComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, SelectComponent, SearchBarComponent, TooltipDirective],
   templateUrl: './board-filters.component.html',
   styleUrl: './board-filters.component.scss'
 })
 export class BoardFiltersComponent implements OnInit {
+  private filterService = inject(FilterService);
+  private mediaService = inject(MediaService);
+  private mediaTypeState = inject(MediaTypeStateService);
+  private viewModeService = inject(ViewModeService);
+
   searchQuery = '';
   
   availableGenres = signal<string[]>([]);
@@ -25,7 +32,8 @@ export class BoardFiltersComponent implements OnInit {
   availableYears = signal<number[]>([]);
   availableActivityYears = signal<number[]>([]);
   
-  currentFilters;
+  currentFilters = this.filterService.currentFilters;
+  viewMode = this.viewModeService.viewMode;
 
   // Lucide icons
   readonly SettingsIcon = Settings;
@@ -34,13 +42,11 @@ export class BoardFiltersComponent implements OnInit {
   readonly SortAscIcon = SortAsc;
   readonly SortDescIcon = SortDesc;
   readonly FunnelXIcon = FunnelX;
+  readonly LayoutGridIcon = LayoutGrid;
+  readonly ListIcon = List;
 
-  constructor(
-    private filterService: FilterService,
-    private mediaService: MediaService,
-    private mediaTypeState: MediaTypeStateService
-  ) {
-    this.currentFilters = this.filterService.currentFilters;
+  setViewMode(mode: 'kanban' | 'list') {
+    this.viewModeService.setMode(mode);
   }
 
   ngOnInit() {

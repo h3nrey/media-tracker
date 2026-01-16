@@ -1,8 +1,9 @@
-import { Component, inject, signal, Output, EventEmitter } from '@angular/core';
+import { Component, inject, signal, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { combineLatest } from 'rxjs';
+import { Subscription, combineLatest, switchMap, map } from 'rxjs';
 import { MediaService } from '../../services/media.service';
 import { CategoryService } from '../../services/status.service';
+import { FilterService } from '../../services/filter.service';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { MediaItem } from '../../models/media-type.model';
 import { Category } from '../../models/status.model';
@@ -16,10 +17,11 @@ import { SelectComponent } from '../ui/select/select';
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss'
 })
-export class ListViewComponent {
+export class ListViewComponent implements OnInit, OnDestroy {
   private mediaService = inject(MediaService);
   private categoryService = inject(CategoryService);
   private mediaTypeState = inject(MediaTypeStateService);
+  private filterService = inject(FilterService);
 
   @Output() animeClick = new EventEmitter<MediaItem>();
   @Output() editAnime = new EventEmitter<MediaItem>();
@@ -33,60 +35,52 @@ export class ListViewComponent {
   mediaByCategory = signal<Map<number, MediaItem[]>>(new Map());
   collapsedSections = new Set<number>(); // Track collapsed categories (using supabaseId)
   
-  // Year filter
-  selectedYear = signal<string>('all');
-  yearOptions = signal<{value: string, label: string}[]>([]);
+  loading = signal(true);
+  private subscription?: Subscription;
 
   ngOnInit() {
     this.loadData();
-    this.initializeYearOptions();
   }
 
-  initializeYearOptions() {
-    const currentYear = new Date().getFullYear();
-    const years: {value: string, label: string}[] = [
-      { value: 'all', label: 'All Time' }
-    ];
-    
-    // Add years from current back to 1960
-    for (let year = currentYear; year >= 1960; year--) {
-      years.push({ value: year.toString(), label: year.toString() });
-    }
-    
-    this.yearOptions.set(years);
+  ngOnDestroy() {
+    this.subscription?.unsubscribe();
   }
 
   loadData() {
-    combineLatest([
+    this.loading.set(true);
+    this.subscription = combineLatest([
       this.categoryService.getAllCategories$(),
-      this.mediaTypeState.getSelectedMediaType$()
-    ]).subscribe(([categories, selectedType]) => {
-      this.categories.set(categories);
-      
-      // Load media for each category
-      const mediaMap = new Map<number, MediaItem[]>();
-      
-      categories.forEach(category => {
-        const catId = category.supabaseId!;
-        this.mediaService.getMediaByStatus$(catId, selectedType).subscribe(media => {
-          mediaMap.set(catId, media);
-          this.mediaByCategory.set(new Map(mediaMap));
-        });
-      });
+      this.mediaTypeState.getSelectedMediaType$(),
+      this.mediaService.filterUpdate$
+    ]).pipe(
+      switchMap(([categories, selectedType]) => {
+        return this.mediaService.getAllMedia$(selectedType).pipe(
+          map((allMedia: MediaItem[]) => {
+            const filteredMedia = this.filterService.filterMedia(allMedia);
+            const mediaMap = new Map<number, MediaItem[]>();
+            
+            categories.forEach((category: Category) => {
+              const catId = category.supabaseId!;
+              mediaMap.set(catId, filteredMedia.filter(m => m.statusId === catId));
+            });
+            
+            return { categories, mediaMap };
+          })
+        );
+      })
+    ).subscribe({
+      next: ({ categories, mediaMap }: { categories: Category[], mediaMap: Map<number, MediaItem[]> }) => {
+        this.categories.set(categories);
+        this.mediaByCategory.set(mediaMap);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
     });
   }
 
   getMediaForCategory(supabaseId: number): MediaItem[] {
     const allMedia = this.mediaByCategory().get(supabaseId) || [];
-    const year = this.selectedYear();
-    
-    if (year === 'all') {
-      return allMedia;
-    }
-    
-    // Filter by year
-    const yearNum = parseInt(year);
-    return allMedia.filter(m => m.releaseYear === yearNum);
+    return this.filterService.filterMedia(allMedia);
   }
 
   toggleSection(supabaseId: number) {
@@ -101,9 +95,6 @@ export class ListViewComponent {
     return this.collapsedSections.has(supabaseId);
   }
 
-  onYearChange(year: string) {
-    this.selectedYear.set(year);
-  }
 
   onMediaClick(media: MediaItem) {
     this.animeClick.emit(media);

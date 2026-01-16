@@ -1,16 +1,4 @@
 <div class="list-view-container">
-  <!-- Year Filter -->
-  <div class="filter-bar">
-    <div class="filter-group">
-      <label>Filter by Year:</label>
-      <ui-select 
-        [options]="yearOptions()" 
-        [value]="selectedYear()"
-        (valueChange)="onYearChange($event)"
-        placeholder="All Time">
-      </ui-select>
-    </div>
-  </div>
 
   <!-- Category Sections -->
   @for (category of categories(); track category.id) {

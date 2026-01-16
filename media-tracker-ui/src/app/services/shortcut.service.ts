@@ -1,6 +1,7 @@
 import { Injectable, signal, inject, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { fromEvent, filter } from 'rxjs';
+import { ViewModeService } from './view-mode.service';
 
 export interface Shortcut {
   id: string;
@@ -23,6 +24,8 @@ export class ShortcutService {
   private lastKeyTime = 0;
   private sequenceTimeout = 1000;
   
+  private viewModeService = inject(ViewModeService);
+  
   private defaultShortcuts: Shortcut[] = [
     { id: 'goto-lists', key: 'g l', label: 'Go to Lists', description: 'Navigate to the collections page', category: 'Navigation', action: () => this.router.navigate(['/lists']) },
     { id: 'goto-timeline', key: 'g t', label: 'Go to Timeline', description: 'Navigate to the yearly timeline', category: 'Navigation', action: () => this.router.navigate(['/timeline']) },
@@ -30,6 +33,7 @@ export class ShortcutService {
     { id: 'goto-discovery', key: 'g d', label: 'Go to Discovery', description: 'Navigate to recommendations', category: 'Navigation', action: () => this.router.navigate(['/recommendation']) },
     { id: 'goto-browse', key: 'g b', label: 'Go to Browse', description: 'Navigate to search page', category: 'Navigation', action: () => this.router.navigate(['/browse']) },
     { id: 'goto-stats', key: 'g s', label: 'Go to Stats', description: 'Navigate to statistics', category: 'Navigation', action: () => this.router.navigate(['/stats']) },
+    { id: 'toggle-view', key: 'v', label: 'Toggle View', description: 'Switch between Kanban and List view', category: 'Actions', action: () => this.viewModeService.toggleMode() },
     { id: 'show-shortcuts', key: '?', label: 'Show Shortcuts', description: 'Open this help dialog', category: 'Global', action: () => this.open() },
     { id: 'close-all', key: 'escape', label: 'Close', description: 'Close dialogs or overlays', category: 'Global', action: () => this.close() },
   ];
