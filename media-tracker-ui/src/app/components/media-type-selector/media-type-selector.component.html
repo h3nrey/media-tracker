@@ -1,0 +1,22 @@
+<div class="media-dropdown-wrapper">
+  <div class="logo-container">
+    <span class="logo-text" routerLink="/">Tracker</span>
+    
+    <div class="dropdown-menu">
+      <div class="dropdown-arrow"></div>
+      <div class="dropdown-content">
+        @for (type of mediaTypes; track type.id) {
+          <button 
+            class="dropdown-item"
+            [class.active]="(selectedType$ | async) === type.id"
+            (click)="selectType(type.id)"
+          >
+            <lucide-icon [img]="type.icon" [size]="14"></lucide-icon>
+            <span>{{ type.name }}</span>
+            <div class="active-dot" *ngIf="(selectedType$ | async) === type.id"></div>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</div>

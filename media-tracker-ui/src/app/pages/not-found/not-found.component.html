@@ -1,0 +1,30 @@
+<div class="not-found-container">
+  <div class="content">
+    <div class="ghost-wrapper">
+      <lucide-icon [img]="GhostIcon" [size]="120" class="ghost-icon"></lucide-icon>
+      <div class="ghost-shadow"></div>
+    </div>
+    
+    <h1 class="errorCode">404</h1>
+    <h2>Oops! Content vanished into the void</h2>
+    <p>The page you're looking for doesn't exist or has been moved to another dimension.</p>
+
+    <div class="actions">
+      <button class="btn-primary" (click)="goHome()">
+        <lucide-icon [img]="HomeIcon" [size]="20"></lucide-icon>
+        <span>Back to Library</span>
+      </button>
+      
+      <button class="btn-outline" (click)="goBrowse()">
+        <lucide-icon [img]="SearchIcon" [size]="20"></lucide-icon>
+        <span>Browse Media</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="decorative-elements">
+    <div class="circle c1"></div>
+    <div class="circle c2"></div>
+    <div class="circle c3"></div>
+  </div>
+</div>

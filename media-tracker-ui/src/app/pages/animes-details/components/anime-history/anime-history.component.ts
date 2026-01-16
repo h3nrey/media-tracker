@@ -4,6 +4,8 @@ import { LucideAngularModule, Clock, Plus, Trash2, Calendar } from 'lucide-angul
 import { formatDate } from '../../../../utils/anime-utils';
 import { DatePickerComponent } from '../../../../components/ui/date-picker/date-picker.component';
 
+import { MediaLog } from '../../../../models/media-log.model';
+
 @Component({
   selector: 'app-anime-history',
   standalone: true,
@@ -13,13 +15,14 @@ import { DatePickerComponent } from '../../../../components/ui/date-picker/date-
 })
 export class AnimeHistoryComponent {
   private el = inject(ElementRef);
-  watchDates = input<any[] | undefined>([]);
+  activityDates = input<any[] | undefined>([]);
+  logs = input<MediaLog[] | undefined>([]);
   
   addLog = output<void>();
   removeLog = output<number>();
-  updateLog = output<{ index: number, date: Date }>();
+  updateLog = output<{ index: number, log: Partial<MediaLog> }>();
 
-  activePickerIndex = signal<number | null>(null);
+  activePicker = signal<{ index: number, field: 'startDate' | 'endDate' } | null>(null);
 
   readonly ClockIcon = Clock;
   readonly PlusIcon = Plus;
@@ -31,7 +34,7 @@ export class AnimeHistoryComponent {
   @HostListener('document:click', ['$event'])
   onClickOutside(event: Event) {
     if (!this.el.nativeElement.contains(event.target)) {
-      this.activePickerIndex.set(null);
+      this.activePicker.set(null);
     }
   }
 
@@ -43,15 +46,20 @@ export class AnimeHistoryComponent {
     this.removeLog.emit(index);
   }
 
-  togglePicker(index: number, event?: Event) {
+  togglePicker(index: number, field: 'startDate' | 'endDate', event?: Event) {
     if (event) {
         event.stopPropagation();
     }
-    this.activePickerIndex.set(this.activePickerIndex() === index ? null : index);
+    const current = this.activePicker();
+    if (current && current.index === index && current.field === field) {
+      this.activePicker.set(null);
+    } else {
+      this.activePicker.set({ index, field });
+    }
   }
 
-  handlePickerChange(index: number, date: Date) {
-    this.updateLog.emit({ index, date });
-    this.activePickerIndex.set(null);
+  handlePickerChange(index: number, field: 'startDate' | 'endDate', date: Date) {
+    this.updateLog.emit({ index, log: { [field]: date } });
+    this.activePicker.set(null);
   }
 }

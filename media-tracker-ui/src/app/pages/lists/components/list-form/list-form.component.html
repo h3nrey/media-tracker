@@ -2,117 +2,150 @@
   <div class="dialog-overlay" (click)="closeDialog()">
     <div class="dialog-content" (click)="$event.stopPropagation()">
       <header class="dialog-header">
-        <h2>{{ editingListId() ? 'Edit List' : 'Create New List' }}</h2>
+        <h2>{{ editingListId() ? 'Editando' : 'Criando' }} Lista</h2>
         <button class="close-btn" (click)="closeDialog()">
           <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
         </button>
       </header>
 
-      <div class="form-body">
-        <div class="form-group">
-          <label>List Name</label>
-          <input 
-            type="text" 
-            [(ngModel)]="name" 
-            placeholder="Enter list name..."
-            class="form-input"
-          >
-        </div>
-
-        <div class="form-group">
-          <label>Folder (Optional)</label>
-          <select [(ngModel)]="selectedFolderId" class="form-select">
-            <option [ngValue]="undefined">No Folder</option>
-            @for (folder of folders(); track folder.id) {
-              <option [ngValue]="folder.id">{{ folder.name }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Add Anime</label>
-          <div class="search-container">
-            <lucide-icon [img]="SearchIcon" [size]="18" class="search-icon"></lucide-icon>
+      <div class="form-body split-layout">
+        <div class="form-left">
+          <div class="form-group">
+            <label>Nome da Lista</label>
             <input 
               type="text" 
-              [(ngModel)]="searchQuery" 
-              (ngModelChange)="onSearchChange($event)"
-              placeholder="Search local library or Jikan API..."
-              class="form-input search-input"
+              [(ngModel)]="name" 
+              placeholder="Nome da lista..."
+              class="form-input"
             >
-            @if (isSearching()) {
-              <div class="search-loader">
-                <div class="spinner"></div>
-              </div>
-            }
-            
-            @if (filteredLocalAnime.length > 0 || filteredApiAnime.length > 0) {
-              <div class="search-results">
-                @if (filteredLocalAnime.length > 0) {
-                  <div class="results-section">
-                    <div class="section-label">Your Library</div>
-                    @for (anime of filteredLocalAnime; track anime.id) {
-                      <div class="search-item" (click)="addAnime(anime.id!)">
-                        <img [src]="anime.coverImage" [alt]="anime.title" class="item-thumb">
-                        <div class="item-info">
-                          <span class="title">{{ anime.title }}</span>
-                          <span class="meta">{{ anime.releaseYear }} • {{ anime.totalEpisodes }} Eps</span>
-                        </div>
-                        <lucide-icon [img]="PlusIcon" [size]="16" class="add-icon"></lucide-icon>
-                      </div>
-                    }
-                  </div>
-                }
+          </div>
 
-                @if (filteredApiAnime.length > 0) {
-                  <div class="results-section">
-                    <div class="section-label">Global Search (Add to Library)</div>
-                    @for (anime of filteredApiAnime; track anime.mal_id) {
-                      <div class="search-item api-item" (click)="addAnimeFromApi(anime)">
-                        <img [src]="anime.images.webp.small_image_url || anime.images.jpg.small_image_url" [alt]="anime.title" class="item-thumb">
-                        <div class="item-info">
-                          <span class="title">{{ anime.title_english || anime.title }}</span>
-                          <span class="meta">{{ anime.year || '?' }} • {{ anime.episodes || '?' }} Eps</span>
-                        </div>
-                        <lucide-icon [img]="PlusIcon" [size]="16" class="add-icon"></lucide-icon>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-            }
+          <div class="form-group">
+            <label>Folder (Optional)</label>
+            <ui-select 
+              [options]="folderOptions()" 
+              [value]="selectedFolderId()" 
+              (valueChange)="selectedFolderId.set($event)"
+              placeholder="No Folder"
+            ></ui-select>
+          </div>
+
+          <div class="form-group">
+            <label>Tipo de Midia</label>
+            <ui-select 
+              [options]="mediaTypeOptions" 
+              [value]="mediaTypeId()" 
+              (valueChange)="mediaTypeId.set($event)"
+              placeholder="Universal (All)"
+            ></ui-select>
+            <small class="form-hint">Listas universais aparecem em todos os lugares. Listas tipificadas só aparecem quando o tipo de mídia for selecionado.</small>
           </div>
         </div>
 
-        <div class="selected-animes">
-          <label>Selected Anime ({{ selectedAnimes.length }})</label>
-          <div class="anime-list">
-            @for (anime of selectedAnimes; track anime.id) {
-              <div class="anime-chip">
-                <img [src]="anime.coverImage" [alt]="anime.title">
-                <span class="anime-title">{{ anime.title }}</span>
-                <button class="remove-btn" (click)="removeAnime(anime.id!)">
-                  <lucide-icon [img]="TrashIcon" [size]="14"></lucide-icon>
-                </button>
+        <div class="form-right">
+          <div class="form-group">
+            <label>Adicionar Midia</label>
+            <div class="search-container">
+              <lucide-icon [img]="SearchIcon" [size]="18" class="search-icon"></lucide-icon>
+              <input 
+                type="text" 
+                [(ngModel)]="searchQuery" 
+                (ngModelChange)="onSearchChange($event)"
+                placeholder="Procurar na sua biblioteca ou Global (MAL/IGDB)..."
+                class="form-input search-input"
+              >
+              @if (isSearching()) {
+                <div class="search-loader">
+                  <div class="spinner"></div>
+                </div>
+              }
+              
+              @if (filteredLocalMedia.length > 0 || filteredApiResults.length > 0) {
+                <div class="search-results">
+                  @if (filteredLocalMedia.length > 0) {
+                    <div class="results-section">
+                      <div class="section-label">Sua Biblioteca</div>
+                      @for (media of filteredLocalMedia; track media.id) {
+                        <div class="search-item" (click)="addMedia(media.id!)">
+                          <img [src]="media.coverImage" [alt]="media.title" class="item-thumb">
+                          <div class="item-info">
+                            <span class="title">{{ media.title }}</span>
+                            <span class="meta">
+                              {{ media.releaseYear || '?' }} 
+                              @if (media.mediaTypeId === 1) { • {{ media.progressTotal || '?' }} Eps }
+                              @if (media.mediaTypeId === 3) { • Game }
+                            </span>
+                          </div>
+                          <lucide-icon [img]="PlusIcon" [size]="16" class="add-icon"></lucide-icon>
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  @if (filteredApiResults.length > 0) {
+                    <div class="results-section">
+                      <div class="section-label">Procurar Global (Adicionar na Biblioteca)</div>
+                      @for (item of filteredApiResults; track item.id || item.mal_id) {
+                        <div class="search-item api-item" (click)="addMediaFromApi(item)">
+                          @if (item._type === 'anime') {
+                            <img [src]="item.images.webp.small_image_url || item.images.jpg.small_image_url" [alt]="item.title" class="item-thumb">
+                            <div class="item-info">
+                              <span class="title">{{ item.title_english || item.title }}</span>
+                              <span class="meta">{{ item.year || '?' }} • {{ item.episodes || '?' }} Eps (Anime)</span>
+                            </div>
+                          } @else {
+                            <img [src]="item.cover?.url ? 'https:' + item.cover.url : ''" [alt]="item.name" class="item-thumb">
+                            <div class="item-info">
+                              <span class="title">{{ item.name }}</span>
+                              <span class="meta">{{ item.first_release_date ? (item.first_release_date * 1000 | date:'yyyy') : '?' }} • Game</span>
+                            </div>
+                          }
+                          <lucide-icon [img]="PlusIcon" [size]="16" class="add-icon"></lucide-icon>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="selected-items">
+            <label>Selected Items ({{ selectedMediaItems().length }})</label>
+            <div class="item-grid-container">
+              <div class="item-grid">
+                @for (item of selectedMediaItems(); track item.id) {
+                  <div class="item-card">
+                    <img [src]="item.coverImage" [alt]="item.title" class="item-cover">
+                    <div class="item-overlay">
+                      <button class="remove-btn" (click)="$event.stopPropagation(); removeMedia(item.id!)">
+                        <lucide-icon [img]="TrashIcon" [size]="16"></lucide-icon>
+                      </button>
+                    </div>
+                    <div class="item-tooltip">{{ item.title }}</div>
+                  </div>
+                }
               </div>
-            }
-            @if (selectedAnimes.length === 0) {
-              <div class="empty-selection">
-                No anime added to this list yet.
-              </div>
-            }
+              @if (selectedMediaItems().length === 0) {
+                <div class="empty-selection">No items added yet.</div>
+              }
+            </div>
           </div>
         </div>
       </div>
 
       <footer class="dialog-footer">
-        <button class="btn-cancel" (click)="closeDialog()">Cancel</button>
+        <button class="btn-cancel" (click)="closeDialog()" (mouseenter)="hovering.set(true)" (mouseleave)="hovering.set(false)">
+          <lucide-icon [img]="CloseIcon" [size]="18"></lucide-icon>
+          <span class="btn-text" [class.show]="hovering()">Cancelar</span>
+        </button>
         <button 
           class="btn-save" 
           (click)="save()"
           [disabled]="!name()"
         >
-          {{ editingListId() ? 'Save Changes' : 'Create List' }}
+          <lucide-icon [img]="SaveIcon" [size]="18"></lucide-icon>
+          <span>{{ editingListId() ? 'Salvar' : 'Criar' }}</span>
         </button>
       </footer>
     </div>

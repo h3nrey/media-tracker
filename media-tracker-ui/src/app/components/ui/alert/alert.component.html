@@ -1,0 +1,30 @@
+@if (isOpen()) {
+  <div class="alert-overlay" (click)="onCancel()">
+    <div class="alert-card" (click)="$event.stopPropagation()" [class]="options()?.type">
+      <div class="alert-header">
+        <div class="header-icon" [style.color]="'var(--alert-' + (options()?.type || 'info') + ')'">
+          <lucide-icon [img]="getIcon()" [size]="28"></lucide-icon>
+        </div>
+        <h3>{{ options()?.title }}</h3>
+        <button class="close-btn" (click)="onCancel()">
+          <lucide-icon [img]="XIcon" [size]="18"></lucide-icon>
+        </button>
+      </div>
+      
+      <div class="alert-body">
+        <p>{{ options()?.message }}</p>
+      </div>
+
+      <div class="alert-actions">
+        @if (options()?.showCancel) {
+          <button class="btn-secondary" (click)="onCancel()">
+            {{ options()?.cancelText || 'Cancel' }}
+          </button>
+        }
+        <button class="btn-primary" (click)="onConfirm()" [style.background]="'var(--alert-' + (options()?.type || 'info') + ')'">
+          {{ options()?.confirmText || 'OK' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

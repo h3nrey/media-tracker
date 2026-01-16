@@ -1,0 +1,142 @@
+.media-dropdown-wrapper {
+  position: relative;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  height: 100%;
+
+  &:hover {
+    .dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    .logo-text {
+      text-shadow: 0 0 15px var(--app-primary-glow);
+    }
+  }
+}
+
+.logo-container {
+  padding: 0.5rem 0;
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--app-primary);
+  text-decoration: none;
+  cursor: pointer;
+  letter-spacing: -0.04em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 4px 8px;
+  border-radius: 8px;
+
+  &:hover {
+    background: rgba(100, 246, 92, 0.05);
+  }
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  padding-top: 12px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+  min-width: 160px;
+}
+
+.dropdown-arrow {
+  position: absolute;
+  top: 4px;
+  left: 20px;
+  width: 12px;
+  height: 12px;
+  background: var(--app-surface);
+  border-left: 1px solid var(--app-border);
+  border-top: 1px solid var(--app-border);
+  transform: rotate(45deg);
+  z-index: 1;
+}
+
+.dropdown-content {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--app-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  gap: 12px;
+
+  lucide-icon {
+    display: flex;
+    align-items: center;
+    color: var(--app-text-muted);
+    transition: color 0.2s;
+  }
+
+  span {
+    flex: 1;
+  }
+
+  &:hover {
+    background: var(--app-surface-light);
+    color: var(--app-text-primary);
+    
+    lucide-icon {
+      color: var(--app-primary);
+    }
+  }
+
+  &.active {
+    background: var(--app-surface-light);
+    color: var(--app-primary);
+    
+    lucide-icon {
+      color: var(--app-primary);
+    }
+  }
+
+  .active-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--app-primary);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--app-primary-glow);
+  }
+}
+
+.dropdown-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .logo-text {
+    display: none;
+  }
+}

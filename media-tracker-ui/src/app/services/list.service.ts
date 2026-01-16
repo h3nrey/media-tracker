@@ -4,7 +4,7 @@ import { Observable, from, map } from 'rxjs';
 import { List, Folder, ListDetails } from '../models/list.model';
 import { db } from './database.service';
 import { SyncService } from './sync.service';
-import { Anime } from '../models/anime.model';
+import { MediaItem } from '../models/media-type.model';
 
 @Injectable({
   providedIn: 'root'
@@ -22,14 +22,14 @@ export class ListService {
       const folderId = await this.addFolder({ name: 'My Lists', order: 1 });
       await this.addFolder({ name: 'Top Lists', order: 2 });
       
-      // Get some anime IDs to create a dummy list
-      const animes = await db.anime.limit(5).toArray();
-      const animeIds = animes.map(a => a.id!);
+      const mediaItems = await db.mediaItems.limit(5).toArray();
+      const mediaItemIds = mediaItems.map(m => m.id!);
       
       await this.addList({
         name: 'My Awesome List',
-        description: 'A list of my favorite animes',
-        animeIds: animeIds,
+        description: 'A collection of my favorites',
+        mediaItemIds: mediaItemIds,
+        animeIds: mediaItemIds, // Legacy support
         folderId: folderId
       });
     }
@@ -43,22 +43,22 @@ export class ListService {
     );
   }
 
-  getListById$(id: number): Observable<ListDetails> {
+  getListById$(id: number): Observable<ListDetails | null> {
     return from(liveQuery(async () => {
       const list = await db.lists.get(id);
       if (!list) return null;
 
-      const animes = await Promise.all(
-        list.animeIds.map(animeId => db.anime.get(animeId))
+      const itemIds = list.mediaItemIds || list.animeIds || [];
+      const items = await Promise.all(
+        itemIds.map(itemId => db.mediaItems.get(itemId))
       );
 
       return {
         ...list,
-        animes: animes.filter(a => !!a) as Anime[]
+        mediaItems: items.filter(m => !!m) as MediaItem[],
+        animes: items.filter(m => !!m && m.mediaTypeId === 1) as any[] // For legacy components
       } as ListDetails;
-    })).pipe(
-      map(listDetails => listDetails as ListDetails)
-    );
+    }));
   }
 
   getFolders$(): Observable<Folder[]> {
@@ -137,10 +137,88 @@ export class ListService {
     this.syncService.sync();
   }
 
-  getListsContainingAnime$(animeId: number): Observable<List[]> {
+  async saveList(id: number | undefined, data: { 
+    name: string, 
+    folderId?: number, 
+    mediaTypeId?: number | null, 
+    mediaItemIds: number[] 
+  }): Promise<number> {
+    const listData = {
+      ...data,
+      animeIds: data.mediaItemIds // Support legacy components that use animeIds
+    };
+
+    if (id) {
+      return await this.updateList(id, listData);
+    } else {
+      return await this.addList(listData);
+    }
+  }
+
+  filterLists(
+    lists: List[], 
+    folderId: number | 'all', 
+    allMedia: MediaItem[], 
+    filters: any
+  ): any[] {
+    let filtered = lists.filter(l => !l.isDeleted);
+    
+    if (folderId !== 'all') {
+      filtered = filtered.filter(l => l.folderId === folderId);
+    }
+
+    if ((filters.genres?.length > 0) || (filters.studios?.length > 0)) {
+      filtered = filtered.filter(list => {
+        const itemIds = list.mediaItemIds || list.animeIds || [];
+        const listItems = itemIds.map(id => allMedia.find(m => m.id === id)).filter(m => !!m) as MediaItem[];
+        
+        const matchesGenre = filters.genres?.length > 0 
+          ? listItems.some(item => filters.genres!.every((g: string) => item.genres?.includes(g)))
+          : true;
+        
+        const matchesStudio = filters.studios?.length > 0
+          ? listItems.some(item => filters.studios!.some((s: string) => item.studios?.includes(s)))
+          : true;
+          
+        return matchesGenre && matchesStudio;
+      });
+    }
+
+    if (filters.query) {
+      const q = filters.query.toLowerCase();
+      filtered = filtered.filter(l => l.name.toLowerCase().includes(q));
+    }
+
+    // Map enriched data
+    const enriched = filtered.map(list => {
+      const itemIds = list.mediaItemIds || list.animeIds || [];
+      const items = itemIds.map(id => allMedia.find(m => m.id === id)).filter(m => !!m) as MediaItem[];
+      
+      return {
+        ...list,
+        covers: items.map(item => item.coverImage).filter(img => !!img).slice(0, 5),
+        itemCount: items.length
+      };
+    });
+
+    // Sort
+    const mult = filters.sortOrder === 'asc' ? 1 : -1;
+    enriched.sort((a, b) => {
+      if (filters.sortBy === 'title') {
+        return a.name.localeCompare(b.name) * mult;
+      }
+      const valA = new Date(a.updatedAt || 0).getTime();
+      const valB = new Date(b.updatedAt || 0).getTime();
+      return (valA - valB) * mult;
+    });
+
+    return enriched;
+  }
+
+  getListsContainingItem$(itemId: number): Observable<List[]> {
     return from(liveQuery(async () => {
       const allLists = await db.lists.toArray();
-      return allLists.filter(l => !l.isDeleted && l.animeIds.includes(animeId));
+      return allLists.filter(l => !l.isDeleted && (l.mediaItemIds?.includes(itemId) || l.animeIds?.includes(itemId)));
     }));
   }
 }

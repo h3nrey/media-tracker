@@ -6,30 +6,32 @@ import { SyncService } from './services/sync.service';
 import { DialogService } from './services/dialog.service';
 
 import { HeaderComponent } from './components/header/header.component';
-import { AddAnimeDialogComponent } from './components/add-anime-dialog/add-anime-dialog.component';
+import { AddMediaDialogComponent } from './components/add-media-dialog/add-media-dialog.component';
 import { ManageCategoriesDialogComponent } from './components/manage-categories-dialog/manage-categories-dialog.component';
 import { ManageSourcesDialogComponent } from './components/manage-sources-dialog/manage-sources-dialog.component';
 import { BulkImportDialogComponent } from './components/bulk-import-dialog/bulk-import-dialog.component';
 import { MetadataSyncDialogComponent } from './components/metadata-sync-dialog/metadata-sync-dialog.component';
-import { AnimeDetailsDialogComponent } from './components/anime-details-dialog/anime-details-dialog.component';
 import { ThemeSettingsDialogComponent } from './components/theme-settings-dialog/theme-settings-dialog.component';
 import { ToastComponent } from './components/ui/toast/toast.component';
-
+import { AlertComponent } from './components/ui/alert/alert.component';
+import { ShortcutsDialogComponent } from './components/shortcuts-dialog/shortcuts-dialog.component';
+import { ShortcutService } from './services/shortcut.service';
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
     RouterOutlet, 
     MobileNavComponent, 
-    AddAnimeDialogComponent, 
+    AddMediaDialogComponent, 
     HeaderComponent,
     ManageCategoriesDialogComponent,
     ManageSourcesDialogComponent,
     BulkImportDialogComponent,
     MetadataSyncDialogComponent,
-    AnimeDetailsDialogComponent,
     ThemeSettingsDialogComponent,
-    ToastComponent
+    ToastComponent,
+    AlertComponent,
+    ShortcutsDialogComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
@@ -39,6 +41,7 @@ export class App implements OnInit {
   private categoryService = inject(CategoryService);
   private syncService = inject(SyncService);
   private dialogService = inject(DialogService);
+  private shortcutService = inject(ShortcutService);
 
   @ViewChild(ManageCategoriesDialogComponent) manageCategoriesDialog!: ManageCategoriesDialogComponent;
   @ViewChild(ManageSourcesDialogComponent) manageSourcesDialog!: ManageSourcesDialogComponent;

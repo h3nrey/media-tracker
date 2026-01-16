@@ -1,25 +1,11 @@
-export interface Anime {
-  id?: number;
-  supabaseId?: number;
-  title: string;
-  coverImage?: string;
-  bannerImage?: string;
-  malId?: number;
-  episodesWatched: number;
-  totalEpisodes: number;
-  statusId: number;
-  score: number;
-  genres: string[];
+import { AnimeMetadata } from "./anime-metadata.model";
+import { MediaItem } from "./media-type.model";
+
+export interface Anime extends MediaItem {
+  mediaItemId?: number;
   studios: string[];
-  releaseYear?: number;
-  trailerUrl?: string;
-  notes?: string;
-  watchDates?: Date[];
-  watchLinks?: AnimeWatchLink[];
-  createdAt: Date;
-  updatedAt: Date;
-  lastSyncedAt?: Date;
-  isDeleted?: boolean;
+  malId?: number;
+  t?: number;
 }
 
 export interface AnimeWatchLink {

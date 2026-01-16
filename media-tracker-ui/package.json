@@ -3,26 +3,15 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
-  "prettier": {
-    "printWidth": 100,
-    "singleQuote": true,
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
-  },
   "private": true,
   "packageManager": "npm@11.6.1",
   "dependencies": {
+    "@angular/animations": "^21.0.6",
     "@angular/cdk": "^21.0.5",
     "@angular/common": "^21.0.0",
     "@angular/compiler": "^21.0.0",
@@ -32,6 +21,8 @@
     "@angular/router": "^21.0.0",
     "@supabase/supabase-js": "^2.89.0",
     "dexie": "^4.2.1",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
     "html2canvas": "^1.4.1",
     "lucide-angular": "^0.562.0",
     "ngx-color-picker": "^20.1.1",
@@ -42,7 +33,9 @@
     "@angular/build": "^21.0.4",
     "@angular/cli": "^21.0.4",
     "@angular/compiler-cli": "^21.0.0",
+    "@types/file-saver": "^2.0.7",
     "jsdom": "^27.1.0",
+    "prettier": "^3.7.4",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"
   }

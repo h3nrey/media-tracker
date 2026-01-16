@@ -1,0 +1,126 @@
+<div class="form-container-split">
+  <!-- Left Side -->
+   <div class="form-content">
+  <aside class="left-sidebar">
+    <div class="poster-wrapper">
+      @if (coverImage()) {
+        <img [src]="coverImage()" [alt]="title()" class="form-poster" />
+      } @else {
+        <div class="form-poster-placeholder">
+          <lucide-icon name="image" size="32"></lucide-icon>
+        </div>
+      }
+    </div>
+
+    <div class="status-selector">
+      <label>Status</label>
+      <ui-select
+        [options]="categoryOptions"
+        [value]="selectedCategoryId()"
+        (valueChange)="selectedCategoryId.set($event)"
+        placeholder="Select Status"
+        [variant]="'default'"
+        [rounding]="'full'"
+      ></ui-select>
+    </div>
+  </aside>
+
+  <!-- Right Side -->
+  <div class="right-content">
+    
+    <header class="form-header-row">
+       <div class="header-title-group">
+         <h2>{{ title() || 'New Game' }} <span class="year" *ngIf="releaseYear()">{{ releaseYear() }}</span></h2>
+       </div>
+       <button class="btn-premium-toggle small" (click)="changeSource.emit()">
+         <lucide-icon [img]="SearchIcon" [size]="14"></lucide-icon>
+         Edit Source
+       </button>
+    </header>
+
+    <div class="tabs-nav">
+      <button class="tab-btn" [class.active]="activeTab() === 'main'" (click)="activeTab.set('main')">Main</button>
+      <button class="tab-btn" [class.active]="activeTab() === 'journal'" (click)="activeTab.set('journal')">Journal</button>
+      <button class="tab-btn" [class.active]="activeTab() === 'details'" (click)="activeTab.set('details')">Details</button>
+    </div>
+
+    <div class="tab-content custom-scrollbar">
+      
+      <!-- MAIN TAB -->
+      @if (activeTab() === 'main') {
+        <div class="tab-pane fade-in">
+          <div class="rating-section">
+            <label class="section-label">Rating</label>
+            <app-star-rating-input [value]="score()" (valueChange)="score.set($event)"></app-star-rating-input>
+          </div>
+
+          <div class="progress-section">
+            <label class="section-label">Progress</label>
+            <div class="progress-input-group">
+              <app-number-input [value]="progressCurrent()" [min]="0" (valueChange)="progressCurrent.set($event)"></app-number-input>
+              <span class="unit-label">hrs</span>
+            </div>
+          </div>
+
+
+          <div class="notes-section">
+            <label class="section-label">Review / Notes</label>
+            <textarea class="premium-textarea" rows="6" [value]="notes()" (input)="notes.set($any($event.target).value)" placeholder="What'd you think?"></textarea>
+          </div>
+        </div>
+      }
+
+      <!-- JOURNAL TAB -->
+      @if (activeTab() === 'journal') {
+        <div class="tab-pane fade-in">
+           <app-media-journal 
+             [logs]="logs()" 
+             [emptyMessage]="'Track when you played this game.'"
+             (logsChange)="logs.set($event)">
+           </app-media-journal>
+        </div>
+      }
+
+
+      <!-- DETAILS TAB -->
+      @if (activeTab() === 'details') {
+        <div class="tab-pane fade-in form-grid-inner">
+           <div class="field-item full"><label>Title</label><input type="text" class="premium-input" [value]="title()" (input)="title.set($any($event.target).value)" /></div>
+           <div class="field-item"><label>Release Year</label><app-number-input [value]="releaseYear() || 0" (valueChange)="releaseYear.set($event || undefined)"></app-number-input></div>
+           <div class="field-item full"><label>Developers</label><app-tag-input [tags]="studios()" (tagsChange)="studios.set($event)"></app-tag-input></div>
+           <div class="field-item full"><label>Platforms</label><app-tag-input [tags]="platforms()" (tagsChange)="platforms.set($event)"></app-tag-input></div>
+           <div class="field-item full"><label>Genres</label><app-tag-input [tags]="genres()" (tagsChange)="genres.set($event)"></app-tag-input></div>
+           
+           <h4 class="card-section-title">Media Links & Images</h4>
+           <div class="field-item full"><label>Cover Image URL</label><input type="text" class="premium-input" [value]="coverImage()" (input)="coverImage.set($any($event.target).value)" /></div>
+           <div class="field-item full"><label>Banner Image URL</label><input type="text" class="premium-input" [value]="bannerImage()" (input)="bannerImage.set($any($event.target).value)" /></div>
+           <div class="field-item full"><label>Trailer URL</label><input type="text" class="premium-input" [value]="trailerUrl()" (input)="trailerUrl.set($any($event.target).value)" /></div>
+
+           <div class="field-item full">
+            <label>Sources</label>
+            <div class="action-row">
+              <select class="premium-select" [ngModel]="newLinkSourceId()" (ngModelChange)="newLinkSourceId.set(+$event || null)">
+                <option [ngValue]="null">Select Source</option>
+                @for (source of sources(); track source.id) { <option [value]="source.id">{{ source.name }}</option> }
+              </select>
+              <input type="text" class="premium-input grow" placeholder="URL" [ngModel]="newLinkUrl()" (ngModelChange)="newLinkUrl.set($event)" />
+              <button class="btn-add-circle" (click)="addLink()" [disabled]="!newLinkSourceId() || !newLinkUrl()"><lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon></button>
+            </div>
+            <div class="chip-container">
+              @for (link of sourceLinks(); track $index) {
+                <div class="source-chip"><span class="badge">{{ getLinkSourceName(link.sourceId) }}</span><a [href]="link.url" target="_blank" (click)="$event.stopPropagation()">Link</a><button (click)="removeLink($index)"><lucide-icon [img]="XIcon" [size]="12"></lucide-icon></button></div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+  </div>
+
+  <div class="footer-actions">
+      <button class="footer-btn secondary" (click)="cancel.emit()">Cancel</button>
+      <button class="footer-btn primary" (click)="submit()" [disabled]="isSaving() || !title().trim()">Save Game</button>
+    </div>
+</div>

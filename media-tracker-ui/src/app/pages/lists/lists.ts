@@ -2,12 +2,14 @@ import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Plus, Folder as FolderIcon, Layers, List as ListIcon } from 'lucide-angular';
 import { ListService } from '../../services/list.service';
-import { AnimeService } from '../../services/anime.service';
+import { MediaService } from '../../services/media.service';
 import { FilterService } from '../../services/filter.service';
 import { db } from '../../services/database.service';
 import { List, Folder } from '../../models/list.model';
-import { Anime } from '../../models/anime.model';
-import { BehaviorSubject, combineLatest, map, Observable, switchMap } from 'rxjs';
+import { MediaItem, MediaType } from '../../models/media-type.model';
+import { MediaTypeStateService } from '../../services/media-type-state.service';
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { ListSidebarComponent } from './components/list-sidebar/list-sidebar.component';
 import { ListFiltersComponent } from './components/list-filters/list-filters.component';
@@ -23,14 +25,16 @@ import { ListFormComponent } from './components/list-form/list-form.component';
     ListSidebarComponent,
     ListFiltersComponent,
     ListCardComponent,
-    ListFormComponent
+    ListFormComponent,
+    DragDropModule
   ],
   templateUrl: './lists.html',
   styleUrl: './lists.scss',
 })
 export class Lists implements OnInit {
   private listService = inject(ListService);
-  private animeService = inject(AnimeService);
+  private mediaService = inject(MediaService);
+  private mediaTypeState = inject(MediaTypeStateService);
   private filterService = inject(FilterService);
 
   @ViewChild(ListFormComponent) listForm!: ListFormComponent;
@@ -45,90 +49,33 @@ export class Lists implements OnInit {
 
   private selectedFolderSubject = new BehaviorSubject<number | 'all'>('all');
   selectedFolderId$ = this.selectedFolderSubject.asObservable();
+  selectedMediaType$ = this.mediaTypeState.getSelectedMediaType$();
   
   folders$ = this.listService.getFolders$();
   
-  lists$ = combineLatest([
+  enrichedLists$: Observable<any[]> = combineLatest([
     this.listService.getLists$(),
     this.selectedFolderId$,
-    this.animeService.getAllAnime$(),
-    this.animeService.filterUpdate$
+    this.mediaService.getAllMedia$(),
+    this.mediaService.filterUpdate$
   ]).pipe(
-    map(([lists, folderId, allAnime]) => {
-      let filteredLists = lists;
-      
-      if (folderId !== 'all') {
-        filteredLists = filteredLists.filter(l => l.folderId === folderId);
-      }
-
-      const filters = this.currentFilters();
-      if ((filters.genres && filters.genres.length > 0) || (filters.studios && filters.studios.length > 0)) {
-        filteredLists = filteredLists.filter(list => {
-          const listAnimes = list.animeIds.map(id => allAnime.find(a => a.id === id)).filter(a => !!a) as Anime[];
-          
-          const matchesGenre = filters.genres && filters.genres.length > 0 
-            ? listAnimes.some(a => filters.genres!.every(g => a.genres?.includes(g)))
-            : true;
-          
-          const matchesStudio = filters.studios && filters.studios.length > 0
-            ? listAnimes.some(a => filters.studios!.some(s => a.studios?.includes(s)))
-            : true;
-            
-          return matchesGenre && matchesStudio;
-        });
-      }
-
-      if (filters.query) {
-        const q = filters.query.toLowerCase();
-        filteredLists = filteredLists.filter(l => l.name.toLowerCase().includes(q));
-      }
-
-      return filteredLists;
-    })
-  );
-
-  enrichedLists$: Observable<any[]> = this.lists$.pipe(
-    switchMap(lists => {
-      return this.animeService.getAllAnime$().pipe(
-        map(allAnime => {
-          const result = lists.map(list => {
-            const covers = list.animeIds
-              .map(id => allAnime.find(a => a.id === id)?.coverImage)
-              .filter(img => !!img)
-              .slice(0, 5);
-            
-            return {
-              ...list,
-              covers,
-              animeCount: list.animeIds.length
-            };
-          });
-
-          const filters = this.currentFilters();
-          const mult = filters.sortOrder === 'asc' ? 1 : -1;
-          
-          result.sort((a, b) => {
-            if (filters.sortBy === 'title') {
-              return a.name.localeCompare(b.name) * mult;
-            }
-            const valA = new Date(a.updatedAt || 0).getTime();
-            const valB = new Date(b.updatedAt || 0).getTime();
-            return (valA - valB) * mult;
-          });
-
-          return result;
-        })
+    map(([lists, folderId, allMedia]: [List[], number | 'all', MediaItem[], number]) => {
+      return this.listService.filterLists(
+        lists, 
+        folderId, 
+        allMedia, 
+        this.currentFilters()
       );
     })
   );
 
   ngOnInit() {
-    this.animeService.getAllAnime$().subscribe(all => {
+    this.mediaService.getAllMedia$().subscribe((all: MediaItem[]) => {
       const genres = new Set<string>();
       const studios = new Set<string>();
-      all.forEach(anime => {
-        anime.genres?.forEach(g => genres.add(g));
-        anime.studios?.forEach(s => studios.add(s));
+      all.forEach((item: MediaItem) => {
+        item.genres?.forEach(g => genres.add(g));
+        item.studios?.forEach(s => studios.add(s));
       });
       this.availableGenres.set([...genres].sort());
       this.availableStudios.set([...studios].sort());
@@ -141,10 +88,10 @@ export class Lists implements OnInit {
 
   openCreateListDialog() {
     const currentFolder = this.selectedFolderSubject.value === 'all' ? undefined : this.selectedFolderSubject.value as number;
-    this.listForm.open(currentFolder);
+    this.listForm.open(undefined, currentFolder);
   }
 
   onListSaved() {
-    this.animeService.triggerFilterUpdate();
+    this.mediaService.triggerFilterUpdate();
   }
 }

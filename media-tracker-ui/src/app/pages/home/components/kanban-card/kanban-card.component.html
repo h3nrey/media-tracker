@@ -1,0 +1,46 @@
+@if(media) {
+<div class="media-card" cdkDrag [routerLink]="['/'+url, media.id]">
+  <div class="card-actions">
+    <button class="menu-btn" (click)="toggleMenu($event)">
+      <lucide-icon [img]="MoreVerticalIcon" [size]="16"></lucide-icon>
+    </button>
+
+    @if (menuOpen()) {
+      <div class="dropdown-menu">
+        <button class="menu-item" (click)="onEdit($event)">
+          <lucide-icon [img]="EditIcon" [size]="14"></lucide-icon>
+          Edit
+        </button>
+        <button class="menu-item delete" (click)="onDelete($event)">
+          <lucide-icon [img]="TrashIcon" [size]="14"></lucide-icon>
+          Delete
+        </button>
+      </div>
+      <div class="menu-backdrop" (click)="toggleMenu($event)"></div>
+    }
+  </div>
+  
+  <div class="card-flex-content">
+    <div class="cover-wrapper" (click)="playFirstSource($event)" [class.has-links]="hasSources()">
+      @if (media.coverImage) {
+        <img [src]="media.coverImage" [alt]="media.title" class="cover-image" />
+      }
+      @if (hasSources()) {
+        <div class="play-overlay">
+          <lucide-icon [img]="PlayIcon" [size]="32"></lucide-icon>
+        </div>
+      }
+    </div>
+    
+    <div class="info-section">
+      <ng-content></ng-content>
+    </div>
+  </div>
+
+  @if (2==2) {
+    <button class="track-btn" (click)="onIncrement($event)">
+      <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
+    </button>
+  }
+</div>
+}

@@ -1,0 +1,41 @@
+<div class="main-column">
+  <header class="game-header">
+    <button class="back-link" [routerLink]="['/']">
+      <lucide-icon [img]="ChevronLeftIcon" [size]="18"></lucide-icon>
+      <span>Back to Library</span>
+    </button>
+    
+    <h1 class="title">{{ game()?.title }}</h1>
+    
+    <div class="meta-info">
+      <span class="year">{{ game()?.releaseYear }}</span>
+      <span class="separator">•</span>
+      <span class="studios">
+        @for (studio of game()?.studios; track studio; let last = $last) {
+          <span>{{ studio }}{{ !last ? ', ' : '' }}</span>
+        }
+      </span>
+    </div>
+  </header>
+
+  <section class="overview">
+    @if (tagline()) {
+      <h3 class="tagline">{{ tagline() }}</h3>
+    }
+    <div class="synopsis-container" [class.expanded]="isExpanded()">
+      <p class="synopsis">{{ game()?.notes }}</p>
+      @if (game()?.notes && game()!.notes!.length > 300) {
+        <button class="toggle-btn" (click)="toggleExpand()">
+          <span>{{ isExpanded() ? 'Show Less' : 'Read Full Description' }}</span>
+          <lucide-icon [img]="isExpanded() ? ChevronUpIcon : ChevronDownIcon" [size]="16"></lucide-icon>
+        </button>
+      }
+    </div>
+  </section>
+
+  <div class="genres-section">
+    @for (genre of game()?.genres; track genre) {
+      <span class="genre-tag">{{ genre }}</span>
+    }
+  </div>
+</div>

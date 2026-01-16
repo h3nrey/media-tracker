@@ -1,18 +1,32 @@
 import { Component, input, output, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, ChevronLeft, ChevronRight, X } from 'lucide-angular';
+import { OverlayModule, ConnectionPositionPair, CdkOverlayOrigin } from '@angular/cdk/overlay';
 
 @Component({
   selector: 'app-date-picker',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, OverlayModule],
   templateUrl: './date-picker.component.html',
   styleUrl: './date-picker.component.scss'
 })
 export class DatePickerComponent {
-  selectedDate = input<Date>(new Date());
+  // Overlay Inputs
+  trigger = input<CdkOverlayOrigin | undefined>(undefined);
+  isOpen = input<boolean>(false);
+  xPosition = input<'start' | 'center' | 'end'>('start');
+  yPosition = input<'top' | 'bottom'>('bottom');
+  
+  // Existing Inputs
+  selectedDate = input<Date | string | undefined | null>(new Date());
   dateChange = output<Date>();
   close = output<void>();
+
+  private normalizedDate = computed(() => {
+    const val = this.selectedDate();
+    if (!val) return new Date();
+    return typeof val === 'string' ? new Date(val) : val;
+  });
 
   viewDate = signal(new Date());
 
@@ -125,9 +139,35 @@ export class DatePickerComponent {
   }
 
   isSelected(d: any) {
-    const sel = this.selectedDate();
+    const sel = this.normalizedDate();
+    if (!sel) return false;
     return d.day === sel.getDate() && 
            d.month === sel.getMonth() && 
            d.year === sel.getFullYear();
   }
+
+  overlayPositions = computed(() => {
+    const x = this.xPosition();
+    const y = this.yPosition();
+    
+    // Primary position
+    const mainPos: ConnectionPositionPair = {
+      originX: x,
+      originY: y === 'top' ? 'top' : 'bottom',
+      overlayX: x,
+      overlayY: y === 'top' ? 'bottom' : 'top',
+      offsetY: y === 'top' ? -8 : 8
+    };
+
+    // Fallback (flipped Y)
+    const fallbackPos: ConnectionPositionPair = {
+      originX: x,
+      originY: y === 'top' ? 'bottom' : 'top',
+      overlayX: x,
+      overlayY: y === 'top' ? 'top' : 'bottom',
+      offsetY: y === 'top' ? 8 : -8
+    };
+
+    return [mainPos, fallbackPos];
+  });
 }

@@ -19,7 +19,7 @@ import { getScoreColorClass } from '../../../../utils/anime-utils';
       </div>
       <div class="card-info">
         <h3>{{ anime.title }}</h3>
-        <p>{{ anime.episodesWatched }} / {{ anime.totalEpisodes || '?' }} eps</p>
+        <p>{{ anime.progressCurrent }} / {{ anime.progressTotal || '?' }} eps</p>
       </div>
     </div>
   `,

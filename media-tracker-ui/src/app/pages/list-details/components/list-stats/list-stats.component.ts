@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
 })
 export class ListStatsComponent {
   percentage = input<number>(0);
-  watchedEpisodes = input<number>(0);
-  totalEpisodes = input<number>(0);
-  animeCount = input<number>(0);
+  progressCurrent = input<number>(0);
+  progressTotal = input<number>(0);
+  itemCount = input<number>(0);
 }

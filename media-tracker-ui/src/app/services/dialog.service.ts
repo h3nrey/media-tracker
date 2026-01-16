@@ -1,43 +1,69 @@
 import { Injectable, signal } from '@angular/core';
 import { Anime } from '../models/anime.model';
+import { MediaItem } from '../models/media-type.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DialogService {
-  private addAnimeVisible = signal(false);
-  private editingAnime = signal<Anime | null>(null);
+  private addMediaVisible = signal(false);
+  private editingMedia = signal<any | null>(null);
   private initialCategory = signal<number | undefined>(undefined);
-  private selectedAnime = signal<Anime | null>(null);
+  private selectedMedia = signal<any | null>(null);
 
-  readonly isAddAnimeOpen = this.addAnimeVisible.asReadonly();
-  readonly animeToEdit = this.editingAnime.asReadonly();
+  readonly isAddMediaOpen = this.addMediaVisible.asReadonly();
+  readonly mediaToEdit = this.editingMedia.asReadonly();
   readonly categoryToSet = this.initialCategory.asReadonly();
-  readonly animeDetails = this.selectedAnime.asReadonly();
+  readonly mediaDetails = this.selectedMedia.asReadonly();
 
-  openAddAnime(categoryId?: number) {
-    this.editingAnime.set(null);
+  openAddMedia(categoryId?: number) {
+    this.editingMedia.set(null);
     this.initialCategory.set(categoryId);
-    this.addAnimeVisible.set(true);
+    this.addMediaVisible.set(true);
   }
 
-  openEditAnime(anime: Anime) {
-    this.editingAnime.set(anime);
+  // Legacy wrapper
+  openAddAnime(categoryId?: number) {
+    this.openAddMedia(categoryId);
+  }
+
+  openEditMedia(media: any) {
+    this.editingMedia.set(media);
     this.initialCategory.set(undefined);
-    this.addAnimeVisible.set(true);
+    this.addMediaVisible.set(true);
   }
 
+  // Legacy wrapper
+  openEditAnime(anime: any) {
+    this.openEditMedia(anime);
+  }
+
+  openMediaDetails(media: any) {
+    this.selectedMedia.set(media);
+  }
+
+  // Legacy wrapper
   openAnimeDetails(anime: Anime) {
-    this.selectedAnime.set(anime);
+    this.openMediaDetails(anime);
   }
 
+  closeMediaDetails() {
+    this.selectedMedia.set(null);
+  }
+
+  // Legacy wrapper
   closeAnimeDetails() {
-    this.selectedAnime.set(null);
+    this.closeMediaDetails();
   }
 
-  closeAddAnime() {
-    this.addAnimeVisible.set(false);
-    this.editingAnime.set(null);
+  closeAddMedia() {
+    this.addMediaVisible.set(false);
+    this.editingMedia.set(null);
     this.initialCategory.set(undefined);
+  }
+
+  // Legacy wrapper
+  closeAddAnime() {
+    this.closeAddMedia();
   }
 }

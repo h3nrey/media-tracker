@@ -1,29 +1,92 @@
 <aside class="sidebar">
   <div class="sidebar-header">
     <h3>Folders</h3>
-    <button class="icon-btn" (click)="createNewFolder()">
+    <button class="icon-btn" (click)="createNewFolder()" [class.active]="isAddingFolder()">
       <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
     </button>
   </div>
 
   <nav class="folder-nav">
+    <!-- Folder Form (Inline) -->
+    @if (isAddingFolder()) {
+      <div class="folder-form-card">
+        <div class="form-header">
+          <span>{{ editingFolderId() ? 'Edit Folder' : 'New Folder' }}</span>
+          <button class="close-btn" (click)="cancelAddingFolder()">
+            <lucide-icon [img]="PlusIcon" [size]="14" style="transform: rotate(45deg)"></lucide-icon>
+          </button>
+        </div>
+        
+        <div class="form-body">
+          <div class="input-group">
+            <input 
+              type="text" 
+              [(ngModel)]="newFolderName" 
+              placeholder="Folder name..."
+              class="folder-input"
+              autofocus
+              (keyup.enter)="saveFolder()"
+            >
+          </div>
+
+          <div class="icon-selection">
+            <label>Icon</label>
+            <div class="icon-grid">
+              @for (item of availableIcons; track item.name) {
+                <button 
+                  class="icon-select-btn" 
+                  [class.selected]="selectedIcon() === item.name"
+                  (click)="selectedIcon.set(item.name)"
+                  [title]="item.name"
+                  type="button"
+                >
+                  <lucide-icon [img]="item.icon" [size]="16"></lucide-icon>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <button class="btn-cancel" (click)="cancelAddingFolder()">Cancel</button>
+          <button class="btn-save" (click)="saveFolder()" [disabled]="!newFolderName().trim()">Save</button>
+        </div>
+      </div>
+    }
+
+    <!-- All Lists (Default) -->
     <div 
       class="nav-item" 
       [class.active]="selectedFolderId === 'all'"
       (click)="folderSelect.emit('all')"
+      cdkDropList
+      (cdkDropListDropped)="onListDrop($event, 'all')"
     >
       <lucide-icon [img]="LayersIcon" [size]="20"></lucide-icon>
       <span>All Lists</span>
     </div>
 
+    <!-- Folders List -->
     @for (folder of folders; track folder.id) {
       <div 
         class="nav-item" 
         [class.active]="selectedFolderId === folder.id"
         (click)="folderSelect.emit(folder.id!)"
+        cdkDropList
+        (cdkDropListDropped)="onListDrop($event, folder.id!)"
       >
-        <div class="folder-id">{{ folder.id }}</div>
-        <span>{{ folder.name }}</span>
+        <div class="folder-icon-wrapper">
+          <lucide-icon [img]="getIconComponent(folder.icon)" [size]="20"></lucide-icon>
+        </div>
+        <span class="folder-name">{{ folder.name }}</span>
+        
+        <button 
+          class="edit-folder-btn" 
+          (click)="startEditingFolder(folder, $event)"
+          title="Edit Folder"
+        >
+          <lucide-icon [img]="EditIcon" [size]="14"></lucide-icon>
+        </button>
       </div>
     }
   </nav>

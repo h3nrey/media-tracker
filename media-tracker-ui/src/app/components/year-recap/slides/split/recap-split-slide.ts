@@ -40,7 +40,7 @@ import { Anime } from '../../../../models/anime.model';
               <img [src]="dropped.coverImage" alt="">
               <div class="meta">
                 <h4>{{ dropped.title }}</h4>
-                <span class="eps">{{ dropped.episodesWatched }} episódios</span>
+                <span class="eps">{{ dropped.progressCurrent }} episódios</span>
               </div>
             </div>
           </div>

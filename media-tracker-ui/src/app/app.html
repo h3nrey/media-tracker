@@ -8,14 +8,17 @@
   (openThemeSettings)="openThemeSettingsDialog()"
 ></app-header>
 
-<router-outlet />
+<main class="app-content">
+  <router-outlet />
+</main>
 
 <app-mobile-nav class="mobile-only"></app-mobile-nav>
-<app-add-anime-dialog></app-add-anime-dialog>
+<app-add-media-dialog></app-add-media-dialog>
 <app-manage-categories-dialog></app-manage-categories-dialog>
 <app-manage-sources-dialog></app-manage-sources-dialog>
 <app-bulk-import-dialog></app-bulk-import-dialog>
 <app-metadata-sync-dialog></app-metadata-sync-dialog>
-<app-anime-details-dialog></app-anime-details-dialog>
 <app-theme-settings-dialog></app-theme-settings-dialog>
 <app-toast></app-toast>
+<app-alert></app-alert>
+<app-shortcuts-dialog></app-shortcuts-dialog>

@@ -3,46 +3,23 @@
   display: flex;
   flex-direction: column;
   background: var(--app-bg);
-  min-height: calc(100vh - 64px); // Adjust based on header height
+  min-height: calc(100vh - 5.5rem);
+  position: relative;
+  overflow-x: hidden;
 
-  .view-toggle {
-    display: flex;
-    gap: 0.5rem;
-    padding: 1rem 1.5rem;
-    background: var(--app-surface);
-    border-bottom: 1px solid var(--app-border);
-    justify-content: center;
+  .view-content-wrapper {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    position: relative;
 
-    .toggle-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.65rem 1.25rem;
+    app-kanban-board,
+    app-list-view {
+      grid-area: 1 / 1 / 2 / 2;
+      width: 100%;
+      height: 100%;
       background: var(--app-bg);
-      border: 1px solid var(--app-border);
-      border-radius: 8px;
-      color: var(--app-text-secondary);
-      font-weight: 700;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:hover {
-        background: var(--app-surface-light);
-        border-color: var(--app-border-light);
-        color: var(--app-text-primary);
-      }
-
-      &.active {
-        background: var(--app-primary);
-        color: var(--app-bg);
-        border-color: var(--app-primary);
-        box-shadow: 0 2px 8px var(--app-primary-glow);
-      }
-
-      lucide-icon {
-        flex-shrink: 0;
-      }
     }
   }
 }

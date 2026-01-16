@@ -61,107 +61,97 @@
             }
         }
     }
+}
 
-    .ui-select-dropdown {
-        position: absolute;
-        top: calc(100% + 4px);
-        left: 0;
-        min-width: 100%;
-        width: max-content;
+// Dropdown Styles (available globally due to ViewEncapsulation.None)
+.ui-select-dropdown {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    padding: 0.5rem;
+    max-height: 250px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 160px;
+    color: var(--app-text-primary);
 
-        &.align-right {
-            left: auto;
-            right: 0;
-        }
-        background: var(--app-surface);
-        border: 1px solid var(--app-border);
-        border-radius: 8px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-        z-index: 100;
-        padding: 0.25rem;
-        max-height: 250px;
-        overflow-y: auto;
-        animation: slideDown 0.2s ease-out;
-
-        &::-webkit-scrollbar {
-            width: 4px;
-        }
-        &::-webkit-scrollbar-thumb {
-            background: var(--app-border);
-            border-radius: 10px;
-        }
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--app-border);
+        border-radius: 10px;
     }
 
-    .ui-select-option {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1.5rem;
-        padding: 0.5rem 1rem 0.5rem 0.75rem;
-        border-radius: 4px;
-        color: var(--app-text-primary);
-        font-size: 0.875rem;
-        cursor: pointer;
-        transition: all 0.15s;
+    &.fade-in {
+        animation: portalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+}
 
-        &:hover {
-            background: var(--app-surface-hover);
+.ui-select-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    color: var(--app-text-primary);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+        background: var(--app-surface-hover);
+        color: var(--app-primary);
+    }
+
+    &.selected {
+        background: rgba(var(--app-primary), 0.1);
+        color: var(--app-primary);
+        font-weight: 700;
+    }
+
+    .check-icon {
+        color: var(--app-primary);
+    }
+}
+
+.ui-select-container.prominent {
+    .ui-select-trigger {
+        font-size: 1.125rem;
+        font-weight: 700;
+        padding: 0.5rem 1.25rem;
+        height: auto;
+        border-width: 1px;
+        
+        .trigger-text {
             color: var(--app-text-primary);
         }
 
-        &.selected {
-            background: rgba(var(--app-primary), 0.1);
+        .chevron {
             color: var(--app-primary);
-            font-weight: 500;
-        }
-
-        .check-icon {
-            color: var(--app-primary);
+            stroke-width: 3px;
         }
     }
 
-    &.prominent {
+    &.full-rounded {
         .ui-select-trigger {
-            font-size: 1.125rem;
-            font-weight: 700;
-            padding: 0.5rem 1.25rem;
-            height: auto;
-            border-width: 1px;
-            
-            .trigger-text {
-                color: var(--app-text-primary);
-            }
-
-            .chevron {
-                color: var(--app-primary);
-                stroke-width: 3px;
-            }
-        }
-
-        .ui-select-dropdown {
-            border-color: var(--app-border);
-        }
-
-        .ui-select-option {
-            font-size: 1rem;
-            padding: 0.75rem 1rem;
-        }
-        
-        &.full-rounded {
-            .ui-select-trigger {
-                padding-left: 1.5rem;
-            }
+            padding-left: 1.5rem;
         }
     }
 }
 
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-8px);
+@keyframes portalPopIn {
+    from { 
+        opacity: 0; 
+        transform: scale(0.95) translateY(10px); 
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    to { 
+        opacity: 1; 
+        transform: scale(1) translateY(0); 
     }
 }

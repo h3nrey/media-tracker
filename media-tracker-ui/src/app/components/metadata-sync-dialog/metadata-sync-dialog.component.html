@@ -13,7 +13,19 @@
     <div class="dialog-body">
       <div class="info-card">
         <lucide-icon [img]="SearchIcon" [size]="18"></lucide-icon>
-        <p>This will scan all animes in your library and fetch images, studios, and genres from <strong>MyAnimeList</strong> (via Jikan API).</p>
+        <p *ngIf="selectedSyncType() === 0">Scanning local library to fetch metadata for <strong>Anime (MAL)</strong> and <strong>Games (IGDB)</strong>.</p>
+        <p *ngIf="selectedSyncType() === MediaType.ANIME">Scanning local library to fetch metadata for <strong>Anime from MyAnimeList</strong>.</p>
+        <p *ngIf="selectedSyncType() === MediaType.GAME">Scanning local library to fetch metadata for <strong>Games from IGDB</strong>.</p>
+      </div>
+
+      <div class="options-area" *ngIf="!isProcessing() && stats().total === 0">
+          <label>Sync Target:</label>
+          <ui-select
+            [options]="syncOptions"
+            [value]="selectedSyncType()"
+            (valueChange)="selectedSyncType.set($event)"
+            [rounding]="'full'"
+          ></ui-select>
       </div>
 
       <div class="sync-status" *ngIf="isProcessing() || stats().total > 0">
@@ -61,7 +73,7 @@
       </button>
       <button 
         class="btn-sync" 
-        *ngIf="!isProcessing() && stats().updated === 0"
+        *ngIf="!isProcessing() && stats().updated === 0 && stats().failed === 0"
         (click)="startSync()"
       >
         <lucide-icon [img]="RefreshIcon" [size]="18"></lucide-icon>

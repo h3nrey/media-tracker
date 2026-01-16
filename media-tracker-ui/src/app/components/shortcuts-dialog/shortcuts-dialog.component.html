@@ -1,0 +1,68 @@
+@if (isOpen()) {
+  <div class="dialog-overlay" (click)="close()">
+    <div class="dialog-container" (click)="$event.stopPropagation()">
+      <header class="dialog-header">
+        <div class="header-title">
+          <lucide-icon [img]="KeyboardIcon" [size]="24"></lucide-icon>
+          <h2>Keyboard Shortcuts</h2>
+        </div>
+        <button class="close-btn" (click)="close()">
+          <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+        </button>
+      </header>
+
+      <div class="dialog-content">
+        @for (category of categories; track category) {
+          <section class="shortcut-section">
+            <h3 class="section-title">{{ category }}</h3>
+            <div class="shortcut-grid">
+              @for (item of getShortcutsByCategory(category); track item.id) {
+                <div class="shortcut-item" [class.recording]="recordingShortcutId() === item.id">
+                  <div class="shortcut-keys">
+                    @if (recordingShortcutId() === item.id) {
+                      @if (recordedKeys().length === 0) {
+                        <span class="recording-prompt">Press keys...</span>
+                      } @else {
+                        @for (key of recordedKeys(); track $index) {
+                          <kbd>{{ key }}</kbd>
+                        }
+                      }
+                    } @else {
+                      @for (key of item.key.split(' '); track $index) {
+                        <kbd>{{ key }}</kbd>
+                      }
+                    }
+                  </div>
+                  
+                  <div class="shortcut-info">
+                    <span class="shortcut-label">{{ item.label }}</span>
+                    <span class="shortcut-desc">{{ item.description }}</span>
+                  </div>
+
+                  <div class="shortcut-actions">
+                    @if (recordingShortcutId() === item.id) {
+                      <button class="action-btn save" (click)="saveRecording()" [disabled]="recordedKeys().length === 0">
+                        <lucide-icon [img]="CheckIcon" [size]="14"></lucide-icon>
+                      </button>
+                      <button class="action-btn cancel" (click)="cancelRecording()">
+                        <lucide-icon [img]="XIcon" [size]="14"></lucide-icon>
+                      </button>
+                    } @else {
+                      <button class="edit-btn" (click)="startRecording(item.id)">
+                        <lucide-icon [img]="EditIcon" [size]="14"></lucide-icon>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+        }
+      </div>
+
+      <footer class="dialog-footer">
+        <p>Tip: Press <code>?</code> anywhere to open this menu.</p>
+      </footer>
+    </div>
+  </div>
+}

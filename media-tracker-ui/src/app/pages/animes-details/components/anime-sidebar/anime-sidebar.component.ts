@@ -1,20 +1,29 @@
 import { Component, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Anime } from '../../../../models/anime.model';
+import { MediaLog } from '../../../../models/media-log.model';
 import { Category } from '../../../../models/status.model';
 import { AnimeLinksComponent } from '../anime-links/anime-links.component';
 import { LucideAngularModule, Play, Edit3, Plus, Star, Minus, RotateCcw, CheckCheck } from 'lucide-angular';
+import { SelectComponent } from '../../../../components/ui/select/select';
+
+
+export interface AnimeDetails extends Anime {
+  sourceLinks?: any[];
+  logs?: MediaLog[];
+}
 
 @Component({
   selector: 'app-anime-sidebar',
   standalone: true,
-  imports: [CommonModule, AnimeLinksComponent, LucideAngularModule],
+  imports: [CommonModule, AnimeLinksComponent, LucideAngularModule, SelectComponent],
   templateUrl: './anime-sidebar.component.html',
   styleUrl: './anime-sidebar.component.scss'
 })
 export class AnimeSidebarComponent {
-  anime = input<Anime | null>(null);
+  anime = input<AnimeDetails | null>(null);
   category = input<Category | null>(null);
+  categories = input<Category[]>([]);
   
   edit = output<void>();
   incrementEpisode = output<void>();
@@ -22,6 +31,7 @@ export class AnimeSidebarComponent {
   resetEpisodes = output<void>();
   completeEpisodes = output<void>();
   updateScore = output<number>();
+  updateCategory = output<number>();
   saveLinks = output<any[]>();
 
   readonly PlayIcon = Play;
@@ -43,10 +53,14 @@ export class AnimeSidebarComponent {
 
   hoveredStar = signal<number | null>(null);
 
+  get categoryOptions() {
+    return this.categories().map(c => ({ value: c.supabaseId || c.id, label: c.name }));
+  }
+
   get progress(): number {
     const a = this.anime();
-    if (!a || !a.totalEpisodes) return 0;
-    return Math.min(100, Math.round(((a.episodesWatched || 0) / a.totalEpisodes) * 100));
+    if (!a || !a.progressTotal) return 0;
+    return Math.min(100, Math.round(((a.progressCurrent || 0) / a.progressTotal) * 100));
   }
 
   get currentLabel(): string {
@@ -84,5 +98,9 @@ export class AnimeSidebarComponent {
 
   onSaveLinks(links: any[]) {
     this.saveLinks.emit(links);
+  }
+
+  onCategoryChange(statusId: any) {
+    this.updateCategory.emit(statusId);
   }
 }

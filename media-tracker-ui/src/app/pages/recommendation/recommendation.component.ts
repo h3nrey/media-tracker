@@ -1,29 +1,40 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MalService } from '../../services/mal.service';
 import { AnimeService } from '../../services/anime.service';
+import { GameService } from '../../services/game.service';
+import { IgdbService } from '../../services/igdb.service';
 import { JikanAnime } from '../../models/mal-anime.model';
 import { Anime } from '../../models/anime.model';
 import { Category } from '../../models/status.model';
 import { CategoryService } from '../../services/status.service';
-import { LucideAngularModule, Sparkles, Filter, RefreshCw, Plus, BookOpen, Globe, Search, Layers, X, Sword, Map, Heart, Wand2, Ghost, Zap, Coffee, Trophy, User, Music, Film, Smile, Book } from 'lucide-angular';
+import { LucideAngularModule, Sparkles, Filter, RefreshCw, Plus, BookOpen, Globe, Search, Layers, X, Sword, Map, Heart, Wand2, Ghost, Zap, Coffee, Trophy, User, Music, Film, Smile, Book, Gamepad2, Tv, Monitor, ChevronDown } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../services/toast.service';
 import { db } from '../../services/database.service';
 import { SelectComponent } from '../../components/ui/select/select';
+import { TagChipComponent } from '../../components/ui/tag-chip/tag-chip.component';
+import { MediaType } from '../../models/media-type.model';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { MediaTypeStateService } from '../../services/media-type-state.service';
 
 @Component({
   selector: 'app-recommendation',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, FormsModule, SelectComponent],
+  imports: [CommonModule, LucideAngularModule, FormsModule, SelectComponent, TagChipComponent],
   templateUrl: './recommendation.component.html',
   styleUrl: './recommendation.component.scss'
 })
 export class RecommendationComponent implements OnInit {
   private malService = inject(MalService);
   private animeService = inject(AnimeService);
+  private gameService = inject(GameService);
+  private igdbService = inject(IgdbService);
   private categoryService = inject(CategoryService);
   private toast = inject(ToastService);
+  private mediaTypeState = inject(MediaTypeStateService);
+
+  mediaType = toSignal(this.mediaTypeState.getSelectedMediaType$());
 
   // Icons
   readonly SparklesIcon = Sparkles;
@@ -35,9 +46,14 @@ export class RecommendationComponent implements OnInit {
   readonly SearchIcon = Search;
   readonly LayersIcon = Layers;
   readonly XIcon = X;
+  readonly AnimeIcon = Tv;
+  readonly GameIcon = Gamepad2;
+  readonly MonitorIcon = Monitor;
+  readonly ChevronDownIcon = ChevronDown;
 
   // Options
   genres = signal<any[]>([]);
+  platforms = signal<any[]>([]);
   categories = signal<Category[]>([]);
   decades = signal<any[]>([
     { label: '2020s', start: 2020, end: 2029 },
@@ -52,9 +68,14 @@ export class RecommendationComponent implements OnInit {
   
   // Filters
   selectedGenres = signal<number[]>([]);
+  selectedPlatforms = signal<number[]>([]);
   selectedDecadeValue = signal<string | null>(null);
   selectedCategory = signal<Category | null>(null);
   source = signal<'backlog' | 'jikan'>('jikan');
+  
+  // UI State
+  isGenresExpanded = signal(false);
+  isPlatformsExpanded = signal(false);
   
   // Result
   recommendedAnime = signal<any | null>(null);
@@ -64,6 +85,17 @@ export class RecommendationComponent implements OnInit {
     this.loadGenres();
     this.loadCategories();
     this.initializeEraOptions();
+  }
+
+  constructor() {
+    effect(() => {
+      // Reload genres when media type changes
+      this.mediaType();
+      this.selectedGenres.set([]);
+      this.selectedPlatforms.set([]);
+      this.loadGenres();
+      this.loadPlatforms();
+    });
   }
 
   initializeEraOptions() {
@@ -93,6 +125,24 @@ export class RecommendationComponent implements OnInit {
     return Book;
   }
 
+  getImageUrl(item: any): string {
+    if (!item) return '';
+    
+    // Local MediaItem or converted item
+    if (item.coverImage) return item.coverImage;
+
+    // MAL/Jikan item
+    if (item.images?.webp?.large_image_url) return item.images.webp.large_image_url;
+
+    // IGDB item
+    if (item.cover?.url) {
+      const url = item.cover.url.startsWith('//') ? `https:${item.cover.url}` : item.cover.url;
+      return url.replace('t_thumb', 't_cover_big');
+    }
+
+    return '';
+  }
+
   loadCategories() {
     this.categoryService.getAllCategories$().subscribe(cats => {
       this.categories.set(cats);
@@ -104,9 +154,27 @@ export class RecommendationComponent implements OnInit {
   }
 
   loadGenres() {
-    this.malService.getGenres().subscribe(data => {
-      this.genres.set(data);
-    });
+    if (this.mediaType() === MediaType.ANIME) {
+      this.malService.getGenres().subscribe(data => {
+        this.genres.set(data);
+      });
+    } else {
+      this.igdbService.getGenres().subscribe(data => {
+        // IGDB genres are {id, name}, MAL genres are {mal_id, name}
+        // Let's normalize to have mal_id or just id
+        this.genres.set(data.map(g => ({ ...g, mal_id: g.id })));
+      });
+    }
+  }
+
+  loadPlatforms() {
+    if (this.mediaType() === MediaType.GAME) {
+      this.igdbService.getPlatforms().subscribe(data => {
+        this.platforms.set(data);
+      });
+    } else {
+      this.platforms.set([]);
+    }
   }
 
   getSelectedGenreObjects() {
@@ -125,15 +193,28 @@ export class RecommendationComponent implements OnInit {
     );
   }
 
+  togglePlatform(platformId: number) {
+    this.selectedPlatforms.update(prev => 
+      prev.includes(platformId) ? prev.filter(id => id !== platformId) : [...prev, platformId]
+    );
+  }
+
   async getRecommendation() {
     this.isLoading.set(true);
     this.recommendedAnime.set(null);
+
+    const type = this.mediaType();
 
     try {
       if (this.source() === 'backlog') {
         await this.getBacklogRecommendation();
       } else {
-        await this.getJikanRecommendation();
+         // Default to ANIME if type is null (all)
+        if (type === MediaType.GAME) {
+          await this.getIgdbRecommendation();
+        } else {
+          await this.getJikanRecommendation();
+        }
       }
     } catch (error) {
       this.toast.error('Failed to get recommendation');
@@ -143,15 +224,21 @@ export class RecommendationComponent implements OnInit {
   }
 
   async getBacklogRecommendation() {
-    const allAnime = await db.anime.toArray();
-    let backlog = allAnime.filter(a => !a.isDeleted && a.statusId === 0);
+    const allMedia = await db.mediaItems.toArray();
+    const type = this.mediaType();
+    let backlog = allMedia.filter(m => !m.isDeleted && (type === null || m.mediaTypeId === type));
+
+    const ptwCategory = this.categories().find(c => c.name.toLowerCase().includes('plan to watch'));
+    if (ptwCategory) {
+      backlog = backlog.filter(m => m.statusId === ptwCategory.supabaseId || m.statusId === ptwCategory.id);
+    }
 
     const decadeValue = this.selectedDecadeValue();
     if (decadeValue) {
       const decade = this.decades().find(d => d.label === decadeValue);
       if (decade) {
         const { start, end } = decade;
-        backlog = backlog.filter(a => a.releaseYear && a.releaseYear >= start && a.releaseYear <= end);
+        backlog = backlog.filter(m => m.releaseYear && m.releaseYear >= start && m.releaseYear <= end);
       }
     }
     
@@ -160,13 +247,14 @@ export class RecommendationComponent implements OnInit {
         .filter(g => this.selectedGenres().includes(g.mal_id))
         .map(g => g.name);
       
-      backlog = backlog.filter(a => 
-        a.genres.some((genre: string) => selectedGenreNames.includes(genre))
+      backlog = backlog.filter(m => 
+        m.genres && m.genres.some((genre: string) => selectedGenreNames.includes(genre))
       );
     }
 
     if (backlog.length === 0) {
-      this.toast.info('No anime found in your backlog with these filters');
+      const typeLabel = type === MediaType.GAME ? 'games' : type === MediaType.ANIME ? 'anime' : 'media';
+      this.toast.info(`No ${typeLabel} found in your backlog with these filters`);
       return;
     }
 
@@ -197,24 +285,61 @@ export class RecommendationComponent implements OnInit {
     }
   }
 
-  async addToLibrary() {
-    const anime = this.recommendedAnime();
-    const category = this.selectedCategory();
-    if (!anime || !category) return;
+  async getIgdbRecommendation() {
+    const decadeValue = this.selectedDecadeValue();
+    if (this.selectedGenres().length === 0 && this.selectedPlatforms().length === 0 && !decadeValue) {
+      this.igdbService.getRandomGame().subscribe(game => {
+        this.recommendedAnime.set(game);
+      });
+    } else {
+      const decade = this.decades().find(d => d.label === decadeValue);
+      this.igdbService.getRecommendations({
+        genres: this.selectedGenres(),
+        platforms: this.selectedPlatforms(),
+        startDate: decade ? `${decade.start}-01-01` : undefined,
+        endDate: decade ? `${decade.end}-12-31` : undefined
+      }).subscribe(results => {
+        if (results && results.length > 0) {
+          const randomIndex = Math.floor(Math.random() * results.length);
+          this.recommendedAnime.set(results[randomIndex]);
+        } else {
+          this.toast.info('No games found with these filters');
+        }
+      });
+    }
+  }
 
-    const animeToAdd = anime.mal_id ? this.malService.convertJikanToAnime(anime, category.id!) : anime;
-    
+  async addToLibrary() {
+    const item = this.recommendedAnime();
+    const category = this.selectedCategory();
+    if (!item || !category) return;
+
     try {
-      if (anime.id) {
-         // It's a local anime, update its status
-         await this.animeService.updateAnimeStatus(anime.id, category.id!);
-         this.toast.success(`${anime.title} moved to ${category.name}!`);
+      if (item.id) {
+         // It's a local item, update its status
+         const itemType = item.mediaTypeId;
+         if (itemType === MediaType.GAME) {
+           await this.gameService.updateGame(item.id, { statusId: category.supabaseId || category.id });
+         } else {
+           await this.animeService.updateAnime(item.id, { statusId: category.supabaseId || category.id });
+         }
+         this.toast.success(`${item.title} moved to ${category.name}!`);
       } else {
-        await this.animeService.addAnime(animeToAdd);
-        this.toast.success(`${animeToAdd.title} added to ${category.name}!`);
+        // It's from external API
+        const type = this.mediaType();
+        if (type === MediaType.GAME) {
+          await this.gameService.addGameFromIgdb(item, category.supabaseId || category.id!);
+          this.toast.success(`${item.name} added to ${category.name}!`);
+        } else {
+          // Default to anime if null or 1
+          const animeToAdd = this.malService.convertJikanToAnime(item, category.supabaseId || category.id!);
+          await this.animeService.addAnime(animeToAdd);
+          this.toast.success(`${animeToAdd.title} added to ${category.name}!`);
+        }
       }
     } catch (error) {
-      this.toast.error('Failed to add anime');
+      const type = this.mediaType();
+      this.toast.error(`Failed to add ${type === MediaType.GAME ? 'game' : 'anime'}`);
     }
   }
 }

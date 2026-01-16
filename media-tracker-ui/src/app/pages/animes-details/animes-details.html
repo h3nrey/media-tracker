@@ -9,12 +9,14 @@
         <app-anime-sidebar 
           [anime]="anime()" 
           [category]="category()" 
+          [categories]="categories()"
           (edit)="onEdit()" 
           (incrementEpisode)="incrementEpisode()"
           (decrementEpisode)="decrementEpisode()"
           (resetEpisodes)="resetEpisodes()"
           (completeEpisodes)="completeEpisodes()"
           (updateScore)="onUpdateScore($event)"
+          (updateCategory)="onUpdateCategory($event)"
           (saveLinks)="onSaveLinks($event)">
         </app-anime-sidebar>
 
@@ -32,7 +34,7 @@
             </div>
             <div class="section-group">
               <app-anime-history 
-                [watchDates]="anime()?.watchDates"
+                [logs]="anime()?.logs"
                 (addLog)="onAddLog()"
                 (removeLog)="onRemoveLog($event)"
                 (updateLog)="onUpdateLog($event)">

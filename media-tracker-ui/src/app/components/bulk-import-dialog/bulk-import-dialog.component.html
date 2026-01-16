@@ -3,7 +3,7 @@
     <div class="dialog-header">
       <div class="title-area">
         <lucide-icon [img]="UploadIcon" [size]="20" class="header-icon"></lucide-icon>
-        <h2>Bulk Import Anime</h2>
+        <h2>Import / Export Media</h2>
       </div>
       <button class="close-btn" (click)="close()">
         <lucide-icon [img]="XIcon" [size]="24"></lucide-icon>
@@ -13,19 +13,34 @@
     <div class="dialog-body">
       <div class="info-banner">
         <lucide-icon [img]="InfoIcon" [size]="18"></lucide-icon>
-        <p>Formats: <strong>Title, Genres...</strong> or <strong>Index, Image, Title...</strong></p>
+        <p *ngIf="selectedMediaType() === MediaType.ANIME">Import Format: <strong>[Idx], [Img], Title, Genres, Studio, Date, Score</strong></p>
+        <p *ngIf="selectedMediaType() === MediaType.GAME">Import Format: <strong>[Idx], Name, Platform, Genre, Year, Time, Score, Note</strong></p>
       </div>
 
       <div class="import-options">
         <div class="option">
-          <label>1. Select Category</label>
-          <select [(ngModel)]="selectedCategoryId" class="form-select">
-            <option *ngFor="let cat of categories()" [value]="cat.id">{{ cat.name }}</option>
-          </select>
+          <label>1. Media Type</label>
+          <ui-select
+            [options]="mediaTypeOptions"
+            [value]="selectedMediaType()"
+            (valueChange)="selectedMediaType.set($event)"
+            placeholder="Select Type"
+            [rounding]="'full'"
+          ></ui-select>
         </div>
         <div class="option">
-          <label>2. Skip First X Items</label>
-          <input type="number" [(ngModel)]="skipFirstX" class="form-input" min="0">
+          <label>2. Category (Import)</label>
+          <ui-select
+            [options]="categoryOptions()"
+            [value]="selectedCategoryId()"
+            (valueChange)="selectedCategoryId.set($event)"
+            placeholder="Select Category"
+            [rounding]="'full'"
+          ></ui-select>
+        </div>
+        <div class="option">
+          <label>3. Skip rows</label>
+          <app-number-input [value]="skipFirstX()" [min]="0" (valueChange)="skipFirstX.set($event)"></app-number-input>
         </div>
       </div>
 
@@ -42,7 +57,9 @@
         <label>Data to Import</label>
         <textarea 
           [(ngModel)]="importData" 
-          placeholder="One piece, Shounen, Toei Animation, 2014, 11&#10;Naruto, Shounen, Pierrot, 2014, 9"
+          [placeholder]="selectedMediaType() === MediaType.ANIME 
+            ? '... Image, One Piece, Adventure, Toei, 2024, 10 ...' 
+            : '... Name, PC, RPG, 2024, 50:00, 9, Good game ...'"
           class="import-textarea"
           [disabled]="status() === 'processing'"
         ></textarea>
@@ -62,14 +79,22 @@
     </div>
 
     <div class="dialog-footer">
-      <button class="btn-cancel" (click)="close()">Cancel</button>
-      <button 
-        class="btn-import" 
-        [disabled]="!importData.trim() || status() === 'processing'"
-        (click)="processImport()"
-      >
-        {{ status() === 'processing' ? 'Processing...' : 'Start Import' }}
-      </button>
+      <div class="left-actions">
+        <button class="btn-outline" (click)="exportData()" [disabled]="status() === 'processing'">
+          <lucide-icon [img]="DownloadIcon" [size]="18"></lucide-icon>
+          Export to Excel
+        </button>
+      </div>
+      <div class="right-actions">
+        <button class="btn-cancel" (click)="close()">Cancel</button>
+        <button 
+          class="btn-import" 
+          [disabled]="!importData.trim() || status() === 'processing'"
+          (click)="processImport()"
+        >
+          {{ status() === 'processing' ? 'Processing...' : 'Start Import' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

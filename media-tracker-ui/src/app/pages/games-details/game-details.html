@@ -1,0 +1,50 @@
+@if(!isLoading()) {
+  <div class="details-page">
+    <div class="backdrop-container" [style.background-image]="'url(' + (game()?.bannerImage || game()?.coverImage) + ')'">
+      <div class="backdrop-gradient"></div>
+    </div>
+
+    <div class="page-content">
+      <div class="content-layout">
+        <app-game-sidebar 
+          [game]="game()" 
+          [category]="category()" 
+          [categories]="categories()"
+          (edit)="onEdit()" 
+          (updateScore)="onUpdateScore($event)"
+          (updateCategory)="onUpdateCategory($event)"
+          (saveLinks)="onSaveLinks($event)">
+        </app-game-sidebar>
+
+        <div class="main-column-wrapper">
+          <app-game-info 
+            [game]="game()" 
+            [tagline]="getTagline()">
+          </app-game-info>
+
+          <div class="divider"></div>
+
+          <div class="details-sections">
+            <div class="section-group">
+              <app-game-lists [lists]="lists()"></app-game-lists>
+            </div>
+            <div class="section-group">
+              <app-game-history 
+                [logs]="game()?.logs"
+                (addLog)="onAddLog()"
+                (removeLog)="onRemoveLog($event)"
+                (updateLog)="onUpdateLog($event)">
+              </app-game-history>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+@else {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading details...</p>
+  </div>
+}

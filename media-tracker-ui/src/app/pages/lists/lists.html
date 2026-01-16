@@ -1,4 +1,4 @@
-<div class="lists-container">
+<div class="lists-container" cdkDropListGroup>
   <app-list-sidebar
     [selectedFolderId]="(selectedFolderId$ | async)!"
     [folders]="folders$ | async"
@@ -9,10 +9,6 @@
     <div class="content-view">
       <header class="lists-header">
         <div class="header-main">
-          <div class="header-info">
-            <h1>Dynamic Lists</h1>
-            <p>Curate your anime collection into folders and custom selections.</p>
-          </div>
           <div class="header-actions">
             <app-list-filters
               [availableGenres]="availableGenres()"
@@ -28,26 +24,21 @@
       </header>
 
       <div class="lists-scroll-area">
-        <div class="lists-grid">
-          <!-- Create New List Card (Premium) -->
-          <div class="list-card-wrapper">
-            <div class="premium-add-card" (click)="openCreateListDialog()">
-              <div class="card-inner">
-                <div class="icon-circle">
-                  <lucide-icon [img]="PlusIcon" [size]="24"></lucide-icon>
-                </div>
-                <h3>New Collection</h3>
-                <p>Start grouping your favorites</p>
-              </div>
-            </div>
-          </div>
-
+        <div class="lists-grid" cdkDropList cdkDropListSortingDisabled="true">
           @for (list of enrichedLists$ | async; track list.id) {
-            <div class="list-card-wrapper">
+            <div class="list-card-wrapper" cdkDrag [cdkDragData]="list">
               <app-list-card
                 [list]="list"
                 (cardClick)="onListSaved()" 
               ></app-list-card>
+
+              <!-- Drag Preview -->
+              <div *cdkDragPreview class="list-drag-preview">
+                <div class="preview-content">
+                  <lucide-icon [img]="ListIcon" [size]="20"></lucide-icon>
+                  <span>{{ list.name }}</span>
+                </div>
+              </div>
             </div>
           }
         </div>

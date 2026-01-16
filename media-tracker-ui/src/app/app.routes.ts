@@ -38,11 +38,19 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/list-details/list-details').then(m => m.ListDetailsComponent)
   },
   {
+    path: 'media/:id',
+    loadComponent: () => import('./pages/animes-details/animes-details').then(m => m.AnimesDetailsComponent)
+  },
+  {
     path: 'anime/:id',
     loadComponent: () => import('./pages/animes-details/animes-details').then(m => m.AnimesDetailsComponent)
   },
   {
-    path: 'anime/:animeId/reviews/:id',
+    path: 'game/:id',
+    loadComponent: () => import('./pages/games-details/game-details').then(m => m.GamesDetailsComponent)
+  },
+  {
+    path: 'media/:animeId/reviews/:id',
     loadComponent: () => import('./pages/review-detail/review-detail.component').then(m => m.ReviewDetailComponent)
   },
   {
@@ -50,7 +58,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/stats/stats.component').then(m => m.StatsComponent)
   },
   {
+    path: '404',
+    loadComponent: () => import('./pages/not-found/not-found.component').then(m => m.NotFoundComponent)
+  },
+  {
     path: '**',
-    redirectTo: ''
+    redirectTo: '404'
   }
 ];

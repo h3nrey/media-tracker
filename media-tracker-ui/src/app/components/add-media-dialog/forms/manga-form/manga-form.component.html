@@ -1,0 +1,131 @@
+<div class="form-container">
+  <div class="premium-form-grid">
+    <div class="form-card full-width primary-fields">
+      <div class="form-row">
+        <div class="field-item grow">
+          <label>Status</label>
+          <div class="custom-select-wrapper">
+            <select class="premium-select" [value]="selectedCategoryId()" (change)="selectedCategoryId.set(+$any($event.target).value)">
+              @for (category of categories(); track category.id) { <option [value]="category.supabaseId">{{ category.name }}</option> }
+            </select>
+          </div>
+        </div>
+        <div class="field-item">
+          <label>Score (0-11)</label>
+          <app-number-input [value]="score()" [min]="0" [max]="11" (valueChange)="score.set($event)"></app-number-input>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card full-width">
+      <div class="field-item spacing-bottom">
+        <label>Title *</label>
+        <input type="text" class="premium-input" [value]="title()" (input)="title.set($any($event.target).value)" placeholder="Enter manga title..." />
+      </div>
+
+      <div class="form-row">
+        <div class="field-item grow">
+          <label>Chapters Read</label>
+          <div class="progress-input-group">
+            <app-number-input [value]="progressCurrent()" [min]="0" [max]="progressTotal() > 0 ? progressTotal() : undefined" (valueChange)="progressCurrent.set($event)"></app-number-input>
+            @if (progressTotal() > 0 && progressCurrent() < progressTotal()) {
+              <button class="complete-btn-action" (click)="markAsComplete()" title="Finish"><lucide-icon [img]="CheckCircleIcon" [size]="18"></lucide-icon></button>
+            }
+          </div>
+        </div>
+        <div class="field-item grow">
+          <label>Total Chapters</label>
+          <app-number-input [value]="progressTotal()" [min]="0" (valueChange)="progressTotal.set($event)"></app-number-input>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card full-width">
+      <h4 class="card-section-title">Visuals</h4>
+      <div class="field-item spacing-bottom"><label>Cover Image URL</label><input type="text" class="premium-input" [value]="coverImage()" (input)="coverImage.set($any($event.target).value)" /></div>
+      <div class="field-item"><label>Banner Image URL</label><input type="text" class="premium-input" [value]="bannerImage()" (input)="bannerImage.set($any($event.target).value)" /></div>
+    </div>
+
+    <div class="form-card full-width">
+      <h4 class="card-section-title">Details</h4>
+      <div class="form-grid-inner">
+        <div class="field-item"><label>Release Year</label><app-number-input [value]="releaseYear() || 0" (valueChange)="releaseYear.set($event || undefined)"></app-number-input></div>
+        <div class="field-item full"><label>Authors</label><app-tag-input [tags]="studios()" (tagsChange)="studios.set($event)"></app-tag-input></div>
+        <div class="field-item full"><label>Genres</label><app-tag-input [tags]="genres()" (tagsChange)="genres.set($event)"></app-tag-input></div>
+      </div>
+    </div>
+
+    <div class="form-card full-width">
+      <h4 class="card-section-title">Timeline & Links</h4>
+      <div class="field-item spacing-bottom">
+        <div class="meta-header">
+          <label>Read Logs</label>
+          <button class="btn-premium-toggle small" (click)="addLog()">
+            <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon>
+            Add Log
+          </button>
+        </div>
+        
+        <div class="logs-list">
+          @for (log of logs(); track $index; let i = $index) {
+            <div class="log-item">
+              <div class="log-dates">
+                <div class="date-input-group">
+                  <span class="date-label">Start</span>
+                  <div class="date-picker-trigger" (click)="activeLogPicker.set({index: i, field: 'startDate'})">
+                    {{ (log.startDate | date:'MMM d, y') || 'Set Start' }}
+                  </div>
+                </div>
+                <div class="date-input-group">
+                  <span class="date-label">End</span>
+                  <div class="date-picker-trigger" (click)="activeLogPicker.set({index: i, field: 'endDate'})">
+                    {{ (log.endDate | date:'MMM d, y') || 'Set End' }}
+                  </div>
+                </div>
+              </div>
+              <button class="btn-remove-log" (click)="removeLog(i)" title="Remove Log">
+                <lucide-icon [img]="XIcon" [size]="14"></lucide-icon>
+              </button>
+              
+              @if (activeLogPicker()?.index === i) {
+                <div class="log-date-picker-popover">
+                  <app-date-picker 
+                    [selectedDate]="$any((activeLogPicker()?.field === 'startDate' ? log.startDate : log.endDate) || today)" 
+                    (dateChange)="updateLogDate(i, activeLogPicker()!.field, $event); activeLogPicker.set(null)" 
+                    (close)="activeLogPicker.set(null)">
+                  </app-date-picker>
+                </div>
+              }
+            </div>
+          }
+          @if (logs().length === 0) {
+            <div class="empty-logs">No logs recorded yet</div>
+          }
+        </div>
+      </div>
+
+      <div class="field-item">
+        <label>Read Sources</label>
+        <div class="action-row">
+          <select class="premium-select" [ngModel]="newLinkSourceId()" (ngModelChange)="newLinkSourceId.set(+$event || null)">
+            <option [ngValue]="null">Source</option>
+            @for (source of sources(); track source.id) { <option [value]="source.id">{{ source.name }}</option> }
+          </select>
+          <input type="text" class="premium-input grow" placeholder="URL" [ngModel]="newLinkUrl()" (ngModelChange)="newLinkUrl.set($event)" />
+          <button class="btn-add-circle" (click)="addLink()"><lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon></button>
+        </div>
+        <div class="chip-container">
+          @for (link of sourceLinks(); track $index) {
+            <div class="source-chip"><span class="badge">{{ getLinkSourceName(link.sourceId) }}</span><a [href]="link.url" target="_blank">Read</a><button (click)="removeLink($index)"><lucide-icon [img]="XIcon" [size]="12"></lucide-icon></button></div>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="form-card full-width"><label>Notes</label><textarea class="premium-textarea" rows="4" [value]="notes()" (input)="notes.set($any($event.target).value)"></textarea></div>
+  </div>
+
+  <div class="form-actions-fixed">
+    <button class="footer-btn secondary" (click)="cancel.emit()">Cancel</button>
+    <button class="footer-btn primary" (click)="submit()" [disabled]="isSaving() || !title().trim()">Save Manga</button>
+  </div>
+</div>

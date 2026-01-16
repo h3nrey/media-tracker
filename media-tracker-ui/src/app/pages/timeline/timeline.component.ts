@@ -115,26 +115,26 @@ export class TimelineComponent implements OnInit {
     const seenInYear = new Map<number, Set<string>>();
 
     this.allAnime().forEach(anime => {
-      if (!anime.watchDates || anime.watchDates.length === 0) return;
+      // if (!anime.watchDates || anime.watchDates.length === 0) return;
 
-      anime.watchDates.forEach(dateValue => {
-        const date = new Date(dateValue);
-        if (isNaN(date.getTime())) return;
+      // anime.watchDates.forEach((dateValue:any) => {
+      //   const date = new Date(dateValue);
+      //   if (isNaN(date.getTime())) return;
         
-        const year = date.getFullYear();
-        if (year < 1900) return;
+      //   const year = date.getFullYear();
+      //   if (year < 1900) return;
 
-        if (!groups.has(year)) {
-          groups.set(year, []);
-          seenInYear.set(year, new Set());
-        }
+      //   if (!groups.has(year)) {
+      //     groups.set(year, []);
+      //     seenInYear.set(year, new Set());
+      //   }
 
-        const uniqueKey = anime.malId ? `mal-${anime.malId}` : (anime.id ? `id-${anime.id}` : anime.title);
-        if (seenInYear.get(year)!.has(uniqueKey)) return;
-        seenInYear.get(year)!.add(uniqueKey);
+      //   const uniqueKey = anime.malId ? `mal-${anime.malId}` : (anime.id ? `id-${anime.id}` : anime.title);
+      //   if (seenInYear.get(year)!.has(uniqueKey)) return;
+      //   seenInYear.get(year)!.add(uniqueKey);
 
-        groups.get(year)!.push(anime);
-      });
+      //   groups.get(year)!.push(anime);
+      // });
     });
 
     return Array.from(groups.entries())
@@ -147,7 +147,7 @@ export class TimelineComponent implements OnInit {
 
   ngOnInit() {
     this.animeService.getAllAnime$().subscribe(anime => {
-      this.allAnime.set(anime);
+      // this.allAnime.set(anime);
       setTimeout(() => this.updateActiveYear(), 100);
     });
 

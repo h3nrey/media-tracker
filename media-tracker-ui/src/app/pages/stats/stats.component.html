@@ -242,7 +242,7 @@
             <div class="watched-overlay">
               <h3>{{ anime.title }}</h3>
               <div class="watched-info">
-                <span class="episodes">{{ anime.episodesWatched }}/{{ anime.totalEpisodes || '?' }} eps</span>
+                <span class="episodes">{{ anime.progressCurrent }}/{{ anime.progressTotal || '?' }} eps</span>
                 @if (anime.score > 0) {
                   <span class="score">
                     <lucide-icon [img]="StarIcon" [size]="12"></lucide-icon>

@@ -68,8 +68,29 @@
           </div>
       </div>
 
+      <div class="divider"></div>
+
+      <!-- View Mode Toggle -->
+      <div class="view-mode-toggle">
+        <button 
+          class="view-btn" 
+          [class.active]="viewMode() === 'kanban'"
+          (click)="setViewMode('kanban')"
+          appTooltip="Quadro">
+          <lucide-icon [img]="LayoutGridIcon" [size]="18"></lucide-icon>
+        </button>
+        <button 
+          class="view-btn" 
+          [class.active]="viewMode() === 'list'"
+          (click)="setViewMode('list')"
+          appTooltip="Lista">
+          <lucide-icon [img]="ListIcon" [size]="18"></lucide-icon>
+        </button>
+      </div>
+
       @if (hasActiveFilters()) {
-        <button class="clear-all-btn" (click)="clearAllFilters()">
+        <div class="divider"></div>
+        <button class="clear-all-btn" (click)="clearAllFilters()" appTooltip="Limpar Filtros">
            <lucide-icon [img]="FunnelXIcon" [size]="18"></lucide-icon>
         </button>
       }
