@@ -14,6 +14,8 @@ import { MetadataSyncDialogComponent } from './components/metadata-sync-dialog/m
 import { ThemeSettingsDialogComponent } from './components/theme-settings-dialog/theme-settings-dialog.component';
 import { ToastComponent } from './components/ui/toast/toast.component';
 import { AlertComponent } from './components/ui/alert/alert.component';
+import { ShortcutsDialogComponent } from './components/shortcuts-dialog/shortcuts-dialog.component';
+import { ShortcutService } from './services/shortcut.service';
 
 @Component({
   selector: 'app-root',
@@ -29,7 +31,8 @@ import { AlertComponent } from './components/ui/alert/alert.component';
     MetadataSyncDialogComponent,
     ThemeSettingsDialogComponent,
     ToastComponent,
-    AlertComponent
+    AlertComponent,
+    ShortcutsDialogComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
@@ -39,6 +42,7 @@ export class App implements OnInit {
   private categoryService = inject(CategoryService);
   private syncService = inject(SyncService);
   private dialogService = inject(DialogService);
+  private shortcutService = inject(ShortcutService);
 
   @ViewChild(ManageCategoriesDialogComponent) manageCategoriesDialog!: ManageCategoriesDialogComponent;
   @ViewChild(ManageSourcesDialogComponent) manageSourcesDialog!: ManageSourcesDialogComponent;

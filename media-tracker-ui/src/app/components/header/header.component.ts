@@ -1,8 +1,10 @@
-import { Component, Output, EventEmitter, signal, HostListener } from '@angular/core';
+import { Component, Output, EventEmitter, signal, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Plus, Monitor, Layers, FileUp, RefreshCw, History, Settings, ChevronDown, Package, Sparkles, Film, BarChart3, PlusCircle } from 'lucide-angular';
+import { LucideAngularModule, Plus, Monitor, Layers, FileUp, RefreshCw, History, Settings, ChevronDown, Package, Sparkles, Film, BarChart3, PlusCircle, Keyboard } from 'lucide-angular';
 import { MediaTypeSelectorComponent } from '../media-type-selector/media-type-selector.component';
+
+import { ShortcutService } from '../../services/shortcut.service';
 
 @Component({
   selector: 'app-header',
@@ -12,6 +14,7 @@ import { MediaTypeSelectorComponent } from '../media-type-selector/media-type-se
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent {
+  shortcutService = inject(ShortcutService);
   isScrolled = signal(false);
 
   @HostListener('window:scroll', [])
@@ -40,6 +43,7 @@ export class HeaderComponent {
   readonly SparklesIcon = Sparkles;
   readonly FilmIcon = Film;
   readonly BarChartIcon = BarChart3;
+  readonly KeyboardIcon = Keyboard;
 
   toogleTools() {
     this.showToolsDropdown.update(v => !v);

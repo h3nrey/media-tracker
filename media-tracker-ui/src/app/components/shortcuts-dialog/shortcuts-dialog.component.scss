@@ -1,0 +1,256 @@
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.dialog-container {
+  width: 100%;
+  max-width: 600px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--app-border);
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    lucide-icon {
+      color: var(--app-primary);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--app-text-primary);
+    }
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: var(--app-text-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--app-surface-light);
+      color: var(--app-text-primary);
+    }
+  }
+}
+
+.dialog-content {
+  padding: 1.5rem;
+  max-height: 70vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--app-border);
+    border-radius: 10px;
+  }
+}
+
+.shortcut-section {
+  .section-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--app-text-muted);
+    margin: 0 0 1rem 0;
+    font-weight: 700;
+  }
+}
+
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--app-surface-light);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  transition: all 0.2s;
+
+  &.recording {
+    border-color: var(--app-primary);
+    background: rgba(100, 246, 92, 0.05);
+    box-shadow: 0 0 15px rgba(100, 246, 92, 0.1);
+  }
+
+  &:hover:not(.recording) {
+    border-color: var(--app-primary);
+    transform: translateX(4px);
+
+    .edit-btn {
+      opacity: 1;
+    }
+  }
+
+  .shortcut-keys {
+    display: flex;
+    gap: 0.4rem;
+    min-width: 120px;
+
+    .recording-prompt {
+      font-size: 0.8rem;
+      color: var(--app-primary);
+      font-weight: 600;
+      font-style: italic;
+      animation: pulse 1.5s infinite;
+    }
+
+    kbd {
+      padding: 0.4rem 0.6rem;
+      background: var(--app-bg);
+      border: 1px solid var(--app-border-light);
+      border-radius: 6px;
+      color: var(--app-text-primary);
+      font-family: monospace;
+      font-size: 0.85rem;
+      box-shadow: 0 2px 0 var(--app-border);
+      min-width: 2rem;
+      text-align: center;
+      text-transform: capitalize;
+    }
+  }
+
+  .shortcut-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    flex: 1;
+
+    .shortcut-label {
+      font-weight: 600;
+      color: var(--app-text-primary);
+      font-size: 0.95rem;
+    }
+
+    .shortcut-desc {
+      font-size: 0.8rem;
+      color: var(--app-text-muted);
+    }
+  }
+
+  .shortcut-actions {
+    display: flex;
+    gap: 0.5rem;
+
+    .edit-btn {
+      opacity: 0;
+      background: none;
+      border: 1px solid var(--app-border);
+      color: var(--app-text-muted);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      transition: all 0.2s;
+
+      &:hover {
+        background: var(--app-surface-hover);
+        color: var(--app-primary);
+        border-color: var(--app-primary);
+      }
+    }
+
+    .action-btn {
+      background: none;
+      border: 1px solid var(--app-border);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      transition: all 0.2s;
+
+      &.save {
+        color: var(--app-primary);
+        &:hover:not(:disabled) {
+          background: rgba(100, 246, 92, 0.1);
+          border-color: var(--app-primary);
+        }
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+
+      &.cancel {
+        color: var(--app-danger);
+        &:hover {
+          background: rgba(239, 68, 68, 0.1);
+          border-color: var(--app-danger);
+        }
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.dialog-footer {
+  padding: 1.25rem;
+  background: var(--app-bg);
+  border-top: 1px solid var(--app-border);
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--app-text-muted);
+  }
+
+  code {
+    background: var(--app-surface-light);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: monospace;
+    color: var(--app-primary);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
