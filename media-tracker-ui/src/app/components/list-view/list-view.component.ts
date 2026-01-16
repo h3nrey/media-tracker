@@ -13,7 +13,7 @@ import { SelectComponent } from '../ui/select/select';
 @Component({
   selector: 'app-list-view',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, SelectComponent],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss'
 })

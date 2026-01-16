@@ -16,7 +16,6 @@ import { ToastComponent } from './components/ui/toast/toast.component';
 import { AlertComponent } from './components/ui/alert/alert.component';
 import { ShortcutsDialogComponent } from './components/shortcuts-dialog/shortcuts-dialog.component';
 import { ShortcutService } from './services/shortcut.service';
-
 @Component({
   selector: 'app-root',
   standalone: true,

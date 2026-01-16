@@ -6,7 +6,7 @@ import { LucideAngularModule, Home, Search, Ghost } from 'lucide-angular';
 @Component({
   selector: 'app-not-found',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './not-found.component.html',
   styleUrl: './not-found.component.scss'
 })

@@ -20,7 +20,6 @@ import { BoardFiltersComponent } from '../../components/board-filters/board-filt
     CommonModule, 
     KanbanBoardComponent,
     ListViewComponent,
-    MobileLibraryComponent,
     LucideAngularModule,
     BoardFiltersComponent
   ],

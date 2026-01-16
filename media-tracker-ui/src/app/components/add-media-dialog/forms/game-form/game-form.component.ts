@@ -17,7 +17,7 @@ import { MediaJournalComponent } from '../shared/media-journal/media-journal';
 @Component({
   selector: 'app-game-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, DatePickerComponent, StarRatingInputComponent, SelectComponent, MediaJournalComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, StarRatingInputComponent, SelectComponent, MediaJournalComponent],
   templateUrl: './game-form.component.html',
   styleUrl: './game-form.component.scss'
 })

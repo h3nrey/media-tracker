@@ -4,7 +4,7 @@
     @if (currentFeatured; as featured) {
       <div class="hero-backdrop" 
            [class.transitioning]="isTransitioning()"
-           [style.background-image]="'url(' + (featured.bannerImage || featured.images?.jpg?.large_image_url) + ')'">
+           [style.background-image]="'url(' + (featured.bannerImage || featured.images.jpg.large_image_url) + ')'">
         <div class="hero-gradient"></div>
       </div>
       
@@ -118,7 +118,7 @@
                 <div class="anime-card">
                   <div class="card-image-wrapper" (click)="viewAnimeDetails(anime)">
                     <img 
-                      [src]="anime.images?.webp?.large_image_url || anime.images?.jpg?.large_image_url" 
+                      [src]="anime.images.webp.large_image_url || anime.images.jpg.large_image_url" 
                       [alt]="anime.title"
                       class="card-image">
                     
