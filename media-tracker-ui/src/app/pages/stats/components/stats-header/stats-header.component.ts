@@ -1,7 +1,7 @@
 import { Component, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SelectComponent } from '../../../../components/ui/select/select';
-import { Anime } from '../../../../models/anime.model';
+import { MediaItem } from '../../../../models/media-type.model';
 
 @Component({
   selector: 'app-stats-header',
@@ -13,13 +13,12 @@ import { Anime } from '../../../../models/anime.model';
 export class StatsHeaderComponent {
   selectedYear = input.required<string>();
   yearOptions = input.required<{value: string, label: string}[]>();
-  completedMedia = input.required<Anime[]>();
+  completedMedia = input.required<MediaItem[]>();
   
   yearChange = output<string>();
 
   backgroundImages = computed(() => {
     const completed = this.completedMedia();
-    
     const withImages = completed.filter(a => a.coverImage && a.coverImage.trim() !== '');
     
     const shuffled = [...withImages].sort(() => Math.random() - 0.5);

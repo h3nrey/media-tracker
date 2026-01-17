@@ -1,34 +1,47 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AnimeService } from '../../services/anime.service';
+import { MediaService } from '../../services/media.service';
+import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { CategoryService } from '../../services/status.service';
+import { MediaItem, MediaType } from '../../models/media-type.model';
 import { Anime } from '../../models/anime.model';
 import { Category } from '../../models/status.model';
 import { LucideAngularModule, TrendingUp, Clock, Star, Calendar, BarChart3, Eye } from 'lucide-angular';
 import { SelectComponent } from '../../components/ui/select/select';
 import { ScrollToTopComponent } from '../../components/ui/scroll-to-top/scroll-to-top.component';
 import { StatsHeaderComponent } from './components/stats-header/stats-header.component';
+import { StatsSummaryCardsComponent } from './components/stats-summary-cards/stats-summary-cards.component';
 
 interface YearStats {
-  totalAnime: number;
-  totalEpisodes: number;
-  avgScore: number;
+  totalStarted: number;
   totalCompleted: number;
+  totalEpisodes: number;
+  totalTime: number;
+  totalAnime: number;
+  avgScore: number;
   favoriteGenres: { name: string; count: number }[];
   monthlyActivity: { month: string; count: number }[];
-  topRated: Anime[];
-  recentlyCompleted: Anime[];
+  topRated: MediaItem[];
+  recentlyCompleted: MediaItem[];
 }
 
 @Component({
   selector: 'app-stats',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, SelectComponent, ScrollToTopComponent, StatsHeaderComponent],
+  imports: [
+    CommonModule, 
+    LucideAngularModule, 
+    SelectComponent, 
+    ScrollToTopComponent, 
+    StatsHeaderComponent,
+    StatsSummaryCardsComponent
+  ],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss'
 })
 export class StatsComponent {
-  private animeService = inject(AnimeService);
+  private mediaService = inject(MediaService);
+  private mediaTypeState = inject(MediaTypeStateService);
   private categoryService = inject(CategoryService);
 
   // Icons
@@ -41,19 +54,30 @@ export class StatsComponent {
 
   selectedYear = signal<string>('all');
   yearOptions = signal<{value: string, label: string}[]>([]);
-  allAnime = signal<Anime[]>([]);
+  allMedia = signal<MediaItem[]>([]);
   categories = signal<Category[]>([]);
+  currentMediaType = signal<number | null>(null);
 
   stats = computed(() => this.calculateStats());
 
-  // Get completed anime for header background
-  completedAnime = computed(() => {
-    return this.allAnime();
+  completedMediaList = computed(() => {
+    const year = this.selectedYear();
+    const yearNum = year === 'all' ? undefined : parseInt(year);
+    return this.mediaService.getCompletedMedia(this.allMedia(), yearNum);
   });
 
   ngOnInit() {
     this.initializeYearOptions();
-    this.loadData();
+    
+    // Subscribe to media type changes
+    this.mediaTypeState.getSelectedMediaType$().subscribe(typeId => {
+      this.currentMediaType.set(typeId);
+      this.loadData(typeId);
+    });
+
+    this.categoryService.getAllCategories$().subscribe(cats => {
+      this.categories.set(cats);
+    });
   }
 
   initializeYearOptions() {
@@ -69,13 +93,9 @@ export class StatsComponent {
     this.yearOptions.set(years);
   }
 
-  loadData() {
-    this.animeService.getAllAnime$().subscribe(anime => {
-      this.allAnime.set(anime);
-    });
-
-    this.categoryService.getAllCategories$().subscribe(cats => {
-      this.categories.set(cats);
+  loadData(mediaTypeId: number | null) {
+    this.mediaService.getAllMedia$(mediaTypeId).subscribe(media => {
+      this.allMedia.set(media);
     });
   }
 
@@ -85,38 +105,50 @@ export class StatsComponent {
 
   calculateStats(): YearStats {
     const year = this.selectedYear();
-    let filteredAnime = this.allAnime();
+    const mediaType = this.currentMediaType();
+    let filteredMedia = this.allMedia();
 
-    // Filter by year if not "all"
+    // Use service for filtering
     if (year !== 'all') {
-      const yearNum = parseInt(year);
-      filteredAnime = filteredAnime.filter(anime => {
-        // Filter by release year or year added to library
-        return anime.releaseYear === yearNum;
-      });
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
     }
 
-    // Calculate total episodes watched
-    const totalEpisodes = filteredAnime.reduce((sum, anime) => 
-      sum + (anime.progressCurrent || 0), 0
+    // Calculate total episodes/progress watched
+    const totalProgress = filteredMedia.reduce((sum, item) => 
+      sum + (item.progressCurrent || 0), 0
     );
 
+    // Calculate total time
+    let totalTime = 0;
+    if (mediaType === MediaType.ANIME) {
+      // Assuming 24 mins per episode average for Anime
+      totalTime = Math.round((totalProgress * 24) / 60);
+    } else if (mediaType === MediaType.GAME) {
+      // For games, progressCurrent is usually hours
+      totalTime = Math.round(totalProgress);
+    } else {
+      // Default fallback
+      totalTime = Math.round(totalProgress);
+    }
+
+    // Calculate total started (at least 1 unit of progress)
+    const totalStarted = filteredMedia.filter(a => (a.progressCurrent || 0) > 0).length;
+
     // Calculate average score
-    const scoredAnime = filteredAnime.filter(a => a.score > 0);
-    const avgScore = scoredAnime.length > 0
-      ? scoredAnime.reduce((sum, a) => sum + a.score, 0) / scoredAnime.length
+    const scoredMedia = filteredMedia.filter(a => a.score > 0);
+    const avgScore = scoredMedia.length > 0
+      ? scoredMedia.reduce((sum, a) => sum + a.score, 0) / scoredMedia.length
       : 0;
 
-    // Get completed category
-    const completedCategory = this.categories().find(c => c.name === 'Completed');
-    const totalCompleted = completedCategory 
-      ? filteredAnime.filter(a => a.statusId === completedCategory.id).length
-      : 0;
+    // Get completed media specifically finished in this year
+    const yearNum = year === 'all' ? undefined : parseInt(year);
+    const completedMedia = this.mediaService.getCompletedMedia(this.allMedia(), yearNum);
+    const totalCompleted = completedMedia.length;
 
     // Calculate favorite genres
     const genreCount = new Map<string, number>();
-    filteredAnime.forEach(anime => {
-      anime.genres?.forEach(genre => {
+    filteredMedia.forEach(item => {
+      item.genres?.forEach(genre => {
         genreCount.set(genre, (genreCount.get(genre) || 0) + 1);
       });
     });
@@ -127,19 +159,21 @@ export class StatsComponent {
       .slice(0, 10);
 
     // Top rated
-    const topRated = [...filteredAnime]
+    const topRated = [...filteredMedia]
       .filter(a => a.score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, 6);
 
     // Recently completed
-    const recentlyCompleted = completedCategory
-      ? [...filteredAnime]
-          .filter(a => a.statusId === completedCategory.id)
-          .slice(0, 6)
-      : [];
+    const recentlyCompleted = [...completedMedia]
+      .sort((a, b) => {
+        const dateA = new Date(a.endDate || 0).getTime();
+        const dateB = new Date(b.endDate || 0).getTime();
+        return dateB - dateA;
+      })
+      .slice(0, 6);
 
-    // Monthly activity (placeholder - would need dates in anime model)
+    // Monthly activity (placeholder)
     const monthlyActivity = [
       { month: 'Jan', count: Math.floor(Math.random() * 20) },
       { month: 'Feb', count: Math.floor(Math.random() * 20) },
@@ -156,10 +190,12 @@ export class StatsComponent {
     ];
 
     return {
-      totalAnime: filteredAnime.length,
-      totalEpisodes,
-      avgScore: Math.round(avgScore * 10) / 10,
+      totalStarted,
       totalCompleted,
+      totalEpisodes: totalProgress,
+      totalTime,
+      totalAnime: filteredMedia.length,
+      avgScore: Math.round(avgScore * 10) / 10,
       favoriteGenres,
       monthlyActivity,
       topRated,
@@ -167,42 +203,30 @@ export class StatsComponent {
     };
   }
 
-  getStudioStats() {
+  getProducerStats() {
     const year = this.selectedYear();
-    let filteredAnime = this.allAnime();
+    let filteredMedia = this.allMedia();
 
     if (year !== 'all') {
-      const yearNum = parseInt(year);
-      filteredAnime = filteredAnime.filter(a => a.releaseYear === yearNum);
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
     }
 
-    // Count anime by studio
-    const studioCount = new Map<string, number>();
-    filteredAnime.forEach(anime => {
-      anime.studios?.forEach(studio => {
-        studioCount.set(studio, (studioCount.get(studio) || 0) + 1);
+    // Count media by producer (studio/developer)
+    const producerCount = new Map<string, number>();
+    filteredMedia.forEach(item => {
+      item.studios?.forEach(studio => {
+        producerCount.set(studio, (producerCount.get(studio) || 0) + 1);
       });
     });
 
-    return Array.from(studioCount.entries())
+    return Array.from(producerCount.entries())
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 15);
   }
 
-  getAllWatchedAnime(): Anime[] {
-    const year = this.selectedYear();
-    let filteredAnime = this.allAnime();
-
-    if (year !== 'all') {
-      const yearNum = parseInt(year);
-      filteredAnime = filteredAnime.filter(a => a.releaseYear === yearNum);
-    }
-
-    // Return all anime with at least 1 episode watched, sorted by episodes watched
-    return filteredAnime
-      .filter(a => (a.progressCurrent || 0) > 0)
-      .sort((a, b) => (b.progressCurrent || 0) - (a.progressTotal || 0));
+  getAllWatchedMedia(): MediaItem[] {
+    return this.completedMediaList();
   }
 
   getCompletionPercentage(): number {
@@ -218,16 +242,15 @@ export class StatsComponent {
 
   getCategoryStats() {
     const year = this.selectedYear();
-    let filteredAnime = this.allAnime();
+    let filteredMedia = this.allMedia();
 
     if (year !== 'all') {
-      const yearNum = parseInt(year);
-      filteredAnime = filteredAnime.filter(a => a.releaseYear === yearNum);
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
     }
 
     return this.categories().map(cat => ({
       name: cat.name,
-      count: filteredAnime.filter(a => a.statusId === cat.id).length,
+      count: filteredMedia.filter(a => a.statusId === cat.id).length,
       color: this.getCategoryColor(cat.name)
     }));
   }

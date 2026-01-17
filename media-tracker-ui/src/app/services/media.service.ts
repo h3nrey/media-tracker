@@ -39,14 +39,24 @@ export class MediaService {
   }
 
   getAllMedia$(mediaTypeId?: number | null): Observable<MediaItem[]> {
-    return from(liveQuery(() => {
+    return from(liveQuery(async () => {
+      let items;
       if (mediaTypeId) {
-        return db.mediaItems.where('mediaTypeId').equals(mediaTypeId).toArray();
+        items = await db.mediaItems.where('mediaTypeId').equals(mediaTypeId).toArray();
+      } else {
+        items = await db.mediaItems.toArray();
       }
-      return db.mediaItems.toArray();
-    })).pipe(
-      map(list => list.filter(m => !m.isDeleted))
-    );
+      
+      const filtered = items.filter(m => !m.isDeleted);
+      
+      return Promise.all(filtered.map(async item => {
+        const logs = await db.mediaLogs.where('mediaItemId').equals(item.id!).toArray();
+        return {
+          ...item,
+          logs: logs.filter(l => !l.isDeleted)
+        };
+      }));
+    }));
   }
 
   async getAllMedia(mediaTypeId?: number | null): Promise<MediaItem[]> {
@@ -56,7 +66,16 @@ export class MediaService {
     } else {
       items = await db.mediaItems.toArray();
     }
-    return items.filter(m => !m.isDeleted);
+    
+    const filtered = items.filter(m => !m.isDeleted);
+    
+    return Promise.all(filtered.map(async item => {
+      const logs = await db.mediaLogs.where('mediaItemId').equals(item.id!).toArray();
+      return {
+        ...item,
+        logs: logs.filter(l => !l.isDeleted)
+      };
+    }));
   }
 
   getMediaByStatus$(statusId: number, mediaTypeId?: number | null): Observable<MediaItem[]> {
@@ -66,10 +85,17 @@ export class MediaService {
       if (mediaTypeId) {
         items = items.filter(m => m.mediaTypeId === mediaTypeId);
       }
-      return items;
-    })).pipe(
-      map(list => list.filter(m => !m.isDeleted))
-    );
+      
+      const filtered = items.filter(m => !m.isDeleted);
+      
+      return Promise.all(filtered.map(async item => {
+        const logs = await db.mediaLogs.where('mediaItemId').equals(item.id!).toArray();
+        return {
+          ...item,
+          logs: logs.filter(l => !l.isDeleted)
+        };
+      }));
+    }));
   }
 
   getMediaGroupedByCategory$(categories: Category[], mediaTypeId?: number | null): Observable<MediaByCategory[]> {
@@ -115,15 +141,19 @@ export class MediaService {
   }
 
   async getMediaBySupabaseId(supabaseId: number): Promise<MediaItem | undefined> {
-    return await db.mediaItems.where('supabaseId').equals(supabaseId).first();
+    const item = await db.mediaItems.where('supabaseId').equals(supabaseId).first();
+    if (!item) return undefined;
+    return this.getMediaById(item.id!);
   }
 
   async getMediaByExternalId(externalId: number, externalApi: string): Promise<MediaItem | undefined> {
-    return await db.mediaItems
+    const item = await db.mediaItems
       .where('externalId')
       .equals(externalId)
       .and(item => item.externalApi === externalApi && !item.isDeleted)
       .first();
+    if (!item) return undefined;
+    return this.getMediaById(item.id!);
   }
 
 
@@ -297,6 +327,38 @@ export class MediaService {
     }
 
     return result;
+  }
+
+  getCompletedMedia(list: MediaItem[], year?: number): MediaItem[] {
+    const getEffectiveCompletionDate = (item: MediaItem): Date | null => {
+      if (item.endDate) {
+        const d = new Date(item.endDate);
+        return isNaN(d.getTime()) ? null : d;
+      }
+      if (item.logs && item.logs.length > 0) {
+        const logEndDates = item.logs
+          .filter(l => !l.isDeleted && l.endDate)
+          .map(l => new Date(l.endDate!))
+          .filter(d => !isNaN(d.getTime()));
+        if (logEndDates.length > 0) {
+          return new Date(Math.max(...logEndDates.map(d => d.getTime())));
+        }
+      }
+      return null;
+    };
+
+    const completedWithDates = (list || [])
+      .map(item => ({ item, date: getEffectiveCompletionDate(item) }))
+      .filter(({ date }) => {
+        if (!date) return false;
+        if (!year) return true;
+        return date.getFullYear() === year;
+      });
+
+    // Sort descending by completion date
+    completedWithDates.sort((a, b) => b.date!.getTime() - a.date!.getTime());
+
+    return completedWithDates.map(c => c.item);
   }
 
   async importMediaFromApi(apiItem: any): Promise<number> {
