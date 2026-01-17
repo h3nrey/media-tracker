@@ -25,6 +25,34 @@
   }
 }
 
+.header-branding {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+
+  .divider {
+    width: 1px;
+    height: 24px;
+    background: var(--app-border);
+  }
+}
+
+.logo-link {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--app-primary);
+  text-decoration: none;
+  cursor: pointer;
+  letter-spacing: -0.04em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 4px 0;
+
+  &:hover {
+    text-shadow: 0 0 15px var(--app-primary-glow);
+    transform: scale(1.02);
+  }
+}
+
 .header-actions {
   display: flex;
   align-items: center;

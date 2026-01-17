@@ -1,5 +1,9 @@
 <header class="app-header" [class.scrolled]="isScrolled()">
-  <app-media-type-selector></app-media-type-selector>
+  <div class="header-branding">
+    <a class="logo-link" routerLink="/">Tracker</a>
+    <div class="divider"></div>
+    <app-media-type-selector></app-media-type-selector>
+  </div>
   <div class="header-actions">
     <a class="nav-btn" routerLink="/timeline" title="Yearly Timeline">
       <lucide-icon [name]="HistoryIcon" [size]="18"></lucide-icon>
