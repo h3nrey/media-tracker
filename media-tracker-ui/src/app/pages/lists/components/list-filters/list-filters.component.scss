@@ -3,9 +3,18 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+  justify-content: space-between;
   background: var(--app-bg);
   border-bottom: 1px solid var(--app-border);
+  flex: 1;
   flex-wrap: wrap;
+
+  .filters-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
 
   .divider {
     width: 1px;
@@ -80,6 +89,9 @@
 }
 
 :host-context(.filters-inline) {
+  .filters-inline {
+    flex: 1
+  }
   .filters-bar {
     padding: 0;
     background: transparent;

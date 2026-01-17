@@ -23,7 +23,7 @@
 }
 
 .lists-header {
-  padding: 1rem 1.5rem 1.5rem;
+  padding-bottom: 1rem;
   background: transparent;
   border-bottom: 1px solid var(--app-border);
 
@@ -78,6 +78,12 @@
   }
 }
 
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .create-list-btn {
   display: flex;
   align-items: center;
@@ -115,6 +121,10 @@
     background: var(--app-border);
     border-radius: 10px;
   }
+}
+
+.filters-inline {
+  flex: 1;
 }
 
 .lists-grid {

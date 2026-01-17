@@ -1,25 +1,27 @@
 <div class="filters-bar">
-  <ui-search-bar 
-    [(query)]="searchQuery" 
-    (queryChange)="onSearchChange($event)"
-    (clear)="clearSearch()">
-  </ui-search-bar>
+  <div class="filters-wrapper">
+    <ui-search-bar 
+      [(query)]="searchQuery" 
+      (queryChange)="onSearchChange($event)"
+      (clear)="clearSearch()">
+    </ui-search-bar>
+    <div class="divider"></div>
+  
+    <ui-select 
+      [options]="getGenreOptions()"
+      [value]="currentFilters().genres"
+      (valueChange)="toggleGenre($event)"
+      placeholder="Genre">
+    </ui-select>
+  
+    <ui-select 
+      [options]="getStudioOptions()"
+      [value]="currentFilters().studios"
+      (valueChange)="toggleStudio($event)"
+      placeholder="Studio">
+    </ui-select>
+  </div>
 
-  <div class="divider"></div>
-
-  <ui-select 
-    [options]="getGenreOptions()"
-    [value]="currentFilters().genres"
-    (valueChange)="toggleGenre($event)"
-    placeholder="Genre">
-  </ui-select>
-
-  <ui-select 
-    [options]="getStudioOptions()"
-    [value]="currentFilters().studios"
-    (valueChange)="toggleStudio($event)"
-    placeholder="Studio">
-  </ui-select>
 
   <div class="divider"></div>
 

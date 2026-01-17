@@ -1,25 +1,25 @@
 <div class="lists-container" cdkDropListGroup>
-  <app-list-sidebar
-    [selectedFolderId]="(selectedFolderId$ | async)!"
-    [folders]="folders$ | async"
-    (folderSelect)="selectFolder($event)"
-  ></app-list-sidebar>
+  <div class="sidebar-container">
+    <button class="create-list-btn" (click)="openCreateListDialog()">
+      <lucide-icon [img]="PlusIcon" [size]="20"></lucide-icon>
+      <span>Nova lista</span>
+    </button>
+    <app-list-sidebar
+      [selectedFolderId]="(selectedFolderId$ | async)!"
+      [folders]="folders$ | async"
+      (folderSelect)="selectFolder($event)"
+    ></app-list-sidebar>
+  </div>
 
   <main class="content">
     <div class="content-view">
       <header class="lists-header">
         <div class="header-main">
-          <div class="header-actions">
-            <app-list-filters
-              [availableGenres]="availableGenres()"
-              [availableStudios]="availableStudios()"
-              class="filters-inline"
-            ></app-list-filters>
-            <button class="create-list-btn" (click)="openCreateListDialog()">
-              <lucide-icon [img]="PlusIcon" [size]="20"></lucide-icon>
-              <span>Create New List</span>
-            </button>
-          </div>
+          <app-list-filters
+            [availableGenres]="availableGenres()"
+            [availableStudios]="availableStudios()"
+            class="filters-inline"
+          ></app-list-filters>
         </div>
       </header>
 

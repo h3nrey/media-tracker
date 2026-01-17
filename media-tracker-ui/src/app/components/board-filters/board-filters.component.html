@@ -1,64 +1,62 @@
 <div class="board-filters-container">
   <div class="board-toolbar">
-      <!-- Search -->
-      <ui-search-bar 
-          [(query)]="searchQuery" 
-          (queryChange)="onSearchChange($event)"
-          (clear)="clearSearch()">
-      </ui-search-bar>
+      <!-- Group 1: Search & Primary Filter -->
+      <div class="toolbar-group primary">
+        <ui-search-bar 
+            [(query)]="searchQuery" 
+            (queryChange)="onSearchChange($event)"
+            (clear)="clearSearch()">
+        </ui-search-bar>
 
-      <div class="divider"></div>
-
-      <!-- Prominent Watched Year Selector -->
-      <div class="activity-year-selector">
-          <span class="selector-label">Watched in</span>
-          <ui-select 
-              [options]="getWatchedYearOptions()"
-              [value]="currentFilters().activityYear"
-              (valueChange)="toggleActivityYear($event === '' ? undefined : +$event)"
-              placeholder="All Time"
-              variant="prominent"
-              rounding="full">
-          </ui-select>
+        <div class="filter-item highlight">
+            <span class="label">Watched</span>
+            <ui-select 
+                [options]="getWatchedYearOptions()"
+                [value]="currentFilters().activityYear"
+                (valueChange)="toggleActivityYear($event === '' ? undefined : +$event)"
+                placeholder="All Time"
+                variant="prominent"
+                rounding="full">
+            </ui-select>
+        </div>
       </div>
 
-      <div class="divider"></div>
+      <!-- Group 2: Secondary Filters -->
+      <div class="toolbar-group filters">
+        <ui-select 
+            [options]="getGenreOptions()"
+            [value]="currentFilters().genres"
+            (valueChange)="toggleGenre($event)"
+            placeholder="Genre">
+        </ui-select>
 
-      <!-- Dropdowns -->
-      <ui-select 
-          [options]="getGenreOptions()"
-          [value]="currentFilters().genres"
-          (valueChange)="toggleGenre($event)"
-          placeholder="Genre">
-      </ui-select>
+        <ui-select 
+            [options]="getStudioOptions()"
+            [value]="currentFilters().studios"
+            (valueChange)="toggleStudio($event)"
+            placeholder="Studio">
+        </ui-select>
+        
+        <ui-select 
+            [options]="getReleaseYearOptions()"
+            [value]="currentFilters().year"
+            (valueChange)="selectYear(+$event)"
+            placeholder="Year">
+        </ui-select>
+      </div>
 
-      <ui-select 
-          [options]="getStudioOptions()"
-          [value]="currentFilters().studios"
-          (valueChange)="toggleStudio($event)"
-          placeholder="Studio">
-      </ui-select>
-      
-      <ui-select 
-          [options]="getReleaseYearOptions()"
-          [value]="currentFilters().year"
-          (valueChange)="selectYear(+$event)"
-          placeholder="Release Year">
-      </ui-select>
-
-      <!-- Updated Sorting UI -->
-      <div class="sort-selector">
-          <span class="selector-label">Ordernar por:</span>
+      <!-- Group 3: Actions (Sort & View) -->
+      <div class="toolbar-group actions">
           <div class="sort-wrapper">
               <ui-select 
                   [options]="getSortOptions()"
                   [value]="currentFilters().sortBy || 'updated'"
                   (valueChange)="onSortChange($event)"
-                  placeholder="Sort By"
+                  placeholder="Sort"
                   align="right">
               </ui-select>
 
-              <button class="order-toggle-btn" (click)="toggleSortOrder()" [title]="'Change to ' + (currentFilters().sortOrder === 'asc' ? 'Descending' : 'Ascending')">
+              <button class="icon-btn" (click)="toggleSortOrder()" [title]="currentFilters().sortOrder === 'asc' ? 'Ascending' : 'Descending'">
                   @if (currentFilters().sortOrder === 'asc') {
                       <lucide-icon [img]="SortAscIcon" [size]="18"></lucide-icon>
                   } @else {
@@ -66,34 +64,30 @@
                   }
               </button>
           </div>
+
+          <div class="view-mode-toggle">
+            <button 
+              class="view-btn" 
+              [class.active]="viewMode() === 'kanban'"
+              (click)="setViewMode('kanban')"
+              appTooltip="Board">
+              <lucide-icon [img]="LayoutGridIcon" [size]="18"></lucide-icon>
+            </button>
+            <button 
+              class="view-btn" 
+              [class.active]="viewMode() === 'list'"
+              (click)="setViewMode('list')"
+              appTooltip="List">
+              <lucide-icon [img]="ListIcon" [size]="18"></lucide-icon>
+            </button>
+          </div>
+
+          @if (hasActiveFilters()) {
+            <button class="clear-btn" (click)="clearAllFilters()" appTooltip="Clear Filters">
+               <lucide-icon [img]="FunnelXIcon" [size]="18"></lucide-icon>
+            </button>
+          }
       </div>
-
-      <div class="divider"></div>
-
-      <!-- View Mode Toggle -->
-      <div class="view-mode-toggle">
-        <button 
-          class="view-btn" 
-          [class.active]="viewMode() === 'kanban'"
-          (click)="setViewMode('kanban')"
-          appTooltip="Quadro">
-          <lucide-icon [img]="LayoutGridIcon" [size]="18"></lucide-icon>
-        </button>
-        <button 
-          class="view-btn" 
-          [class.active]="viewMode() === 'list'"
-          (click)="setViewMode('list')"
-          appTooltip="Lista">
-          <lucide-icon [img]="ListIcon" [size]="18"></lucide-icon>
-        </button>
-      </div>
-
-      @if (hasActiveFilters()) {
-        <div class="divider"></div>
-        <button class="clear-all-btn" (click)="clearAllFilters()" appTooltip="Limpar Filtros">
-           <lucide-icon [img]="FunnelXIcon" [size]="18"></lucide-icon>
-        </button>
-      }
   </div>
 
   @if (hasActiveFilters()) {
