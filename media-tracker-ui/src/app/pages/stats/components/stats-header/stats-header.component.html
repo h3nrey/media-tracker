@@ -1,0 +1,52 @@
+<div class="stats-header">
+  <!-- Background Mosaic with Horizontal Scroll - Two Rows -->
+  <div class="background-mosaic">
+    @if (backgroundImages().length > 0) {
+      <!-- Top Row - Scrolls Left -->
+      <div class="mosaic-row top-row">
+        <div class="mosaic-scroll scroll-left">
+          @for (image of backgroundImages(); track $index) {
+            <div class="mosaic-image" [style.backgroundImage]="'url(' + image + ')'"></div>
+          }
+          @for (image of backgroundImages(); track $index + 'dup1') {
+            <div class="mosaic-image" [style.backgroundImage]="'url(' + image + ')'"></div>
+          }
+        </div>
+      </div>
+      
+      <!-- Bottom Row - Scrolls Right -->
+      <div class="mosaic-row bottom-row">
+        <div class="mosaic-scroll scroll-right">
+          @for (image of backgroundImages(); track $index + 'row2') {
+            <div class="mosaic-image" [style.backgroundImage]="'url(' + image + ')'"></div>
+          }
+          @for (image of backgroundImages(); track $index + 'dup2') {
+            <div class="mosaic-image" [style.backgroundImage]="'url(' + image + ')'"></div>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="mosaic-fallback"></div>
+    }
+  </div>
+  
+  <!-- Overlay -->
+  <div class="header-overlay"></div>
+  
+  <!-- Content -->
+  <div class="header-content">
+    @if (selectedYear() === 'all') {
+      <h1>Todos os anos Stats</h1>
+    } @else {
+      <div class="year-badge">{{ selectedYear() }}</div>
+      <h1> RECAP </h1>
+    }
+    
+    <ui-select 
+      [options]="yearOptions()" 
+      [value]="selectedYear()"
+      (valueChange)="onYearChange($event)"
+      placeholder="Select Year">
+    </ui-select>
+  </div>
+</div>

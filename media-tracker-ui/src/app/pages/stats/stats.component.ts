@@ -7,6 +7,7 @@ import { Category } from '../../models/status.model';
 import { LucideAngularModule, TrendingUp, Clock, Star, Calendar, BarChart3, Eye } from 'lucide-angular';
 import { SelectComponent } from '../../components/ui/select/select';
 import { ScrollToTopComponent } from '../../components/ui/scroll-to-top/scroll-to-top.component';
+import { StatsHeaderComponent } from './components/stats-header/stats-header.component';
 
 interface YearStats {
   totalAnime: number;
@@ -22,7 +23,7 @@ interface YearStats {
 @Component({
   selector: 'app-stats',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, SelectComponent, ScrollToTopComponent],
+  imports: [CommonModule, LucideAngularModule, SelectComponent, ScrollToTopComponent, StatsHeaderComponent],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss'
 })
@@ -45,6 +46,11 @@ export class StatsComponent {
 
   stats = computed(() => this.calculateStats());
 
+  // Get completed anime for header background
+  completedAnime = computed(() => {
+    return this.allAnime();
+  });
+
   ngOnInit() {
     this.initializeYearOptions();
     this.loadData();
@@ -53,11 +59,11 @@ export class StatsComponent {
   initializeYearOptions() {
     const currentYear = new Date().getFullYear();
     const years: {value: string, label: string}[] = [
-      { value: 'all', label: 'All-Time Stats' }
+      { value: 'all', label: 'All-Time' }
     ];
     
-    for (let year = currentYear; year >= 2000; year--) {
-      years.push({ value: year.toString(), label: `${year} Recap` });
+    for (let year = currentYear; year >= 2014; year--) {
+      years.push({ value: year.toString(), label: `${year}` });
     }
     
     this.yearOptions.set(years);

@@ -1,21 +1,11 @@
-<div class="stats-container">
-  <!-- Header with Year Selector -->
-  <div class="stats-header">
-    @if (selectedYear() === 'all') {
-      <h1>All-Time Anime Stats</h1>
-    } @else {
-      <div class="year-badge">{{ selectedYear() }}</div>
-      <h1>Your {{ selectedYear() }} Anime Recap</h1>
-    }
-    
-    <ui-select 
-      [options]="yearOptions()" 
-      [value]="selectedYear()"
-      (valueChange)="onYearChange($event)"
-      placeholder="Select Year">
-    </ui-select>
-  </div>
+<app-stats-header
+  [selectedYear]="selectedYear()"
+  [yearOptions]="yearOptions()"
+  [completedMedia]="completedAnime()"
+  (yearChange)="onYearChange($event)">
+</app-stats-header>
 
+<div class="stats-container">
   <!-- Stats Cards -->
   <div class="stats-grid">
     <div class="stat-card">

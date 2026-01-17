@@ -50,7 +50,7 @@ export class App implements OnInit {
   @ViewChild(ThemeSettingsDialogComponent) themeSettingsDialog!: ThemeSettingsDialogComponent;
   
   async ngOnInit() {
-    await this.syncService.sync(); // Initial sync first to pull existing categories
+    await this.syncService.sync();
     await this.categoryService.seedDefaultCategories();
   }
 
