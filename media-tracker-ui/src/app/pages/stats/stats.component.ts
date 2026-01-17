@@ -6,6 +6,7 @@ import { Anime } from '../../models/anime.model';
 import { Category } from '../../models/status.model';
 import { LucideAngularModule, TrendingUp, Clock, Star, Calendar, BarChart3, Eye } from 'lucide-angular';
 import { SelectComponent } from '../../components/ui/select/select';
+import { ScrollToTopComponent } from '../../components/ui/scroll-to-top/scroll-to-top.component';
 
 interface YearStats {
   totalAnime: number;
@@ -21,7 +22,7 @@ interface YearStats {
 @Component({
   selector: 'app-stats',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, SelectComponent],
+  imports: [CommonModule, LucideAngularModule, SelectComponent, ScrollToTopComponent],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss'
 })
