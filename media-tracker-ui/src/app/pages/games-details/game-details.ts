@@ -20,6 +20,7 @@ import { GameSidebarComponent } from './components/game-sidebar/game-sidebar.com
 import { GameInfoComponent } from './components/game-info/game-info.component';
 import { GameListsComponent } from './components/game-lists/game-lists.component';
 import { GameHistoryComponent } from './components/game-history/game-history.component';
+import { MediaReviewsComponent } from '../../components/media-reviews/media-reviews.component';
 
 @Component({
   selector: 'app-games-details',
@@ -30,7 +31,8 @@ import { GameHistoryComponent } from './components/game-history/game-history.com
     GameSidebarComponent,
     GameInfoComponent,
     GameListsComponent,
-    GameHistoryComponent
+    GameHistoryComponent,
+    MediaReviewsComponent
   ],
   templateUrl: './game-details.html',
   styleUrl: './game-details.scss'

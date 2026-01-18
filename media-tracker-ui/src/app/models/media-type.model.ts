@@ -42,6 +42,7 @@ export interface MediaItem {
   progressTotal?: number;
   logs?: MediaLog[];
   screenshots?: MediaGalleryImage[];
+  reviews?: import('./review.model').MediaReview[];
   isDeleted?: boolean;
 }
 

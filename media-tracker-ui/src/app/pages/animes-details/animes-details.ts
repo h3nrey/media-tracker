@@ -17,7 +17,7 @@ import { AnimeHistoryComponent } from './components/anime-history/anime-history.
 import { AnimeLinksComponent } from './components/anime-links/anime-links.component';
 import { AnimeDetails, AnimeSidebarComponent } from './components/anime-sidebar/anime-sidebar.component';
 import { AnimeInfoComponent } from './components/anime-info/anime-info.component';
-import { AnimeReviewsComponent } from '../../components/anime-reviews/anime-reviews.component';
+import { MediaReviewsComponent } from '../../components/media-reviews/media-reviews.component';
 import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
@@ -29,7 +29,7 @@ import { LucideAngularModule } from 'lucide-angular';
     AnimeHistoryComponent,
     AnimeSidebarComponent,
     AnimeInfoComponent,
-    AnimeReviewsComponent,
+    MediaReviewsComponent,
     LucideAngularModule
   ],
   templateUrl: './animes-details.html',

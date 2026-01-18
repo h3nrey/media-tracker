@@ -98,6 +98,7 @@ export class GameFormComponent {
     this.releaseYear.set(data.releaseYear);
     this.notes.set(data.notes || '');
     this.activityDates.set(data.activityDates || []);
+    this.logs.set(data.logs || []);
     this.sourceLinks.set(data.source_links || data.sourceLinks || []);
     this.platforms.set(data.platforms || []);
     this.screenshots.set(data.screenshots || []);

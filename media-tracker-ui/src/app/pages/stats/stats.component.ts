@@ -1,10 +1,13 @@
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, effect, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MediaService } from '../../services/media.service';
+import { ReviewService } from '../../services/review.service';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { CategoryService } from '../../services/status.service';
 import { MediaItem, MediaType } from '../../models/media-type.model';
+import { MediaReview } from '../../models/review.model';
 import { Category } from '../../models/status.model';
+import { Subscription } from 'rxjs';
 import { LucideAngularModule, TrendingUp, Clock, Star, Calendar, BarChart3, Eye, Image } from 'lucide-angular';
 import { ScrollToTopComponent } from '../../components/ui/scroll-to-top/scroll-to-top.component';
 import { StatsHeaderComponent } from './components/stats-header/stats-header.component';
@@ -13,6 +16,7 @@ import { StatsDistributionComponent, CategoryStat } from './components/stats-dis
 import { StatsBarListComponent } from './components/stats-bar-list/stats-bar-list.component';
 import { StatsDiaryComponent } from './components/stats-diary/stats-diary.component';
 import { StatsGalleryComponent } from './components/stats-gallery/stats-gallery.component';
+import { StatsReviewsComponent } from './components/stats-reviews/stats-reviews.component';
 
 interface YearStats {
   totalStarted: number;
@@ -40,15 +44,17 @@ interface YearStats {
     StatsDistributionComponent,
     StatsBarListComponent,
     StatsDiaryComponent,
-    StatsGalleryComponent
+    StatsGalleryComponent,
+    StatsReviewsComponent
   ],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss'
 })
-export class StatsComponent implements OnInit {
+export class StatsComponent implements OnInit, OnDestroy {
   private mediaService = inject(MediaService);
   private mediaTypeState = inject(MediaTypeStateService);
   private categoryService = inject(CategoryService);
+  private reviewSub?: Subscription;
 
   // Icons
   readonly TrendingUpIcon = TrendingUp;
@@ -171,10 +177,16 @@ export class StatsComponent implements OnInit {
     return Math.max(...counts, 1);
   });
 
-  getAllWatchedMedia = computed(() => this.completedMediaList());
+  constructor() {
+    this.initializeYearOptions();
+  }
+
+  ngOnDestroy() {
+    this.reviewSub?.unsubscribe();
+  }
 
   ngOnInit() {
-    this.initializeYearOptions();
+    // this.initializeYearOptions(); // Moved to constructor
     
     // Subscribe to media type changes
     this.mediaTypeState.getSelectedMediaType$().subscribe(typeId => {
@@ -202,6 +214,7 @@ export class StatsComponent implements OnInit {
 
   loadData(mediaTypeId: number | null) {
     this.mediaService.getAllMedia$(mediaTypeId).subscribe(media => {
+      console.log(media);
       this.allMedia.set(media);
     });
   }
@@ -213,15 +226,10 @@ export class StatsComponent implements OnInit {
   calculateStats(): YearStats {
     const year = this.selectedYear();
     const mediaType = this.currentMediaType();
-    let filteredMedia = this.allMedia();
-
-    // Use service for filtering
-    if (year !== 'all') {
-      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
-    }
+    const filteredMedia = this.completedMediaList();
 
     // Calculate total episodes/progress watched
-    const totalProgress = filteredMedia.reduce((sum, item) => 
+    const totalProgress = filteredMedia.reduce((sum: any, item: any) => 
       sum + (item.progressCurrent || 0), 0
     );
 

@@ -13,7 +13,8 @@ import { MalService } from './mal.service';
 import { IgdbService, IGDBGame } from './igdb.service';
 import { CategoryService } from './status.service';
 import { JikanAnime } from '../models/mal-anime.model';
-import { of, catchError, combineLatest as combineLatestRxjs } from 'rxjs';
+import { ReviewService } from './review.service';
+import { of, catchError, combineLatest as combineLatestRxjs, switchMap, firstValueFrom } from 'rxjs';
 
 export interface MediaByCategory {
   category: Category;
@@ -28,6 +29,7 @@ export class MediaService {
   private malService = inject(MalService);
   private igdbService = inject(IgdbService);
   private categoryService = inject(CategoryService);
+  private reviewService = inject(ReviewService);
 
   public filterUpdate$ = new BehaviorSubject<number>(0);
   public metadataSyncRequested = signal(false);
@@ -58,7 +60,20 @@ export class MediaService {
           screenshots: screenshots.filter(s => !s.isDeleted)
         };
       }));
-    }));
+    })).pipe(
+      switchMap(items => {
+        const supabaseIds = items.map(m => m.supabaseId).filter((id): id is number => !!id);
+        if (supabaseIds.length === 0) return of(items);
+        
+        return this.reviewService.getReviewsForMediaList$(supabaseIds).pipe(
+          map(reviews => items.map(item => ({
+            ...item,
+            reviews: reviews.filter(r => r.media_item_id === item.supabaseId)
+          }))),
+          catchError(() => of(items))
+        );
+      })
+    );
   }
 
   async getAllMedia(mediaTypeId?: number | null): Promise<MediaItem[]> {
@@ -71,7 +86,7 @@ export class MediaService {
     
     const filtered = items.filter(m => !m.isDeleted);
     
-    return Promise.all(filtered.map(async item => {
+    const mediaItems = await Promise.all(filtered.map(async item => {
       const logs = await db.mediaLogs.where('mediaItemId').equals(item.id!).toArray();
       const screenshots = await db.mediaImages.where('mediaItemId').equals(item.id!).toArray();
       return {
@@ -80,6 +95,19 @@ export class MediaService {
         screenshots: screenshots.filter(s => !s.isDeleted)
       };
     }));
+
+    const supabaseIds = mediaItems.map(m => m.supabaseId).filter((id): id is number => !!id);
+    if (supabaseIds.length === 0) return mediaItems;
+
+    try {
+      const reviews = await firstValueFrom(this.reviewService.getReviewsForMediaList$(supabaseIds));
+      return mediaItems.map(item => ({
+        ...item,
+        reviews: reviews.filter(r => r.media_item_id === item.supabaseId)
+      }));
+    } catch {
+      return mediaItems;
+    }
   }
 
   getMediaByStatus$(statusId: number, mediaTypeId?: number | null): Observable<MediaItem[]> {
@@ -216,19 +244,18 @@ export class MediaService {
     });
 
     if (logs) {
-      // For simplicity, we'll replace or update logs. 
-      // If log has ID, put it (update). If not, add it.
-      for (const log of logs) {
-        if (log.id) {
-          await db.mediaLogs.update(log.id, { ...log, updatedAt: now });
-        } else {
-          await db.mediaLogs.add({ ...log, mediaItemId: id, createdAt: now, updatedAt: now });
-        }
+      // Clear existing logs and replace with the new list to handle deletions/updates cleanly
+      await db.mediaLogs.where('mediaItemId').equals(id).delete();
+      if (logs.length > 0) {
+        const logsToAdd = logs.map(log => ({
+          ...log,
+          id: undefined, // Clear local ID to allow re-insertion
+          mediaItemId: id,
+          createdAt: log.createdAt || now,
+          updatedAt: now
+        }));
+        await db.mediaLogs.bulkAdd(logsToAdd);
       }
-      
-      // Handle deletions if necessary - but for now let's just keep it simple as the user might just want to sync the array.
-      // Actually, standard behavior for this kind of implementation is often "clear and replace" if it's an array input.
-      // But Dexie logs table is separate.
     }
 
     if (screenshots) {

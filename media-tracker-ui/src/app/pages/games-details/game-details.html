@@ -37,6 +37,10 @@
               </app-game-history>
             </div>
           </div>
+
+          <div class="reviews-wrapper">
+            <app-media-reviews [supabaseId]="game()?.supabaseId"></app-media-reviews>
+          </div>
         </div>
       </div>
     </div>

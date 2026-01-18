@@ -67,8 +67,12 @@
     <app-stats-gallery
       [selectedYear]="selectedYear()"
       [mediaType]="currentMediaType()"
-      [mediaList]="allMedia()">
+      [mediaList]="completedMediaList()">
     </app-stats-gallery>
+
+    <app-stats-reviews
+      [mediaList]="completedMediaList()">
+    </app-stats-reviews>
   }
 
   <!-- Top Rated Anime -->
@@ -157,14 +161,14 @@
   </section>
 
   <!-- All Watched Media -->
-  @if (getAllWatchedMedia().length > 0) {
+  @if (completedMediaList().length > 0) {
     <section class="all-watched-section">
       <h2>
         {{ currentMediaType() === MediaType.GAME ? 'Todos os Games Jogados' : 'Todos os Anime Assistidos' }}
-        <span class="count-badge">{{ getAllWatchedMedia().length }}</span>
+        <span class="count-badge">{{ completedMediaList().length }}</span>
       </h2>
       <div class="all-watched-grid">
-        @for (item of getAllWatchedMedia(); track item.id) {
+        @for (item of completedMediaList(); track item.id) {
           <div class="watched-card">
             <img [src]="item.coverImage" [alt]="item.title">
             <div class="watched-overlay">

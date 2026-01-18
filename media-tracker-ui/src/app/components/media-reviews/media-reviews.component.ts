@@ -2,25 +2,25 @@ import { Component, input, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Star, MessageSquare, Plus, Trash2, Edit2 } from 'lucide-angular';
 import { ReviewService } from '../../services/review.service';
-import { AnimeReview } from '../../models/review.model';
+import { MediaReview } from '../../models/review.model';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-anime-reviews',
+  selector: 'app-media-reviews',
   standalone: true,
   imports: [CommonModule, LucideAngularModule, FormsModule],
-  templateUrl: './anime-reviews.component.html',
-  styleUrl: './anime-reviews.component.scss'
+  templateUrl: './media-reviews.component.html',
+  styleUrl: './media-reviews.component.scss'
 })
-export class AnimeReviewsComponent {
+export class MediaReviewsComponent {
   supabaseId = input<number | undefined>();
   private reviewService = inject(ReviewService);
   private router = inject(Router);
 
-  reviews = signal<AnimeReview[]>([]);
+  reviews = signal<MediaReview[]>([]);
   isAddingReview = signal(false);
-  editingReview = signal<AnimeReview | null>(null);
+  editingReview = signal<MediaReview | null>(null);
 
   // New review form
   newText = signal('');
@@ -40,7 +40,7 @@ export class AnimeReviewsComponent {
   }
 
   private loadReviews(id: number) {
-    this.reviewService.getReviewsByAnimeId$(id).subscribe((data: AnimeReview[]) => {
+    this.reviewService.getReviewsByMediaId$(id).subscribe((data: MediaReview[]) => {
       this.reviews.set(data);
     });
   }
@@ -68,7 +68,7 @@ export class AnimeReviewsComponent {
     if (!id) return;
 
     const reviewData = {
-      anime_id: id,
+      media_item_id: id,
       review_text: this.newText()
     };
 
@@ -87,7 +87,7 @@ export class AnimeReviewsComponent {
     }
   }
 
-  editReview(review: AnimeReview) {
+  editReview(review: MediaReview) {
     this.editingReview.set(review);
     this.newText.set(review.review_text);
     this.isAddingReview.set(true);
@@ -106,9 +106,14 @@ export class AnimeReviewsComponent {
   }
 
   openReview(id: number) {
+    // This part might need adjustment if routes change, 
+    // but for now it's fine for anime. For games, we might need a dynamic path.
+    // However, the user didn't ask for full review pages yet.
+    /*
     const animeId = this.supabaseId();
     if (animeId) {
       this.router.navigate(['/anime', animeId, 'reviews', id]);
     }
+    */
   }
 }
