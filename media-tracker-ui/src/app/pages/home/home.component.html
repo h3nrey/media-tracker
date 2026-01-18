@@ -19,8 +19,9 @@
         @fadeTransition
         class="desktop-only"
         (addAnimeToCategory)="openAddDialogWithCategory($event)"
-        (animeClick)="openAnimeDetails($event)"
+        (animeClick)="openAnimeDetails($event.media, $event.event)"
         (editAnime)="openEditAnime($event)"
+        (deleteAnime)="onDeleteMedia($event)"
       />
     }
   </div>
