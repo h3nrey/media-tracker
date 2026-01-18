@@ -17,8 +17,8 @@
   <!-- Category Distribution -->
   <app-stats-distribution
     [title]="'Status'"
-    [unitLabel]="currentMediaType() === 1 ? 'Anime' : 'Games'"
-    [stats]="getCategoryStats()"
+    [unitLabel]="currentMediaType() === MediaType.ANIME ? 'Anime' : 'Games'"
+    [stats]="categoryStats()"
     [total]="stats().totalAnime">
   </app-stats-distribution>
   
@@ -33,7 +33,7 @@
         <div class="bar-wrapper">
           <div 
             class="bar" 
-            [style.height.%]="(month.count / getMaxMonthlyCount()) * 100">
+            [style.height.%]="(month.count / maxMonthlyCount()) * 100">
           </div>
           <span class="bar-label">{{ month.month }}</span>
         </div>
@@ -50,15 +50,25 @@
       color="var(--app-primary)">
     </app-stats-bar-list>
 
-    <app-stats-bar-list
-      title="Plataformas"
-      [data]="getPlatformStats()"
-      color="var(--app-primary)">
-    </app-stats-bar-list>
+    @if (currentMediaType() === MediaType.ANIME) {
+      <app-stats-bar-list
+        title="Estúdios"
+        [data]="producerStats()"
+        color="var(--app-primary)">
+      </app-stats-bar-list>
+    }
+
+    @if (currentMediaType() !== MediaType.ANIME) {
+      <app-stats-bar-list
+        title="Plataformas"
+        [data]="platformStats()"
+        color="var(--app-primary)">
+      </app-stats-bar-list>
+    }
 
     <app-stats-bar-list
       title="Ano de Lançamento"
-      [data]="getReleaseYearStats()"
+      [data]="releaseYearStats()"
       color="var(--app-primary)">
     </app-stats-bar-list>
   </div>
@@ -126,12 +136,12 @@
             stroke-width="10"
             stroke-linecap="round"
             [attr.stroke-dasharray]="314.16"
-            [attr.stroke-dashoffset]="314.16 - (314.16 * getCompletionPercentage() / 100)"
+            [attr.stroke-dashoffset]="314.16 - (314.16 * completionPercentage() / 100)"
             transform="rotate(-90 60 60)">
           </circle>
         </svg>
         <div class="completion-text">
-          <span class="percentage">{{ getCompletionPercentage() }}%</span>
+          <span class="percentage">{{ completionPercentage() }}%</span>
           <span class="label">Complete</span>
         </div>
       </div>
@@ -148,20 +158,13 @@
     </div>
   </section>
 
-  <!-- Producer Stats -->
-  <section class="studios-section">
-    <app-stats-bar-list
-      [title]="currentMediaType() === 1 ? 'Anime por Estúdios' : 'Games por Desenvolvedora'"
-      [data]="getProducerStats()"
-      [color]="'linear-gradient(90deg, var(--app-primary) 0%, #7C3AED 100%)'">
-    </app-stats-bar-list>
-  </section>
+
 
   <!-- All Watched Media -->
   @if (getAllWatchedMedia().length > 0) {
     <section class="all-watched-section">
       <h2>
-        {{ currentMediaType() === 3 ? 'Todos os Games Jogados' : 'Todos os Anime Assistidos' }}
+        {{ currentMediaType() === MediaType.GAME ? 'Todos os Games Jogados' : 'Todos os Anime Assistidos' }}
         <span class="count-badge">{{ getAllWatchedMedia().length }}</span>
       </h2>
       <div class="all-watched-grid">
@@ -173,7 +176,7 @@
               <div class="watched-info">
                 <span class="episodes">
                   {{ item.progressCurrent }}
-                  @if (currentMediaType() === 1) { /{{ item.progressTotal || '?' }} eps }
+                  @if (currentMediaType() === MediaType.ANIME) { /{{ item.progressTotal || '?' }} eps }
                   @else { hrs }
                 </span>
                 @if (item.score > 0) {

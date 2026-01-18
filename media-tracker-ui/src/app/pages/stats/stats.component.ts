@@ -1,10 +1,9 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MediaService } from '../../services/media.service';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { CategoryService } from '../../services/status.service';
 import { MediaItem, MediaType } from '../../models/media-type.model';
-import { Anime } from '../../models/anime.model';
 import { Category } from '../../models/status.model';
 import { LucideAngularModule, TrendingUp, Clock, Star, Calendar, BarChart3, Eye } from 'lucide-angular';
 import { ScrollToTopComponent } from '../../components/ui/scroll-to-top/scroll-to-top.component';
@@ -41,7 +40,7 @@ interface YearStats {
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss'
 })
-export class StatsComponent {
+export class StatsComponent implements OnInit {
   private mediaService = inject(MediaService);
   private mediaTypeState = inject(MediaTypeStateService);
   private categoryService = inject(CategoryService);
@@ -53,6 +52,7 @@ export class StatsComponent {
   readonly CalendarIcon = Calendar;
   readonly BarChartIcon = BarChart3;
   readonly EyeIcon = Eye;
+  protected readonly MediaType = MediaType;
 
   selectedYear = signal<string>('all');
   yearOptions = signal<{value: string, label: string}[]>([]);
@@ -62,11 +62,110 @@ export class StatsComponent {
 
   stats = computed(() => this.calculateStats());
 
+  producerStats = computed(() => {
+    const year = this.selectedYear();
+    let filteredMedia = this.allMedia();
+
+    if (year !== 'all') {
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
+    }
+
+    const producerCount = new Map<string, number>();
+    filteredMedia.forEach(item => {
+      item.studios?.forEach(studio => {
+        producerCount.set(studio, (producerCount.get(studio) || 0) + 1);
+      });
+    });
+
+    return Array.from(producerCount.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+  });
+
+  platformStats = computed(() => {
+    const year = this.selectedYear();
+    let filteredMedia = this.allMedia();
+
+    if (year !== 'all') {
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
+    }
+
+    const platformCount = new Map<string, number>();
+    filteredMedia.forEach(item => {
+      item.platforms?.forEach(platform => {
+        platformCount.set(platform, (platformCount.get(platform) || 0) + 1);
+      });
+    });
+
+    return Array.from(platformCount.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+  });
+
+  releaseYearStats = computed(() => {
+    const year = this.selectedYear();
+    let filteredMedia = this.allMedia();
+
+    if (year !== 'all') {
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
+    }
+
+    const releaseYearCount = new Map<number, number>();
+    filteredMedia.forEach(item => {
+      if (item.releaseYear) {
+        releaseYearCount.set(item.releaseYear, (releaseYearCount.get(item.releaseYear) || 0) + 1);
+      }
+    });
+
+    return Array.from(releaseYearCount.entries())
+      .map(([name, count]) => ({ name: name.toString(), count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+  });
+
   completedMediaList = computed(() => {
     const year = this.selectedYear();
     const yearNum = year === 'all' ? undefined : parseInt(year);
     return this.mediaService.getCompletedMedia(this.allMedia(), yearNum);
   });
+
+  categoryStats = computed(() => {
+    const year = this.selectedYear();
+    let filteredMedia = this.allMedia();
+
+    if (year !== 'all') {
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
+    }
+
+    const totalCount = filteredMedia.length;
+
+    return this.categories().map(cat => {
+      const categoryMedia = filteredMedia.filter(a => a.statusId === cat.id);
+      const count = categoryMedia.length;
+      return {
+        name: cat.name,
+        count,
+        percentage: totalCount > 0 ? (count / totalCount) * 100 : 0,
+        color: cat.color || this.getCategoryColor(cat.name),
+        items: categoryMedia.map(m => m.title)
+      };
+    });
+  });
+
+  completionPercentage = computed(() => {
+    const completed = this.stats().totalCompleted;
+    const total = this.stats().totalAnime;
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  });
+
+  maxMonthlyCount = computed(() => {
+    const counts = this.stats().monthlyActivity.map(m => m.count);
+    return Math.max(...counts, 1);
+  });
+
+  getAllWatchedMedia = computed(() => this.completedMediaList());
 
   ngOnInit() {
     this.initializeYearOptions();
@@ -158,7 +257,7 @@ export class StatsComponent {
     const favoriteGenres = Array.from(genreCount.entries())
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
+      .slice(0, 6);
 
     // Top rated
     const topRated = [...filteredMedia]
@@ -203,108 +302,6 @@ export class StatsComponent {
       topRated,
       recentlyCompleted
     };
-  }
-
-  getProducerStats() {
-    const year = this.selectedYear();
-    let filteredMedia = this.allMedia();
-
-    if (year !== 'all') {
-      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
-    }
-
-    // Count media by producer (studio/developer)
-    const producerCount = new Map<string, number>();
-    filteredMedia.forEach(item => {
-      item.studios?.forEach(studio => {
-        producerCount.set(studio, (producerCount.get(studio) || 0) + 1);
-      });
-    });
-
-    return Array.from(producerCount.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 15);
-  }
-
-  getPlatformStats() {
-    const year = this.selectedYear();
-    let filteredMedia = this.allMedia();
-
-    if (year !== 'all') {
-      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
-    }
-
-    const platformCount = new Map<string, number>();
-    filteredMedia.forEach(item => {
-      item.platforms?.forEach(platform => {
-        platformCount.set(platform, (platformCount.get(platform) || 0) + 1);
-      });
-    });
-
-    return Array.from(platformCount.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-  }
-
-  getReleaseYearStats() {
-    const year = this.selectedYear();
-    let filteredMedia = this.allMedia();
-
-    if (year !== 'all') {
-      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
-    }
-
-    const releaseYearCount = new Map<number, number>();
-    filteredMedia.forEach(item => {
-      if (item.releaseYear) {
-        releaseYearCount.set(item.releaseYear, (releaseYearCount.get(item.releaseYear) || 0) + 1);
-      }
-    });
-
-    return Array.from(releaseYearCount.entries())
-      .map(([name, count]) => ({ name: name.toString(), count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-  }
-
-  getAllWatchedMedia(): MediaItem[] {
-    return this.completedMediaList();
-  }
-
-  getCompletionPercentage(): number {
-    const completed = this.stats().totalCompleted;
-    const total = this.stats().totalAnime;
-    return total > 0 ? Math.round((completed / total) * 100) : 0;
-  }
-
-  getMaxMonthlyCount(): number {
-    const counts = this.stats().monthlyActivity.map(m => m.count);
-    return Math.max(...counts, 1);
-  }
-
-  getCategoryStats(): CategoryStat[] {
-    const year = this.selectedYear();
-    let filteredMedia = this.allMedia();
-
-    if (year !== 'all') {
-      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
-    }
-
-    const totalCount = filteredMedia.length;
-
-    return this.categories().map(cat => {
-      const categoryMedia = filteredMedia.filter(a => a.statusId === cat.id);
-      const count = categoryMedia.length;
-      return {
-        name: cat.name,
-        count,
-        percentage: totalCount > 0 ? (count / totalCount) * 100 : 0,
-        color: cat.color || this.getCategoryColor(cat.name),
-        items: categoryMedia.map(m => m.title)
-      };
-    });
   }
 
   getCategoryColor(name: string): string {
