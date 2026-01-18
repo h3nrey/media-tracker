@@ -7,10 +7,10 @@ import { MediaItem, MediaType } from '../../models/media-type.model';
 import { Anime } from '../../models/anime.model';
 import { Category } from '../../models/status.model';
 import { LucideAngularModule, TrendingUp, Clock, Star, Calendar, BarChart3, Eye } from 'lucide-angular';
-import { SelectComponent } from '../../components/ui/select/select';
 import { ScrollToTopComponent } from '../../components/ui/scroll-to-top/scroll-to-top.component';
 import { StatsHeaderComponent } from './components/stats-header/stats-header.component';
 import { StatsSummaryCardsComponent } from './components/stats-summary-cards/stats-summary-cards.component';
+import { StatsDistributionComponent, CategoryStat } from './components/stats-distribution/stats-distribution.component';
 
 interface YearStats {
   totalStarted: number;
@@ -31,10 +31,10 @@ interface YearStats {
   imports: [
     CommonModule, 
     LucideAngularModule, 
-    SelectComponent, 
     ScrollToTopComponent, 
     StatsHeaderComponent,
-    StatsSummaryCardsComponent
+    StatsSummaryCardsComponent,
+    StatsDistributionComponent
   ],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss'
@@ -240,7 +240,7 @@ export class StatsComponent {
     return Math.max(...counts, 1);
   }
 
-  getCategoryStats() {
+  getCategoryStats(): CategoryStat[] {
     const year = this.selectedYear();
     let filteredMedia = this.allMedia();
 
@@ -248,21 +248,36 @@ export class StatsComponent {
       filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
     }
 
-    return this.categories().map(cat => ({
-      name: cat.name,
-      count: filteredMedia.filter(a => a.statusId === cat.id).length,
-      color: this.getCategoryColor(cat.name)
-    }));
+    const totalCount = filteredMedia.length;
+
+    return this.categories().map(cat => {
+      const categoryMedia = filteredMedia.filter(a => a.statusId === cat.id);
+      const count = categoryMedia.length;
+      return {
+        name: cat.name,
+        count,
+        percentage: totalCount > 0 ? (count / totalCount) * 100 : 0,
+        color: cat.color || this.getCategoryColor(cat.name),
+        items: categoryMedia.map(m => m.title)
+      };
+    });
   }
 
   getCategoryColor(name: string): string {
     const colors: {[key: string]: string} = {
-      'Completed': '#64f65c',
-      'Watching': '#3b82f6',
-      'Plan to Watch': '#a855f7',
-      'On Hold': '#f59e0b',
-      'Dropped': '#ef4444'
+      'Completed': '#22c55e',
+      'Concluído': '#22c55e',
+      'Watching': '#6366f1',
+      'Assistindo': '#6366f1',
+      'Jogando': '#6366f1',
+      'Plan to Watch': '#ec4899',
+      'Planejado': '#ec4899',
+      'Backlog': '#ec4899',
+      'On Hold': '#eab308',
+      'Em Pausa': '#eab308',
+      'Dropped': '#94a3b8',
+      'Dropado': '#94a3b8'
     };
-    return colors[name] || '#8b949e';
+    return colors[name] || '#64748b';
   }
 }

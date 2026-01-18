@@ -14,6 +14,14 @@
     [totalTime]="stats().totalTime">
   </app-stats-summary-cards>
 
+  <!-- Category Distribution -->
+  <app-stats-distribution
+    [title]="'Status'"
+    [unitLabel]="currentMediaType() === 1 ? 'Anime' : 'Games'"
+    [stats]="getCategoryStats()"
+    [total]="stats().totalAnime">
+  </app-stats-distribution>
+  
   <!-- Activity Chart -->
   <section class="chart-section">
     <h2>
@@ -33,32 +41,6 @@
     </div>
   </section>
 
-  <!-- Category Distribution -->
-  <section class="distribution-section">
-    <h2>
-      <lucide-icon [img]="CalendarIcon" [size]="20"></lucide-icon>
-      Category Distribution
-    </h2>
-    <div class="distribution-bars">
-      @for (cat of getCategoryStats(); track cat.name) {
-        @if (cat.count > 0) {
-          <div class="dist-bar">
-            <div class="dist-label">
-              <span>{{ cat.name }}</span>
-              <span class="dist-value">{{ cat.count }}</span>
-            </div>
-            <div class="dist-progress">
-              <div 
-                class="dist-fill" 
-                [style.width.%]="(cat.count / stats().totalAnime) * 100"
-                [style.background]="cat.color">
-              </div>
-            </div>
-          </div>
-        }
-      }
-    </div>
-  </section>
 
   <!-- Top Genres -->
   <section class="genres-section">

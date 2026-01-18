@@ -71,7 +71,7 @@ section {
   }
 }
 
-.distribution-bars, .genre-bars, .studio-bars {
+.genre-bars, .studio-bars {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -79,32 +79,6 @@ section {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: 12px;
-}
-
-.distribution-section .dist-bar {
-  .dist-label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--app-text-primary);
-
-    .dist-value { color: var(--app-text-muted); }
-  }
-
-  .dist-progress {
-    height: 24px;
-    background: var(--app-bg);
-    border-radius: 8px;
-    overflow: hidden;
-
-    .dist-fill {
-      height: 100%;
-      transition: width 0.6s ease;
-      border-radius: 8px;
-    }
-  }
 }
 
 .genre-bars {
