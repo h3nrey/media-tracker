@@ -41,6 +41,7 @@ export interface MediaItem {
   progressCurrent?: number;
   progressTotal?: number;
   logs?: MediaLog[];
+  screenshots?: MediaGalleryImage[];
   isDeleted?: boolean;
 }
 
@@ -57,4 +58,14 @@ export interface MediaFilterParams {
   studios?: string[];
   year?: number;
   activityYear?: number;
+}
+export interface MediaGalleryImage {
+  id?: number;
+  supabaseId?: number;
+  mediaItemId: number;
+  url: string;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  isDeleted?: boolean;
 }

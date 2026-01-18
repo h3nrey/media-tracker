@@ -209,7 +209,7 @@ section {
 }
 
 .stats-diary-section {
-  margin: 3rem 0stats-bar-grid;
+  margin: 3rem 0;
 }
 
 .all-watched-grid {
@@ -240,6 +240,7 @@ section {
     }
   }
 }
+
 
 @media (max-width: 768px) {
   .stats-container { padding: 2rem 1rem; }

@@ -9,15 +9,16 @@ import { StarRatingInputComponent } from '../../../ui/star-rating-input/star-rat
 import { SelectComponent } from '../../../ui/select/select';
 import { Category } from '../../../../models/status.model';
 import { WatchSource } from '../../../../models/watch-source.model';
-import { MediaType } from '../../../../models/media-type.model';
+import { MediaItem, MediaType, MediaGalleryImage } from '../../../../models/media-type.model';
 import { MediaLog } from '../../../../models/media-log.model';
 
 import { MediaJournalComponent } from '../shared/media-journal/media-journal';
+import { MediaGalleryFormComponent } from '../shared/media-gallery-form/media-gallery-form';
 
 @Component({
   selector: 'app-anime-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, StarRatingInputComponent, SelectComponent, MediaJournalComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, StarRatingInputComponent, SelectComponent, MediaJournalComponent, MediaGalleryFormComponent],
   templateUrl: './anime-form.component.html',
   styleUrl: './anime-form.component.scss'
 })
@@ -62,6 +63,7 @@ export class AnimeFormComponent {
   activityDates = signal<Date[]>([]);
   logs = signal<MediaLog[]>([]);
   sourceLinks = signal<any[]>([]);
+  screenshots = signal<MediaGalleryImage[]>([]);
 
   // Local UI State
   showDatePicker = signal(false);
@@ -69,7 +71,7 @@ export class AnimeFormComponent {
   newLinkSourceId = signal<number | null>(null);
   newLinkUrl = signal('');
 
-  activeTab = signal<'main' | 'journal' | 'details'>('main');
+  activeTab = signal<'main' | 'journal' | 'details' | 'screenshots'>('main');
 
   constructor() {
     effect(() => {
@@ -105,6 +107,7 @@ export class AnimeFormComponent {
     this.activityDates.set(data.activityDates || []);
     this.logs.set(data.logs || []);
     this.sourceLinks.set(data.source_links || data.sourceLinks || []);
+    this.screenshots.set(data.screenshots || []);
   }
 
   markAsComplete() {
@@ -159,7 +162,8 @@ export class AnimeFormComponent {
       notes: this.notes(),
       activityDates: this.activityDates(),
       logs: this.logs(),
-      source_links: this.sourceLinks()
+      source_links: this.sourceLinks(),
+      screenshots: this.screenshots()
     };
     this.save.emit(mediaData);
   }

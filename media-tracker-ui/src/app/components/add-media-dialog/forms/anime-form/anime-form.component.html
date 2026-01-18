@@ -41,6 +41,7 @@
         <button class="tab-btn" [class.active]="activeTab() === 'main'" (click)="activeTab.set('main')">Main</button>
         <button class="tab-btn" [class.active]="activeTab() === 'journal'" (click)="activeTab.set('journal')">Journal</button>
         <button class="tab-btn" [class.active]="activeTab() === 'details'" (click)="activeTab.set('details')">Details</button>
+        <button class="tab-btn" [class.active]="activeTab() === 'screenshots'" (click)="activeTab.set('screenshots')">Screenshots</button>
       </div>
 
       <div class="tab-content custom-scrollbar">
@@ -130,6 +131,16 @@
             </div>
           </div>
         }
+      
+      <!-- SCREENSHOTS TAB -->
+      @if (activeTab() === 'screenshots') {
+        <div class="tab-pane fade-in">
+          <app-media-gallery-form 
+            [images]="screenshots()" 
+            (imagesChange)="screenshots.set($event)">
+          </app-media-gallery-form>
+        </div>
+      }
       </div>
     </div>
   </div>

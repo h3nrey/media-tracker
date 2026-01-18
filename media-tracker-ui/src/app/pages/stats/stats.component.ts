@@ -5,13 +5,14 @@ import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { CategoryService } from '../../services/status.service';
 import { MediaItem, MediaType } from '../../models/media-type.model';
 import { Category } from '../../models/status.model';
-import { LucideAngularModule, TrendingUp, Clock, Star, Calendar, BarChart3, Eye } from 'lucide-angular';
+import { LucideAngularModule, TrendingUp, Clock, Star, Calendar, BarChart3, Eye, Image } from 'lucide-angular';
 import { ScrollToTopComponent } from '../../components/ui/scroll-to-top/scroll-to-top.component';
 import { StatsHeaderComponent } from './components/stats-header/stats-header.component';
 import { StatsSummaryCardsComponent } from './components/stats-summary-cards/stats-summary-cards.component';
 import { StatsDistributionComponent, CategoryStat } from './components/stats-distribution/stats-distribution.component';
 import { StatsBarListComponent } from './components/stats-bar-list/stats-bar-list.component';
 import { StatsDiaryComponent } from './components/stats-diary/stats-diary.component';
+import { StatsGalleryComponent } from './components/stats-gallery/stats-gallery.component';
 
 interface YearStats {
   totalStarted: number;
@@ -38,7 +39,8 @@ interface YearStats {
     StatsDistributionComponent,
     StatsDistributionComponent,
     StatsBarListComponent,
-    StatsDiaryComponent
+    StatsDiaryComponent,
+    StatsGalleryComponent
   ],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss'
@@ -55,6 +57,7 @@ export class StatsComponent implements OnInit {
   readonly CalendarIcon = Calendar;
   readonly BarChartIcon = BarChart3;
   readonly EyeIcon = Eye;
+  readonly ImageIcon = Image;
   protected readonly MediaType = MediaType;
 
   selectedYear = signal<string>('all');

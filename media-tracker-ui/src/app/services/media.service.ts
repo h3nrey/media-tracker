@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { liveQuery } from 'dexie';
 import { Observable, from, BehaviorSubject, combineLatest, map } from 'rxjs';
-import { MediaItem, MediaFilterParams, MediaType } from '../models/media-type.model';
+import { MediaItem, MediaFilterParams, MediaType, MediaGalleryImage } from '../models/media-type.model';
 import { Category } from '../models/status.model';
 import { db } from './database.service';
 import { SyncService } from './sync.service';
@@ -51,9 +51,11 @@ export class MediaService {
       
       return Promise.all(filtered.map(async item => {
         const logs = await db.mediaLogs.where('mediaItemId').equals(item.id!).toArray();
+        const screenshots = await db.mediaImages.where('mediaItemId').equals(item.id!).toArray();
         return {
           ...item,
-          logs: logs.filter(l => !l.isDeleted)
+          logs: logs.filter(l => !l.isDeleted),
+          screenshots: screenshots.filter(s => !s.isDeleted)
         };
       }));
     }));
@@ -71,9 +73,11 @@ export class MediaService {
     
     return Promise.all(filtered.map(async item => {
       const logs = await db.mediaLogs.where('mediaItemId').equals(item.id!).toArray();
+      const screenshots = await db.mediaImages.where('mediaItemId').equals(item.id!).toArray();
       return {
         ...item,
-        logs: logs.filter(l => !l.isDeleted)
+        logs: logs.filter(l => !l.isDeleted),
+        screenshots: screenshots.filter(s => !s.isDeleted)
       };
     }));
   }
@@ -90,9 +94,11 @@ export class MediaService {
       
       return Promise.all(filtered.map(async item => {
         const logs = await db.mediaLogs.where('mediaItemId').equals(item.id!).toArray();
+        const screenshots = await db.mediaImages.where('mediaItemId').equals(item.id!).toArray();
         return {
           ...item,
-          logs: logs.filter(l => !l.isDeleted)
+          logs: logs.filter(l => !l.isDeleted),
+          screenshots: screenshots.filter(s => !s.isDeleted)
         };
       }));
     }));
@@ -133,7 +139,12 @@ export class MediaService {
     if (!item) return undefined;
     
     const logs = await db.mediaLogs.where('mediaItemId').equals(id).toArray();
-    return { ...item, logs: logs.filter(l => !l.isDeleted) };
+    const screenshots = await db.mediaImages.where('mediaItemId').equals(id).toArray();
+    return { 
+      ...item, 
+      logs: logs.filter(l => !l.isDeleted),
+      screenshots: screenshots.filter(s => !s.isDeleted)
+    };
   }
 
   getMediaById$(id: number): Observable<MediaItem | undefined> {
@@ -159,7 +170,7 @@ export class MediaService {
 
   async addMedia(media: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();
-    const { logs, ...mediaData } = media;
+    const { logs, screenshots, ...mediaData } = media;
     
     const id = await db.mediaItems.add({
       ...mediaData,
@@ -177,6 +188,17 @@ export class MediaService {
       }));
       await db.mediaLogs.bulkAdd(logsToAdd);
     }
+
+    if (screenshots && screenshots.length > 0) {
+      const imagesToAdd = screenshots.map((img: MediaGalleryImage) => ({
+        ...img,
+        mediaItemId: id as number,
+        createdAt: now,
+        updatedAt: now,
+        isDeleted: false
+      }));
+      await db.mediaImages.bulkAdd(imagesToAdd);
+    }
     
     console.log("generated id: ", id);
     this.triggerFilterUpdate();
@@ -186,7 +208,7 @@ export class MediaService {
 
   async updateMedia(id: number, updates: Partial<MediaItem>): Promise<number> {
     const now = new Date();
-    const { logs, ...itemUpdates } = updates;
+    const { logs, screenshots, ...itemUpdates } = updates;
 
     const result = await db.mediaItems.update(id, {
       ...itemUpdates,
@@ -207,6 +229,22 @@ export class MediaService {
       // Handle deletions if necessary - but for now let's just keep it simple as the user might just want to sync the array.
       // Actually, standard behavior for this kind of implementation is often "clear and replace" if it's an array input.
       // But Dexie logs table is separate.
+    }
+
+    if (screenshots) {
+      // For screenshots, we can do clear and replace within the same mediaItemId
+      // This is simpler for local state management in forms
+      await db.mediaImages.where('mediaItemId').equals(id).delete();
+      if (screenshots.length > 0) {
+        const imagesToAdd = screenshots.map((img: MediaGalleryImage) => ({
+          ...img,
+          mediaItemId: id,
+          createdAt: img.createdAt || now,
+          updatedAt: now,
+          isDeleted: false
+        }));
+        await db.mediaImages.bulkAdd(imagesToAdd);
+      }
     }
 
     this.syncService.sync();
@@ -445,5 +483,35 @@ export class MediaService {
     return combineLatestRxjs(searches).pipe(
       map(results => results.flat())
     );
+  }
+
+  getMediaImages$(mediaItemId?: number): Observable<MediaGalleryImage[]> {
+    return from(liveQuery(async () => {
+      let items;
+      if (mediaItemId) {
+        items = await db.mediaImages.where('mediaItemId').equals(mediaItemId).toArray();
+      } else {
+        items = await db.mediaImages.toArray();
+      }
+      return items.filter(img => !img.isDeleted);
+    }));
+  }
+
+  getMediaImagesByYear$(year: number, mediaTypeId?: number | null): Observable<MediaGalleryImage[]> {
+    return from(liveQuery(async () => {
+      // First get media items active in that year
+      const allMedia = await this.getAllMedia(mediaTypeId);
+      const activeMedia = this.filterMediaList(allMedia, { activityYear: year });
+      const activeIds = activeMedia.map(m => m.id).filter(id => !!id) as number[];
+      
+      if (activeIds.length === 0) return [];
+      
+      const images = await db.mediaImages
+        .where('mediaItemId')
+        .anyOf(activeIds)
+        .toArray();
+        
+      return images.filter(img => !img.isDeleted);
+    }));
   }
 }

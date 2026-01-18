@@ -3,7 +3,7 @@ import { Anime } from '../models/anime.model';
 import { Category, DEFAULT_CATEGORIES } from '../models/status.model';
 import { WatchSource } from '../models/watch-source.model';
 import { List, Folder } from '../models/list.model';
-import { MediaItem, MediaTypeDefinition } from '../models/media-type.model';
+import { MediaItem, MediaTypeDefinition, MediaGalleryImage } from '../models/media-type.model';
 import { AnimeMetadata } from '../models/anime-metadata.model';
 import { MangaMetadata } from '../models/manga-metadata.model';
 import { GameMetadata } from '../models/game-metadata.model';
@@ -25,6 +25,7 @@ export class AnimeTrackerDatabase extends Dexie {
   gameMetadata!: Table<GameMetadata, number>;
   movieMetadata!: Table<MovieMetadata, number>;
   mediaLogs!: Table<MediaLog, number>;
+  mediaImages!: Table<MediaGalleryImage, number>;
 
   constructor() {
     super('AnimeTrackerDB');
@@ -136,7 +137,7 @@ export class AnimeTrackerDatabase extends Dexie {
       lists: '++id, supabaseId, name, folderId, createdAt, updatedAt, isDeleted'
     });
 
-    this.version(7).stores({
+    this.version(8).stores({
       mediaTypes: '++id, name, createdAt',
       mediaItems: '++id, supabaseId, mediaTypeId, title, externalId, externalApi, statusId, score, releaseYear, createdAt, updatedAt, isDeleted',
       animeMetadata: 'mediaItemId, malId',
@@ -144,6 +145,7 @@ export class AnimeTrackerDatabase extends Dexie {
       gameMetadata: 'mediaItemId, igdbId',
       movieMetadata: 'mediaItemId, tmdbId',
       mediaLogs: '++id, supabaseId, mediaItemId, startDate, endDate, createdAt, updatedAt, isDeleted',
+      mediaImages: '++id, supabaseId, mediaItemId, url, createdAt, updatedAt, isDeleted',
       lists: '++id, supabaseId, name, folderId, mediaTypeId, createdAt, updatedAt, isDeleted',
       // Legacy
       anime: '++id, supabaseId, title, malId, statusId, score, releaseYear, createdAt, updatedAt, isDeleted',

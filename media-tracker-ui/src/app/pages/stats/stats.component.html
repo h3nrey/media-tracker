@@ -63,6 +63,14 @@
     </div>
   }
 
+  @if (selectedYear() !== 'all') {
+    <app-stats-gallery
+      [selectedYear]="selectedYear()"
+      [mediaType]="currentMediaType()"
+      [mediaList]="allMedia()">
+    </app-stats-gallery>
+  }
+
   <!-- Top Rated Anime -->
   @if (stats().topRated.length > 0) {
     <section class="anime-grid-section">
@@ -147,8 +155,6 @@
       </div>
     </div>
   </section>
-
-
 
   <!-- All Watched Media -->
   @if (getAllWatchedMedia().length > 0) {

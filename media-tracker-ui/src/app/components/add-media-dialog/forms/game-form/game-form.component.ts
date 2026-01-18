@@ -9,15 +9,16 @@ import { StarRatingInputComponent } from '../../../ui/star-rating-input/star-rat
 import { SelectComponent } from '../../../ui/select/select';
 import { Category } from '../../../../models/status.model';
 import { WatchSource } from '../../../../models/watch-source.model';
-import { MediaType } from '../../../../models/media-type.model';
+import { MediaItem, MediaType, MediaGalleryImage } from '../../../../models/media-type.model';
 import { MediaLog } from '../../../../models/media-log.model';
 
 import { MediaJournalComponent } from '../shared/media-journal/media-journal';
+import { MediaGalleryFormComponent } from '../shared/media-gallery-form/media-gallery-form';
 
 @Component({
   selector: 'app-game-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, StarRatingInputComponent, SelectComponent, MediaJournalComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, StarRatingInputComponent, SelectComponent, MediaJournalComponent, MediaGalleryFormComponent],
   templateUrl: './game-form.component.html',
   styleUrl: './game-form.component.scss'
 })
@@ -57,13 +58,14 @@ export class GameFormComponent {
   logs = signal<MediaLog[]>([]);
   sourceLinks = signal<any[]>([]);
   platforms = signal<string[]>([]);
+  screenshots = signal<MediaGalleryImage[]>([]);
 
   showDatePicker = signal(false);
   tempDate = signal(new Date());
   newLinkSourceId = signal<number | null>(null);
   newLinkUrl = signal('');
 
-  activeTab = signal<'main' | 'journal' | 'details'>('main');
+  activeTab = signal<'main' | 'journal' | 'details' | 'screenshots'>('main');
 
   constructor() {
     effect(() => {
@@ -98,6 +100,7 @@ export class GameFormComponent {
     this.activityDates.set(data.activityDates || []);
     this.sourceLinks.set(data.source_links || data.sourceLinks || []);
     this.platforms.set(data.platforms || []);
+    this.screenshots.set(data.screenshots || []);
   }
 
   onDateSelect(date: Date) {
@@ -147,7 +150,8 @@ export class GameFormComponent {
       activityDates: this.activityDates(),
       logs: this.logs(),
       source_links: this.sourceLinks(),
-      platforms: this.platforms()
+      platforms: this.platforms(),
+      screenshots: this.screenshots()
     };
 
     console.log("selected category id", this.selectedCategoryId());
