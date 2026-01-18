@@ -208,6 +208,10 @@ section {
   }
 }
 
+.stats-diary-section {
+  margin: 3rem 0stats-bar-grid;
+}
+
 .all-watched-grid {
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
 

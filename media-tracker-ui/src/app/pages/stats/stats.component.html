@@ -14,35 +14,15 @@
     [totalTime]="stats().totalTime">
   </app-stats-summary-cards>
 
-  <!-- Category Distribution -->
+  <!-- Status Distribution -->
   <app-stats-distribution
     [title]="'Status'"
     [unitLabel]="currentMediaType() === MediaType.ANIME ? 'Anime' : 'Games'"
     [stats]="categoryStats()"
     [total]="stats().totalAnime">
   </app-stats-distribution>
-  
-  <!-- Activity Chart -->
-  <section class="chart-section">
-    <h2>
-      <lucide-icon [img]="BarChartIcon" [size]="20"></lucide-icon>
-      Monthly Activity
-    </h2>
-    <div class="bar-chart">
-      @for (month of stats().monthlyActivity; track month.month) {
-        <div class="bar-wrapper">
-          <div 
-            class="bar" 
-            [style.height.%]="(month.count / maxMonthlyCount()) * 100">
-          </div>
-          <span class="bar-label">{{ month.month }}</span>
-        </div>
-      }
-    </div>
-  </section>
 
-
-  <!-- Top Stats Groups -->
+    <!-- Top Stats Groups -->
   <div class="stats-bar-grid">
     <app-stats-bar-list
       title="Gêneros"
@@ -72,6 +52,16 @@
       color="var(--app-primary)">
     </app-stats-bar-list>
   </div>
+
+  @if (selectedYear() !== 'all') {
+    <div class="stats-diary-section">
+      <app-stats-diary
+        [selectedYear]="selectedYear()"
+        [mediaList]="allMedia()"
+        [mediaType]="currentMediaType()">
+      </app-stats-diary>
+    </div>
+  }
 
   <!-- Top Rated Anime -->
   @if (stats().topRated.length > 0) {

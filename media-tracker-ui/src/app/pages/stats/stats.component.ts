@@ -11,6 +11,7 @@ import { StatsHeaderComponent } from './components/stats-header/stats-header.com
 import { StatsSummaryCardsComponent } from './components/stats-summary-cards/stats-summary-cards.component';
 import { StatsDistributionComponent, CategoryStat } from './components/stats-distribution/stats-distribution.component';
 import { StatsBarListComponent } from './components/stats-bar-list/stats-bar-list.component';
+import { StatsDiaryComponent } from './components/stats-diary/stats-diary.component';
 
 interface YearStats {
   totalStarted: number;
@@ -35,7 +36,9 @@ interface YearStats {
     StatsHeaderComponent,
     StatsSummaryCardsComponent,
     StatsDistributionComponent,
-    StatsBarListComponent
+    StatsDistributionComponent,
+    StatsBarListComponent,
+    StatsDiaryComponent
   ],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss'
