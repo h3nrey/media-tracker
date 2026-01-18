@@ -1,0 +1,164 @@
+.podium-section {
+  margin: 4rem 0;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    justify-content: center; // Center the podium header
+    gap: 0.75rem;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--app-text-primary);
+    margin-bottom: 4rem;
+    font-family: 'Outfit', sans-serif;
+    text-align: center;
+
+    lucide-icon {
+      color: var(--app-primary);
+      filter: drop-shadow(0 0 10px rgba(var(--app-primary-rgb), 0.3));
+    }
+  }
+}
+
+.podium-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+  padding: 0 1rem;
+  min-height: 400px;
+
+  .podium-slot {
+    flex: 1;
+    max-width: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    &:hover {
+      transform: translateY(-10px);
+      z-index: 10;
+      
+      .podium-base {
+        filter: brightness(1.2);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    .rank-badge {
+      padding: 0.5rem 1rem;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: 50px;
+      margin-bottom: 1.5rem;
+      font-weight: 900;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 2;
+    }
+
+    app-stats-media-card {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+
+    .podium-base {
+      width: 100%;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-bottom: none;
+      border-radius: 12px 12px 0 0;
+      position: relative;
+      transition: all 0.3s ease;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(var(--app-primary-rgb), 0.05), transparent);
+        border-radius: inherit;
+      }
+    }
+
+    &.first {
+      max-width: 260px;
+      z-index: 5;
+      
+      .rank-badge {
+        background: linear-gradient(135deg, var(--app-primary), var(--app-primary-light));
+        color: var(--app-text-primary);
+        border: none;
+        font-size: 1.25rem;
+        padding: 0.6rem 1.25rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 20px rgba(var(--app-primary), 0.3);
+      }
+
+      .podium-base {
+        height: 160px;
+        background: var(--app-surface-light);
+        border-color: rgba(255, 204, 0, 0.2);
+      }
+    }
+
+    &.second {
+      .rank-badge {
+        color: var(--app-text-muted);
+      }
+      .podium-base {
+        height: 100px;
+      }
+    }
+
+    &.third {
+      .rank-badge {
+        color: var(--app-text-muted);
+      }
+      .podium-base {
+        height: 60px;
+      }
+    }
+  }
+}
+
+.others-header {
+  margin: 3rem 0 1.5rem;
+  
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--app-text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+}
+
+.others-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--app-border);
+}
+
+
+@media (max-width: 768px) {
+  .podium-container {
+    gap: 0.75rem;
+    min-height: 350px;
+    
+    .podium-slot {
+      max-width: 160px;
+      
+      &.first {
+        max-width: 180px;
+      }
+    }
+  }
+}

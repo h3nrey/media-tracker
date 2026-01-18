@@ -75,128 +75,42 @@
     </app-stats-reviews>
   }
 
-  <!-- Top Rated Anime -->
-  @if (stats().topRated.length > 0) {
-    <section class="anime-grid-section">
-      <h2>Top Rated</h2>
-      <div class="anime-grid">
-        @for (item of stats().topRated; track item.id) {
-          <div class="anime-card">
-            <img [src]="item.coverImage" [alt]="item.title">
-            <div class="anime-overlay">
-              <h3>{{ item.title }}</h3>
-              <div class="anime-score">
-                <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
-                {{ item.score }}
-              </div>
-            </div>
-          </div>
-        }
-      </div>
-    </section>
-  }
-
-  <!-- Recently Completed -->
-  @if (stats().recentlyCompleted.length > 0) {
-    <section class="anime-grid-section">
-      <h2>Recently Completed</h2>
-      <div class="anime-grid">
-        @for (item of stats().recentlyCompleted; track item.id) {
-          <div class="anime-card">
-            <img [src]="item.coverImage" [alt]="item.title">
-            <div class="anime-overlay">
-              <h3>{{ item.title }}</h3>
-              @if (item.score > 0) {
-                <div class="anime-score">
-                  <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
-                  {{ item.score }}
-                </div>
-              }
-            </div>
-          </div>
-        }
-      </div>
-    </section>
-  }
-
-  <!-- Completion Rate -->
-  <section class="completion-section">
-    <h2>Completion Rate</h2>
-    <div class="completion-card">
-      <div class="completion-circle">
-        <svg viewBox="0 0 120 120" width="120" height="120">
-          <circle 
-            cx="60" cy="60" r="50" 
-            fill="none" 
-            stroke="var(--app-surface-light)" 
-            stroke-width="10">
-          </circle>
-          <circle 
-            cx="60" cy="60" r="50" 
-            fill="none" 
-            stroke="var(--app-primary)" 
-            stroke-width="10"
-            stroke-linecap="round"
-            [attr.stroke-dasharray]="314.16"
-            [attr.stroke-dashoffset]="314.16 - (314.16 * completionPercentage() / 100)"
-            transform="rotate(-90 60 60)">
-          </circle>
-        </svg>
-        <div class="completion-text">
-          <span class="percentage">{{ completionPercentage() }}%</span>
-          <span class="label">Complete</span>
-        </div>
-      </div>
-      <div class="completion-stats">
-        <div class="stat">
-          <span class="stat-value">{{ stats().totalCompleted }}</span>
-          <span class="stat-label">Completed</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value">{{ stats().totalAnime - stats().totalCompleted }}</span>
-          <span class="stat-label">In Progress</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <app-stats-lists
     [mediaList]="allMedia()"
     [allMedia]="allMedia()">
   </app-stats-lists>
 
+  <!-- Top Rated Anime (Podium) -->
+  <app-stats-podium
+    [title]="'Meus Bodes'"
+    [items]="stats().topRated"
+  ></app-stats-podium>
+
   <!-- All Watched Media -->
-  @if (completedMediaList().length > 0) {
-    <section class="all-watched-section">
-      <h2>
-        {{ currentMediaType() === MediaType.GAME ? 'Todos os Games Jogados' : 'Todos os Anime Assistidos' }}
-        <span class="count-badge">{{ completedMediaList().length }}</span>
-      </h2>
-      <div class="all-watched-grid">
+  <section class="all-watched-section">
+    <h2>
+      {{ currentMediaType() === MediaType.GAME ? 'Todos os Games Jogados' : 'Todos os Anime Assistidos' }}
+      <span class="count-badge">{{ completedMediaList().length }}</span>
+    </h2>
+
+    @if (completedMediaList().length > 0) {
+      <div class="media-stats-grid small">
         @for (item of completedMediaList(); track item.id) {
-          <div class="watched-card">
-            <img [src]="item.coverImage" [alt]="item.title">
-            <div class="watched-overlay">
-              <h3>{{ item.title }}</h3>
-              <div class="watched-info">
-                <span class="episodes">
-                  {{ item.progressCurrent }}
-                  @if (currentMediaType() === MediaType.ANIME) { /{{ item.progressTotal || '?' }} eps }
-                  @else { hrs }
-                </span>
-                @if (item.score > 0) {
-                  <span class="score">
-                    <lucide-icon [img]="StarIcon" [size]="12"></lucide-icon>
-                    {{ item.score }}
-                  </span>
-                }
-              </div>
-            </div>
-          </div>
+          <app-stats-media-card 
+            [item]="item" 
+            [showProgress]="true">
+          </app-stats-media-card>
         }
       </div>
-    </section>
-  }
+    } @else {
+      <app-stats-empty-state
+        [mainIcon]="HistoryIcon"
+        [subIcon]="SearchXIcon"
+        title="Nada por aqui ainda"
+        description="Complete suas obras para ver seu histórico crescendo nesta seção!">
+      </app-stats-empty-state>
+    }
+  </section>
   
   <ui-scroll-to-top></ui-scroll-to-top>
 </div>

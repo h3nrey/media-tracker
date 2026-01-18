@@ -12,11 +12,13 @@ section {
   h2 {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 1.5rem;
+    justify-content: center; // Center the header
+    gap: 1rem; // Increased gap for centered balance
+    font-size: 1.75rem; // Slightly larger for centered impact
     font-weight: 800;
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 2rem 0;
     color: var(--app-text-primary);
+    text-align: center;
 
     lucide-icon { color: var(--app-primary); }
     
@@ -144,67 +146,19 @@ section {
 
 
 
-.anime-grid, .all-watched-grid {
+.media-stats-grid {
   display: grid;
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(1rem, 1fr));
+  gap: 1.5rem;
 
-  .anime-card, .watched-card {
-    position: relative;
-    aspect-ratio: 2/3;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.3s;
-
-    &:hover {
-      transform: scale(1.05);
-      z-index: 10;
-
-      .anime-overlay, .watched-overlay { opacity: 1; }
-    }
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+  &.small {
+    grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+    gap: 1rem;
   }
-}
 
-.anime-grid {
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-
-  .anime-overlay, .watched-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(11, 14, 20, 0.95) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity 0.3s;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 1rem;
-
-    h3 {
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin: 0 0 0.5rem 0;
-      color: white;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .anime-score, .score {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      font-size: 0.85rem;
-      font-weight: 800;
-      color: var(--app-primary);
-    }
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+    gap: 0.75rem;
   }
 }
 
@@ -212,34 +166,6 @@ section {
   margin: 3rem 0;
 }
 
-.all-watched-grid {
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-
-  .watched-card {
-    border: 1px solid var(--app-border);
-
-    &:hover { border-color: var(--app-primary); }
-  }
-
-  .watched-overlay {
-    padding: 0.75rem;
-    background: linear-gradient(to top, rgba(11, 14, 20, 0.98) 0%, transparent 60%);
-
-    h3 { font-size: 0.8rem; }
-
-    .watched-info {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-      font-size: 0.75rem;
-      font-weight: 700;
-
-      .episodes { color: var(--app-text-secondary); }
-      .score { color: var(--app-primary); }
-    }
-  }
-}
 
 
 @media (max-width: 768px) {

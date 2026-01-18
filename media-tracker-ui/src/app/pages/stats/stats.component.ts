@@ -8,7 +8,7 @@ import { MediaItem, MediaType } from '../../models/media-type.model';
 import { MediaReview } from '../../models/review.model';
 import { Category } from '../../models/status.model';
 import { Subscription } from 'rxjs';
-import { LucideAngularModule, TrendingUp, Clock, Star, Calendar, BarChart3, Eye, Image } from 'lucide-angular';
+import { LucideAngularModule, TrendingUp, Clock, Star, Calendar, BarChart3, Eye, Image, History, SearchX } from 'lucide-angular';
 import { ScrollToTopComponent } from '../../components/ui/scroll-to-top/scroll-to-top.component';
 import { StatsHeaderComponent } from './components/stats-header/stats-header.component';
 import { StatsSummaryCardsComponent } from './components/stats-summary-cards/stats-summary-cards.component';
@@ -18,6 +18,9 @@ import { StatsDiaryComponent } from './components/stats-diary/stats-diary.compon
 import { StatsGalleryComponent } from './components/stats-gallery/stats-gallery.component';
 import { StatsReviewsComponent } from './components/stats-reviews/stats-reviews.component';
 import { StatsListsComponent } from './components/stats-lists/stats-lists.component';
+import { StatsMediaCardComponent } from './components/stats-media-card/stats-media-card.component';
+import { StatsPodiumComponent } from './components/stats-podium/stats-podium.component';
+import { StatsEmptyStateComponent } from './components/stats-empty-state/stats-empty-state.component';
 
 interface YearStats {
   totalStarted: number;
@@ -42,12 +45,14 @@ interface YearStats {
     StatsHeaderComponent,
     StatsSummaryCardsComponent,
     StatsDistributionComponent,
-    StatsDistributionComponent,
     StatsBarListComponent,
     StatsDiaryComponent,
     StatsGalleryComponent,
     StatsReviewsComponent,
-    StatsListsComponent
+    StatsListsComponent,
+    StatsMediaCardComponent,
+    StatsPodiumComponent,
+    StatsEmptyStateComponent
   ],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss'
@@ -62,6 +67,8 @@ export class StatsComponent implements OnInit, OnDestroy {
   readonly TrendingUpIcon = TrendingUp;
   readonly ClockIcon = Clock;
   readonly StarIcon = Star;
+  readonly HistoryIcon = History;
+  readonly SearchXIcon = SearchX;
   readonly CalendarIcon = Calendar;
   readonly BarChartIcon = BarChart3;
   readonly EyeIcon = Eye;

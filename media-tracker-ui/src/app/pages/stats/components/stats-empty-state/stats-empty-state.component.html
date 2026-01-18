@@ -1,0 +1,16 @@
+<div class="empty-state-card">
+  <div class="empty-content">
+    <div class="icon-stack">
+      <div class="circle-glow"></div>
+      <lucide-icon [img]="mainIcon()" [size]="48" class="main-icon"></lucide-icon>
+      @if (subIcon()) {
+        <lucide-icon [img]="subIcon()" [size]="20" class="sub-icon"></lucide-icon>
+      }
+    </div>
+    <div class="empty-text">
+      <h3>{{ title() }}</h3>
+      <p>{{ description() }}</p>
+    </div>
+    <ng-content></ng-content>
+  </div>
+</div>

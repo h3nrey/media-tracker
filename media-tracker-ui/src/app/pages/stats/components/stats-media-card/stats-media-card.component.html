@@ -1,0 +1,22 @@
+<a [routerLink]="detailsLink()" class="stats-media-card">
+  <div class="card-image">
+    <img [src]="item().coverImage" [alt]="item().title" loading="lazy">
+  </div>
+  
+  <div class="card-overlay">
+    <h3 class="title">{{ item().title }}</h3>
+    
+    <div class="meta-row">
+      @if (showProgress()) {
+        <span class="progress-text">{{ progressText() }}</span>
+      }
+      
+      @if (showScore() && item().score > 0) {
+        <div class="score-badge">
+          <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
+          <span>{{ item().score }}</span>
+        </div>
+      }
+    </div>
+  </div>
+</a>
