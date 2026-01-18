@@ -11,6 +11,7 @@ import { ScrollToTopComponent } from '../../components/ui/scroll-to-top/scroll-t
 import { StatsHeaderComponent } from './components/stats-header/stats-header.component';
 import { StatsSummaryCardsComponent } from './components/stats-summary-cards/stats-summary-cards.component';
 import { StatsDistributionComponent, CategoryStat } from './components/stats-distribution/stats-distribution.component';
+import { StatsBarListComponent } from './components/stats-bar-list/stats-bar-list.component';
 
 interface YearStats {
   totalStarted: number;
@@ -34,7 +35,8 @@ interface YearStats {
     ScrollToTopComponent, 
     StatsHeaderComponent,
     StatsSummaryCardsComponent,
-    StatsDistributionComponent
+    StatsDistributionComponent,
+    StatsBarListComponent
   ],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss'
@@ -223,6 +225,48 @@ export class StatsComponent {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 15);
+  }
+
+  getPlatformStats() {
+    const year = this.selectedYear();
+    let filteredMedia = this.allMedia();
+
+    if (year !== 'all') {
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
+    }
+
+    const platformCount = new Map<string, number>();
+    filteredMedia.forEach(item => {
+      item.platforms?.forEach(platform => {
+        platformCount.set(platform, (platformCount.get(platform) || 0) + 1);
+      });
+    });
+
+    return Array.from(platformCount.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+  }
+
+  getReleaseYearStats() {
+    const year = this.selectedYear();
+    let filteredMedia = this.allMedia();
+
+    if (year !== 'all') {
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
+    }
+
+    const releaseYearCount = new Map<number, number>();
+    filteredMedia.forEach(item => {
+      if (item.releaseYear) {
+        releaseYearCount.set(item.releaseYear, (releaseYearCount.get(item.releaseYear) || 0) + 1);
+      }
+    });
+
+    return Array.from(releaseYearCount.entries())
+      .map(([name, count]) => ({ name: name.toString(), count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
   }
 
   getAllWatchedMedia(): MediaItem[] {

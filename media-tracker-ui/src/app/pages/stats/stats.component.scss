@@ -71,55 +71,11 @@ section {
   }
 }
 
-.genre-bars, .studio-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1.5rem;
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: 12px;
-}
-
-.genre-bars {
-  gap: 0.75rem;
-
-  .genre-bar {
-    display: grid;
-    grid-template-columns: 120px 1fr 40px;
-    align-items: center;
-    gap: 1rem;
-
-    .genre-name {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--app-text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .genre-progress {
-      height: 20px;
-      background: var(--app-bg);
-      border-radius: 8px;
-      overflow: hidden;
-
-      .genre-fill {
-        height: 100%;
-        background: var(--app-primary);
-        transition: width 0.6s ease;
-        border-radius: 8px;
-      }
-    }
-
-    .genre-count {
-      text-align: right;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--app-text-muted);
-    }
-  }
+.stats-bar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
 }
 
 .completion-card {
@@ -186,50 +142,7 @@ section {
   }
 }
 
-.studio-bars {
-  max-height: 600px;
-  overflow-y: auto;
 
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-thumb { background: var(--app-border); border-radius: 10px; }
-
-  .studio-bar {
-    display: grid;
-    grid-template-columns: 180px 1fr 40px;
-    align-items: center;
-    gap: 1rem;
-
-    .studio-name {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--app-text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .studio-progress {
-      height: 20px;
-      background: var(--app-bg);
-      border-radius: 8px;
-      overflow: hidden;
-
-      .studio-fill {
-        height: 100%;
-        background: linear-gradient(90deg, var(--app-primary) 0%, #7C3AED 100%);
-        transition: width 0.6s ease;
-        border-radius: 8px;
-      }
-    }
-
-    .studio-count {
-      text-align: right;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--app-text-muted);
-    }
-  }
-}
 
 .anime-grid, .all-watched-grid {
   display: grid;

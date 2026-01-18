@@ -42,24 +42,26 @@
   </section>
 
 
-  <!-- Top Genres -->
-  <section class="genres-section">
-    <h2>Favorite Genres</h2>
-    <div class="genre-bars">
-      @for (genre of stats().favoriteGenres; track genre.name) {
-        <div class="genre-bar">
-          <span class="genre-name">{{ genre.name }}</span>
-          <div class="genre-progress">
-            <div 
-              class="genre-fill" 
-              [style.width.%]="(genre.count / stats().favoriteGenres[0].count) * 100">
-            </div>
-          </div>
-          <span class="genre-count">{{ genre.count }}</span>
-        </div>
-      }
-    </div>
-  </section>
+  <!-- Top Stats Groups -->
+  <div class="stats-bar-grid">
+    <app-stats-bar-list
+      title="Gêneros"
+      [data]="stats().favoriteGenres"
+      color="var(--app-primary)">
+    </app-stats-bar-list>
+
+    <app-stats-bar-list
+      title="Plataformas"
+      [data]="getPlatformStats()"
+      color="var(--app-primary)">
+    </app-stats-bar-list>
+
+    <app-stats-bar-list
+      title="Ano de Lançamento"
+      [data]="getReleaseYearStats()"
+      color="var(--app-primary)">
+    </app-stats-bar-list>
+  </div>
 
   <!-- Top Rated Anime -->
   @if (stats().topRated.length > 0) {
@@ -148,21 +150,11 @@
 
   <!-- Producer Stats -->
   <section class="studios-section">
-    <h2>{{ currentMediaType() === 1 ? 'Anime por Estúdios' : 'Games por Desenvolvedora' }}</h2>
-    <div class="studio-bars">
-      @for (producer of getProducerStats(); track producer.name) {
-        <div class="studio-bar">
-          <span class="studio-name">{{ producer.name }}</span>
-          <div class="studio-progress">
-            <div 
-              class="studio-fill" 
-              [style.width.%]="(producer.count / (getProducerStats()[0]?.count ?? 1)) * 100">
-            </div>
-          </div>
-          <span class="studio-count">{{ producer.count }}</span>
-        </div>
-      }
-    </div>
+    <app-stats-bar-list
+      [title]="currentMediaType() === 1 ? 'Anime por Estúdios' : 'Games por Desenvolvedora'"
+      [data]="getProducerStats()"
+      [color]="'linear-gradient(90deg, var(--app-primary) 0%, #7C3AED 100%)'">
+    </app-stats-bar-list>
   </section>
 
   <!-- All Watched Media -->

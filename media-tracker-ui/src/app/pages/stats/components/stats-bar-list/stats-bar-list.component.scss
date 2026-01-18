@@ -1,0 +1,34 @@
+.stats-bar-list-section {
+  padding: 1.5rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  height: 540px;
+  display: flex;
+  flex-direction: column;
+
+  // Define secondary color using CSS to ensure it evaluates correctly
+  --chart-color-dark: color-mix(in srgb, var(--chart-color-main), black 30%);
+
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--app-text-primary);
+  }
+}
+
+.chart-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 440px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    min-height: 350px;
+  }
+}

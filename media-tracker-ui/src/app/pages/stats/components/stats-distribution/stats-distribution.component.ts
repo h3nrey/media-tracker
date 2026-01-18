@@ -19,7 +19,7 @@ export interface CategoryStat {
   styleUrl: './stats-distribution.component.scss'
 })
 export class StatsDistributionComponent {
-  title = input<string>('Distribuição por Categoria');
+  title = input<string>('Status');
   stats = input.required<CategoryStat[]>();
   total = input.required<number>();
   unitLabel = input<string>('Itens');

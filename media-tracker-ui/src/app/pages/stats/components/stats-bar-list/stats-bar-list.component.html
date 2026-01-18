@@ -1,0 +1,16 @@
+<section class="stats-bar-list-section" [style.--chart-color-main]="color()">
+  <h2>{{ title() }}</h2>
+  <div class="chart-container">
+    <apx-chart
+      [series]="chartOptions().series"
+      [chart]="chartOptions().chart"
+      [labels]="chartOptions().labels"
+      [colors]="chartOptions().colors!"
+      [plotOptions]="chartOptions().plotOptions"
+      [stroke]="chartOptions().stroke"
+      [dataLabels]="chartOptions().dataLabels"
+      [legend]="chartOptions().legend"
+      [tooltip]="chartOptions().tooltip">
+    </apx-chart>
+  </div>
+</section>
