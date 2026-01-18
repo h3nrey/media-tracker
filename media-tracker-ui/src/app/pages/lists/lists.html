@@ -30,6 +30,8 @@
               <app-list-card
                 [list]="list"
                 (cardClick)="onListSaved()" 
+                (edit)="openEditListDialog($event)"
+                (delete)="deleteList($event)"
               ></app-list-card>
 
               <!-- Drag Preview -->

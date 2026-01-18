@@ -1,13 +1,15 @@
-@if (galleryImages().length > 0) {
-  <section class="media-gallery-section">
-    <div class="section-header">
+<section class="media-gallery-section">
+  <div class="section-header">
+    <div class="header-text">
       <h2>
         <lucide-icon [img]="ImageIcon" [size]="24"></lucide-icon>
         Momentos Legais
       </h2>
       <span class="subtitle">Capturas marcantes da sua jornada</span>
     </div>
+  </div>
 
+  @if (galleryImages().length > 0) {
     <div class="media-gallery-grid">
       @for (img of galleryImages(); track img.id) {
         <div class="gallery-card" (click)="openImage(img)">
@@ -20,8 +22,22 @@
         </div>
       }
     </div>
-  </section>
-}
+  } @else {
+    <div class="empty-state-card">
+      <div class="empty-content">
+        <div class="icon-stack">
+          <div class="circle-glow"></div>
+          <lucide-icon [img]="ImageIcon" [size]="48" class="main-icon"></lucide-icon>
+          <lucide-icon [img]="XIcon" [size]="20" class="sub-icon"></lucide-icon>
+        </div>
+        <div class="empty-text">
+          <h3>Nenhum momento capturado</h3>
+          <p>Adicione capturas de tela e fotos da sua galeria para recordar seus momentos favoritos!</p>
+        </div>
+      </div>
+    </div>
+  }
+</section>
 
 <!-- Fullscreen Overlay -->
 @if (selectedImage(); as img) {

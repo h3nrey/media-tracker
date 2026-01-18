@@ -1,22 +1,61 @@
 <a class="list-card" routerLink="/list-details/{{ list.id }}">
-  <div class="cover-stack">
-    @for (cover of list.covers.slice(0, 5); track cover; let i = $index) {
-      <div 
-        class="cover-item" 
-        [style.z-index]="5 - i"
-        [style.transform]="'translateX(' + (i * 45) + 'px)'"
-      >
-        <img [src]="cover" [alt]="list.name">
-      </div>
-    }
-    @if (list.covers.length === 0) {
-      <div class="empty-stack">
-        <lucide-icon [img]="FolderIcon" [size]="48"></lucide-icon>
-      </div>
-    }
+  @if (showActions) {
+    <button class="menu-trigger" (click)="toggleMenu($event)" [class.active]="showMenu()">
+      <lucide-icon [img]="MoreIcon" [size]="20"></lucide-icon>
+    </button>
+  }
+
+  @if (showMenu()) {
+    <div class="menu-dropdown" (click)="$event.stopPropagation()">
+      <button class="menu-item" (click)="onEdit($event)">
+        <lucide-icon [img]="EditIcon" [size]="16"></lucide-icon>
+        <span>Editar</span>
+      </button>
+      <button class="menu-item delete-btn" (click)="onDelete($event)">
+        <lucide-icon [img]="DeleteIcon" [size]="16"></lucide-icon>
+        <span>Excluir</span>
+      </button>
+    </div>
+  }
+
+  <div class="list-visual">
+    <div class="cover-stack">
+      @for (i of [0, 1, 2, 3, 4]; track i) {
+        <div 
+          class="cover-item" 
+          [style.z-index]="10 - i"
+          [style.--i]="i"
+          [class.is-placeholder]="!list.covers[i]"
+        >
+          @if (list.covers[i]) {
+            <img [src]="list.covers[i]" [alt]="list.name">
+          } @else {
+            <div class="placeholder-content">
+              <lucide-icon *ngIf="i === 0 && list.covers.length === 0" [img]="FolderIcon" [size]="32"></lucide-icon>
+            </div>
+          }
+        </div>
+      }
+    </div>
   </div>
+
   <div class="list-info">
     <h3 class="list-name">{{ list.name }}</h3>
-    <span class="item-count">{{ list.itemCount }} Items</span>
   </div>
+
+  @if (list.progress !== undefined) {
+    <div class="list-progress-section">
+      <div class="progress-bar-container">
+        <div class="progress-fill" [style.width.%]="list.progress"></div>
+      </div>
+      <div class="progress-stats">
+        <span class="count-text">{{ list.completedCount }} out of {{ list.itemCount }}</span>
+        <span class="percent-text">{{ list.progress | number:'1.0-0' }}%</span>
+      </div>
+    </div>
+  } @else {
+    <div class="list-footer">
+      <span class="item-count">{{ list.itemCount }} Items</span>
+    </div>
+  }
 </a>

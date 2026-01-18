@@ -160,6 +160,11 @@
     </div>
   </section>
 
+  <app-stats-lists
+    [mediaList]="allMedia()"
+    [allMedia]="allMedia()">
+  </app-stats-lists>
+
   <!-- All Watched Media -->
   @if (completedMediaList().length > 0) {
     <section class="all-watched-section">

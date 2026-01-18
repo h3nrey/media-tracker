@@ -194,10 +194,18 @@ export class ListService {
       const itemIds = list.mediaItemIds || list.animeIds || [];
       const items = itemIds.map(id => allMedia.find(m => m.id === id)).filter(m => !!m) as MediaItem[];
       
+      const completedCount = items.filter(m => {
+        if (m.endDate) return true;
+        if (m.progressTotal && m.progressTotal > 0 && m.progressCurrent === m.progressTotal) return true;
+        return false;
+      }).length;
+
       return {
         ...list,
         covers: items.map(item => item.coverImage).filter(img => !!img).slice(0, 5),
-        itemCount: items.length
+        itemCount: items.length,
+        completedCount,
+        progress: items.length > 0 ? (completedCount / items.length) * 100 : 0
       };
     });
 

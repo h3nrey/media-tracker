@@ -1,0 +1,187 @@
+.stats-lists-section {
+  margin-top: 1rem;
+  margin-bottom: 4rem;
+
+  .section-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+      margin-bottom: 0.25rem;
+
+      lucide-icon {
+        color: var(--app-primary);
+      }
+    }
+    
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--app-text-muted);
+      font-weight: 500;
+      display: block;
+      margin-left: 2.5rem;
+    }
+
+    .view-all {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--app-primary);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      background: rgba(var(--app-primary-rgb), 0.1);
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(var(--app-primary-rgb), 0.2);
+        transform: translateX(4px);
+      }
+    }
+  }
+
+  .lists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+    gap: 2rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  ::ng-deep app-list-card {
+    .list-card {
+      height: 100%;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: 24px;
+      padding: 1.5rem;
+    }
+  }
+
+  .empty-state-card {
+    width: 100%;
+    max-width: 900px;
+    margin: 1rem auto;
+    background: var(--app-surface);
+    border: 1px dotted var(--app-border);
+    border-radius: 24px;
+    padding: 5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(var(--app-primary-rgb), 0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .empty-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      position: relative;
+      z-index: 1;
+
+      .icon-stack {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .circle-glow {
+          position: absolute;
+          width: 80px;
+          height: 80px;
+          background: var(--app-primary);
+          border-radius: 50%;
+          filter: blur(40px);
+          opacity: 0.15;
+          animation: pulse 4s infinite ease-in-out;
+        }
+
+        .main-icon {
+          color: var(--app-primary);
+          opacity: 0.4;
+          filter: drop-shadow(0 0 10px rgba(var(--app-primary-rgb), 0.2));
+        }
+
+        .sub-icon {
+          position: absolute;
+          bottom: 10px;
+          right: 10px;
+          color: var(--app-primary);
+          opacity: 0.2;
+          transform: rotate(15deg);
+        }
+      }
+
+      .empty-text {
+        text-align: center;
+
+        h3 {
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: var(--app-text-primary);
+          margin-bottom: 0.75rem;
+          letter-spacing: -0.5px;
+        }
+
+        p {
+          font-size: 1rem;
+          color: var(--app-text-muted);
+          max-width: 340px;
+          line-height: 1.6;
+          margin: 0 auto;
+        }
+      }
+
+      .create-list-btn {
+        margin-top: 1rem;
+        background: var(--app-primary);
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 800;
+        font-size: 0.95rem;
+        box-shadow: 0 10px 20px rgba(var(--app-primary-rgb), 0.2);
+        transition: all 0.3s;
+
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 15px 30px rgba(var(--app-primary-rgb), 0.3);
+          filter: brightness(1.1);
+        }
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.1; }
+  50% { transform: scale(1.2); opacity: 0.2; }
+  100% { transform: scale(1); opacity: 0.1; }
+}
