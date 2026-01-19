@@ -8,7 +8,7 @@ import { IgdbService, IGDBGame } from '../../services/igdb.service';
 import { GameService } from '../../services/game.service';
 import { MediaType } from '../../models/media-type.model';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
-import { LucideAngularModule, TrendingUp, Star, Clock, Flame, Sparkles, ChevronRight, ChevronLeft, RefreshCw, Plus, Check, Bookmark, X, Dices, ListPlus } from 'lucide-angular';
+import { LucideAngularModule, TrendingUp, Star, Clock, Flame, Sparkles, ChevronRight, ChevronLeft, RefreshCw, Plus, Check, Bookmark, X, Dices, ListPlus, Tv, Smile } from 'lucide-angular';
 import { CategoryService } from '../../services/status.service';
 import { Category } from '../../models/status.model';
 import { ToastService } from '../../services/toast.service';
@@ -85,6 +85,8 @@ export class BrowseComponent implements OnInit, OnDestroy {
   readonly DiceIcon = Dices;
   readonly PlayIcon = Play;
   readonly ListPlusIcon = ListPlus;
+  readonly TvIcon = Tv;
+  readonly SmileIcon = Smile;
 
   private gameSortOptions = [
     { label: 'Popularidade', value: 'rating_count desc' },
@@ -398,40 +400,62 @@ export class BrowseComponent implements OnInit, OnDestroy {
     });
   }
 
-  private loadAnimeSections() {
-    // Load 5 featured anime with banners
-    this.malService.getRecommendations({}).subscribe(async (results) => {
+  private async loadAnimeSections() {
+    // Initial sections setup for anime - keep them in loading state
+    this.sections.set([
+      { title: 'Mais Populares', subtitle: 'Favoritos da comunidade', icon: TrendingUp, items: [], isLoading: true },
+      { title: 'Novos Lançamentos', subtitle: 'Estreias recentes', icon: Clock, items: [], isLoading: true },
+      { title: 'Anos 2000', subtitle: 'Clássicos dessa década', icon: Tv, items: [], isLoading: true },
+      { title: 'Nostalgia anos 90', subtitle: 'Onde tudo começou', icon: Sparkles, items: [], isLoading: true },
+      { title: 'Pura Diversão', subtitle: 'As melhores comédias', icon: Smile, items: [], isLoading: true },
+    ]);
+    this.isLoadingFeatured.set(true);
+
+    try {
+      // 1. Fetch Featured (Home)
+      const featuredResults = await firstValueFrom(this.malService.getRecommendations({}));
       const featured: BrowseItem[] = [];
-      
-      for (const anime of results.slice(0, 5)) {
+      for (const anime of featuredResults.slice(0, 5)) {
+        // Banner fetching also respects internal delays
         const banner = await this.malService.getBannerFromAnilist(anime.mal_id);
         featured.push(this.normalizeAnime(anime, banner || undefined));
       }
-      
+
+      // 2. Fetch Sections Sequentially to respect Jikan's 1 req/sec limit
+      // Each call inside MalService already has a delay(1000) logic
+      const s0 = await firstValueFrom(this.malService.getRecommendations({}));
+      const s1 = await firstValueFrom(this.malService.getRecommendations({ status: 'airing' }));
+      const s2 = await firstValueFrom(this.malService.getRecommendations({ startDate: '2000-01-01', endDate: '2009-12-31' }));
+      const s3 = await firstValueFrom(this.malService.getRecommendations({ startDate: '1990-01-01', endDate: '1999-12-31' }));
+      const s4 = await firstValueFrom(this.malService.getRecommendations({ genres: [4] }));
+
+      // 3. Update all UI at once
       this.featuredList.set(featured);
       this.isLoadingFeatured.set(false);
       this.startCarousel();
-    });
 
-    // trending
-    this.malService.getRecommendations({ status: 'airing' }).subscribe(results => {
-      this.updateSection(0, results.map(a => this.normalizeAnime(a)));
-    });
+      this.sections.update(sections => {
+        const updated = [...sections];
+        if (updated.length >= 5) {
+          updated[0] = { ...updated[0], items: s0.map(a => this.normalizeAnime(a)), isLoading: false };
+          updated[1] = { ...updated[1], items: s1.map(a => this.normalizeAnime(a)), isLoading: false };
+          updated[2] = { ...updated[2], items: s2.map(a => this.normalizeAnime(a)), isLoading: false };
+          updated[3] = { ...updated[3], items: s3.map(a => this.normalizeAnime(a)), isLoading: false };
+          updated[4] = { ...updated[4], items: s4.map(a => this.normalizeAnime(a)), isLoading: false };
+        }
+        return updated;
+      });
 
-    // top rated
-    this.malService.getRecommendations({}).subscribe(results => {
-      this.updateSection(1, results.map(a => this.normalizeAnime(a)));
-    });
-
-    // action
-    this.malService.getRecommendations({ genres: [1] }).subscribe(results => {
-      this.updateSection(2, results.map(a => this.normalizeAnime(a)));
-    });
-
-    // recent
-    this.malService.getRecommendations({ startDate: '2023-01-01' }).subscribe(results => {
-      this.updateSection(3, results.map(a => this.normalizeAnime(a)));
-    });
+      // 4. Save the full state to cache
+      this.saveToCache();
+      
+    } catch (error) {
+      console.error('Failed to load anime sections sequentially:', error);
+      this.toast.error('Erro ao carregar recomendações de anime');
+      // Reset loading state on error
+      this.sections.update(sections => sections.map(s => ({ ...s, isLoading: false })));
+      this.isLoadingFeatured.set(false);
+    }
   }
   private loadGameSections() {
     // Initial sections setup for games
