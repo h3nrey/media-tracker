@@ -137,21 +137,19 @@ export class AnimeTrackerDatabase extends Dexie {
       lists: '++id, supabaseId, name, folderId, createdAt, updatedAt, isDeleted'
     });
 
-    this.version(8).stores({
+    this.version(9).stores({
       mediaTypes: '++id, name, createdAt',
-      mediaItems: '++id, supabaseId, mediaTypeId, title, externalId, externalApi, statusId, score, releaseYear, createdAt, updatedAt, isDeleted',
+      mediaItems: '++id, supabaseId, mediaTypeId, title, externalId, externalApi, statusId, score, releaseYear, createdAt, updatedAt, lastSyncedAt, isDeleted',
       animeMetadata: 'mediaItemId, malId',
       mangaMetadata: 'mediaItemId, malId',
       gameMetadata: 'mediaItemId, igdbId',
       movieMetadata: 'mediaItemId, tmdbId',
-      mediaLogs: '++id, supabaseId, mediaItemId, startDate, endDate, createdAt, updatedAt, isDeleted',
-      mediaImages: '++id, supabaseId, mediaItemId, url, createdAt, updatedAt, isDeleted',
-      lists: '++id, supabaseId, name, folderId, mediaTypeId, createdAt, updatedAt, isDeleted',
-      // Legacy
-      anime: '++id, supabaseId, title, malId, statusId, score, releaseYear, createdAt, updatedAt, isDeleted',
-      categories: '++id, supabaseId, name, order, createdAt, updatedAt, isDeleted',
-      watchSources: '++id, supabaseId, name, baseUrl, createdAt, updatedAt, isDeleted',
-      folders: '++id, supabaseId, name, order, createdAt, updatedAt, isDeleted'
+      mediaLogs: '++id, supabaseId, mediaItemId, startDate, endDate, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      mediaImages: '++id, supabaseId, mediaItemId, url, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      lists: '++id, supabaseId, name, folderId, mediaTypeId, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      categories: '++id, supabaseId, name, order, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      watchSources: '++id, supabaseId, name, baseUrl, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      folders: '++id, supabaseId, name, order, createdAt, updatedAt, lastSyncedAt, isDeleted'
     });
   }
 

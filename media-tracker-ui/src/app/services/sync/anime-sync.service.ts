@@ -24,7 +24,16 @@ export class AnimeSyncService {
     const mapSupabaseToLocalCategory = (supabaseId: number) => categories.find(c => c.supabaseId === supabaseId)?.id;
 
     for (const local of localMediaItems) {
-      const remote = remoteMediaItems?.find(r => r.id === local.supabaseId);
+      // 1. Try to find remote by supabaseId or Natural Key (externalId + mediaTypeId)
+      let remote = remoteMediaItems?.find(r => r.id === local.supabaseId);
+      
+      if (!remote && !local.supabaseId && local.externalId) {
+        remote = remoteMediaItems?.find(r => r.external_id === local.externalId && r.media_type_id === 1 && !r.is_deleted);
+        if (remote) {
+          await db.mediaItems.update(local.id!, { supabaseId: remote.id });
+          local.supabaseId = remote.id;
+        }
+      }
       
       const supabaseData = {
         media_type_id: 1,
@@ -73,11 +82,43 @@ export class AnimeSyncService {
         }
       } else {
         const remoteUpdatedAt = new Date(remote.updated_at);
-        if (local.updatedAt > remoteUpdatedAt && (!local.lastSyncedAt || local.updatedAt > local.lastSyncedAt)) {
+        
+        // Conflict Resolution: Most recent wins
+        const localIsNewer = local.updatedAt > remoteUpdatedAt;
+        const remoteIsNewer = remoteUpdatedAt > local.updatedAt;
+        const localHasChanges = !local.lastSyncedAt || local.updatedAt > local.lastSyncedAt;
+        const remoteHasChanges = !local.lastSyncedAt || remoteUpdatedAt > local.lastSyncedAt;
+
+        if (localIsNewer && localHasChanges) {
+          // Local wins and pushes
           await this.supabase.from('media_items').update(supabaseData).eq('id', local.supabaseId);
           await db.mediaItems.update(local.id!, { lastSyncedAt: new Date() });
           await this.syncAnimeMetadata(local.id!, local.supabaseId!, 'push');
-        } else if (remoteUpdatedAt > (local.lastSyncedAt || local.updatedAt)) {
+        } else if (remoteIsNewer && remoteHasChanges) {
+          // Remote wins and pulls
+          await db.mediaItems.update(local.id!, {
+            supabaseId: remote.id,
+            title: remote.title,
+            coverImage: remote.cover_image,
+            bannerImage: remote.banner_image,
+            externalId: remote.external_id,
+            externalApi: remote.external_api,
+            statusId: mapSupabaseToLocalCategory(remote.status_id) || local.statusId,
+            score: remote.score,
+            genres: remote.genres || [],
+            releaseYear: remote.release_year,
+            trailerUrl: remote.trailer_url,
+            notes: remote.notes,
+            sourceLinks: remote.source_links || [],
+            progressCurrent: remote.progress_current,
+            progressTotal: remote.progress_total,
+            isDeleted: remote.is_deleted,
+            updatedAt: remoteUpdatedAt,
+            lastSyncedAt: new Date(),
+          });
+          await this.syncAnimeMetadata(local.id!, remote.id, 'pull');
+        } else if (!localHasChanges && remoteHasChanges) {
+          // Local hasn't changed but remote has
           await db.mediaItems.update(local.id!, {
             supabaseId: remote.id,
             title: remote.title,
