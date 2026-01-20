@@ -243,16 +243,24 @@ export class AnimeService {
         const addedInYear = createdDate && createdDate.getFullYear() === targetYear;
         
         const hasActivityDates = a.activityDates && a.activityDates.length > 0;
-        if (!hasActivityDates) {
+        const hasLogs = a.logs && a.logs.length > 0;
+
+        if (!hasActivityDates && !hasLogs) {
           return !!addedInYear;
         }
 
-        const watchedInYear = a.activityDates!.some(d => {
+        const watchedInYearByDate = a.activityDates?.some(d => {
           const dDate = new Date(d);
           return dDate.getFullYear() === targetYear;
-        });
+        }) || false;
+
+        const watchedInYearByLog = a.logs?.some(log => {
+          const startYear = log.startDate ? new Date(log.startDate).getFullYear() : null;
+          const endYear = log.endDate ? new Date(log.endDate).getFullYear() : null;
+          return startYear === targetYear || endYear === targetYear;
+        }) || false;
         
-        return watchedInYear;
+        return watchedInYearByDate || watchedInYearByLog;
       });
     }
 

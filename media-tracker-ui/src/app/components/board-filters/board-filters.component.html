@@ -13,7 +13,7 @@
             <ui-select 
                 [options]="getWatchedYearOptions()"
                 [value]="currentFilters().activityYear"
-                (valueChange)="toggleActivityYear($event === '' ? undefined : +$event)"
+                (valueChange)="toggleActivityYear($event)"
                 placeholder="All Time"
                 variant="prominent"
                 rounding="full">

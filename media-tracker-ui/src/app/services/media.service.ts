@@ -359,16 +359,24 @@ export class MediaService {
         const addedInYear = createdDate && createdDate.getFullYear() === targetYear;
         
         const hasActivityDates = m.activityDates && m.activityDates.length > 0;
-        if (!hasActivityDates) {
+        const hasLogs = m.logs && m.logs.length > 0;
+
+        if (!hasActivityDates && !hasLogs) {
           return !!addedInYear;
         }
 
-        const activeInYear = m.activityDates!.some(d => {
+        const activeInYearByDate = m.activityDates?.some(d => {
           const dDate = new Date(d);
           return dDate.getFullYear() === targetYear;
-        });
+        }) || false;
+
+        const activeInYearByLog = m.logs?.some(log => {
+          const startYear = log.startDate ? new Date(log.startDate).getFullYear() : null;
+          const endYear = log.endDate ? new Date(log.endDate).getFullYear() : null;
+          return startYear === targetYear || endYear === targetYear;
+        }) || false;
         
-        return activeInYear;
+        return activeInYearByDate || activeInYearByLog;
       });
     }
 
