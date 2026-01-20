@@ -1,6 +1,6 @@
 import { Component, Output, EventEmitter, signal, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterLink, RouterModule } from '@angular/router';
 import { LucideAngularModule, Plus, Monitor, Layers, FileUp, RefreshCw, History, Settings, ChevronDown, Package, Sparkles, Film, BarChart3, PlusCircle, Keyboard } from 'lucide-angular';
 import { MediaTypeSelectorComponent } from '../media-type-selector/media-type-selector.component';
 
@@ -9,7 +9,7 @@ import { ShortcutService } from '../../services/shortcut.service';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, RouterModule, MediaTypeSelectorComponent],
+  imports: [CommonModule, LucideAngularModule, RouterModule, MediaTypeSelectorComponent, RouterLink],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })

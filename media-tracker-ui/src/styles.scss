@@ -50,6 +50,10 @@ html, body {
   height: 100%;
 }
 
+a {
+  text-decoration: none;
+}
+
 .mobile-only {
   @media (min-width: 768px) {
     display: none !important;

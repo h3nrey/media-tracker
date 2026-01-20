@@ -147,8 +147,63 @@
 
   <!-- Scrollable Sections -->
   <div class="sections-container">
+    @if (searchQuery()) {
+      <section class="anime-section search-results-section">
+        <div class="section-header">
+          <div class="section-title-group">
+            <lucide-icon [img]="SearchIcon" [size]="20" class="section-icon search-icon"></lucide-icon>
+            <div>
+              <h2>Resultados para: "{{ searchQuery() }}"</h2>
+              <p class="section-subtitle">Encontrados na web</p>
+            </div>
+          </div>
+          <button class="clear-search-btn" (click)="searchQuery.set(''); searchResults.set([])">
+            <lucide-icon [img]="XIcon" [size]="18"></lucide-icon>
+            <span>Limpar Busca</span>
+          </button>
+        </div>
+
+        <div class="items-wrapper">
+          <div class="items-scroller">
+            @if (isSearching()) {
+              @for (i of [1,2,3,4,5]; track i) {
+                <div class="card-skeleton">
+                  <div class="skeleton-image"></div>
+                  <div class="skeleton-info">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-meta"></div>
+                  </div>
+                </div>
+              }
+            } @else {
+              @if (searchResults().length === 0) {
+                <div class="no-results">
+                  <p>Nenhum resultado encontrado para sua busca.</p>
+                </div>
+              } @else {
+                @for (item of searchResults(); track item.externalId) {
+                  <app-browse-card 
+                    [item]="item" 
+                    [isAdded]="isItemAdded(item.externalId)"
+                    [categories]="categories()"
+                    [showCategoryTooltip]="showCategoryTooltip() === item.externalId"
+                    (viewDetails)="viewDetails($event)"
+                    (quickAdd)="quickAddMedia($event)"
+                    (changeCategory)="changeCategory($event.item, $event.category)"
+                    (closeTooltip)="closeTooltip()"
+                    (playTrailer)="playTrailer($event)"
+                    (addToListEvent)="handleAddToList($event)">
+                  </app-browse-card>
+                }
+              }
+            }
+          </div>
+        </div>
+      </section>
+    }
+
     <!-- Refresh Button -->
-    <div class="refresh-section">
+    <div class="refresh-section" *ngIf="!searchQuery()">
       <button class="refresh-btn" (click)="refreshBrowse()" title="Clear cache and reload">
         <lucide-icon [img]="RefreshIcon" [size]="18"></lucide-icon>
         <span>Atualizar Conteúdo</span>

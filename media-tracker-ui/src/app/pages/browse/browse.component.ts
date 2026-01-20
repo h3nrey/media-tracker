@@ -8,7 +8,8 @@ import { IgdbService, IGDBGame } from '../../services/igdb.service';
 import { GameService } from '../../services/game.service';
 import { MediaType } from '../../models/media-type.model';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
-import { LucideAngularModule, TrendingUp, Star, Clock, Flame, Sparkles, ChevronRight, ChevronLeft, RefreshCw, Plus, Check, Bookmark, X, Dices, ListPlus, Tv, Smile } from 'lucide-angular';
+import { LucideAngularModule, TrendingUp, Star, Clock, Flame, Sparkles, ChevronRight, ChevronLeft, RefreshCw, Plus, Check, Bookmark, X, Dices, ListPlus, Tv, Smile, Search } from 'lucide-angular';
+import { ActivatedRoute } from '@angular/router';
 import { CategoryService } from '../../services/status.service';
 import { Category } from '../../models/status.model';
 import { ToastService } from '../../services/toast.service';
@@ -65,6 +66,7 @@ export class BrowseComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private mediaService = inject(MediaService);
   private listService = inject(ListService);
+  private route = inject(ActivatedRoute);
 
   currentMediaType = signal<number>(1);
   readonly MediaType = MediaType;
@@ -85,6 +87,7 @@ export class BrowseComponent implements OnInit, OnDestroy {
   readonly DiceIcon = Dices;
   readonly PlayIcon = Play;
   readonly ListPlusIcon = ListPlus;
+  readonly SearchIcon = Search;
   readonly TvIcon = Tv;
   readonly SmileIcon = Smile;
 
@@ -123,7 +126,33 @@ export class BrowseComponent implements OnInit, OnDestroy {
   isCreatingList = signal(false);
   newListName = '';
 
+  // Search state
+  searchQuery = signal<string>('');
+  searchResults = signal<BrowseItem[]>([]);
+  isSearching = signal(false);
+
   constructor() {
+    this.route.queryParams
+      .pipe(takeUntilDestroyed())
+      .subscribe(params => {
+        const query = params['search'];
+        const type = params['type'];
+        
+        if (type) {
+          const typeNum = parseInt(type);
+          if (typeNum !== this.currentMediaType()) {
+            this.mediaTypeState.setSelectedMediaType(typeNum);
+          }
+        }
+
+        if (query) {
+          this.searchQuery.set(query);
+          this.performSearch(query);
+        } else {
+          this.searchQuery.set('');
+          this.searchResults.set([]);
+        }
+      });
     this.mediaTypeState.getSelectedMediaType$()
       .pipe(takeUntilDestroyed())
       .subscribe(type => {
@@ -184,6 +213,23 @@ export class BrowseComponent implements OnInit, OnDestroy {
   async addToListFromHero(list: List, item: BrowseItem) {
     await this.handleAddToList({ item, list });
     this.showHeroListMenu.set(false);
+  }
+
+  private performSearch(query: string) {
+    if (!query.trim()) return;
+    this.isSearching.set(true);
+
+    if (this.currentMediaType() === MediaType.GAME) {
+      this.igdbService.searchGames(query).subscribe(results => {
+        this.searchResults.set(results.map(g => this.normalizeGame(g)));
+        this.isSearching.set(false);
+      });
+    } else {
+      this.malService.searchAnime(query).subscribe(results => {
+        this.searchResults.set(results.map(a => this.normalizeAnime(a)));
+        this.isSearching.set(false);
+      });
+    }
   }
 
   loadCategories() {
