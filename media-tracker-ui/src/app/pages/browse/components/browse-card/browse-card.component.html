@@ -10,14 +10,14 @@
     }
 
     <!-- Quick Add Button -->
-    <button class="quick-add-btn" [class.added]="isAdded" (click)="quickAdd.emit(item); $event.stopPropagation()"
-      [title]="isAdded ? 'Adicionado à biblioteca' : 'Adicionar aos Desejos'">
+    <button class="quick-add-btn" [class.added]="isAdded" (click)="onCategoryClick($event)"
+      [title]="isAdded ? 'Mudar Status' : 'Adicionar à biblioteca'">
       <lucide-icon [img]="isAdded ? CheckIcon : BookmarkIcon" [size]="16">
       </lucide-icon>
     </button>
 
     <!-- Add to List Button -->
-    <button class="add-to-list-btn" (click)="toggleListMenu($event)" title="Adicionar a uma lista">
+    <button class="add-to-list-btn" (click)="toggleActionMenu($event, 'lists')" title="Adicionar a uma lista">
       <lucide-icon [img]="ListPlusIcon" [size]="16"></lucide-icon>
     </button>
 
@@ -30,71 +30,21 @@
 
   </div>
 
-  <!-- List Management Menu -->
+  <!-- Unified Action Menu -->
   <app-popover 
     [origin]="cardOrigin" 
-    [isOpen]="showListMenu()" 
-    (close)="showListMenu.set(false)"
-    [customStyle]="{ width: '15rem', height: '21rem' }">
-    <div class="list-menu" (click)="$event.stopPropagation()">
-      <div class="menu-header">
-        <span>Adicionar à Lista</span>
-        <button class="close-btn" (click)="showListMenu.set(false)">
-          <lucide-icon [img]="XIcon" [size]="12"></lucide-icon>
-        </button>
-      </div>
-
-      <div class="menu-content">
-        <div class="list-options">
-          @for (list of availableLists(); track list.id) {
-            <button class="list-option" (click)="addToList(list, $event)">
-              {{ list.name }}
-            </button>
-          }
-        </div>
-
-        <div class="new-list-section">
-          @if (isCreatingList()) {
-            <div class="create-list-form">
-              <input type="text" [(ngModel)]="newListName" placeholder="Nome da lista..." (keyup.enter)="createAndAddList($event)"
-                autofocus>
-              <div class="form-actions">
-                <button class="cancel-btn" (click)="isCreatingList.set(false)">Cancelar</button>
-                <button class="save-btn" (click)="createAndAddList($event)" [disabled]="!newListName.trim()">Criar</button>
-              </div>
-            </div>
-          } @else {
-            <button class="create-toggle-btn" (click)="isCreatingList.set(true)">
-              <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon>
-              <span>Criar Nova Lista</span>
-            </button>
-          }
-        </div>
-      </div>
-    </div>
-  </app-popover>
-
-  <!-- Category Selection Tooltip -->
-  <app-popover 
-    [origin]="cardOrigin" 
-    [isOpen]="showCategoryTooltip" 
-    (close)="closeTooltip.emit()"
-    [customStyle]="{ width: '15rem', height: '21rem' }">
-    <div class="category-tooltip" (click)="$event.stopPropagation()">
-      <div class="tooltip-header">
-        <span>Mover para:</span>
-        <button class="close-tooltip" (click)="closeTooltip.emit()">
-          <lucide-icon [img]="XIcon" [size]="12"></lucide-icon>
-        </button>
-      </div>
-      <div class="category-list">
-        @for (cat of categories; track cat.id) {
-          <button class="category-option" (click)="changeCategory.emit({ item, category: cat })">
-            {{ cat.name }}
-          </button>
-        }
-      </div>
-    </div>
+    [isOpen]="showActionMenu()" 
+    (close)="showActionMenu.set(false)"
+    [customStyle]="{ width: '16rem', height: '22rem' }">
+    <app-browse-list-popover
+      [availableLists]="availableLists()"
+      [categories]="categories"
+      [initialView]="actionMenuInitialView()"
+      (close)="showActionMenu.set(false)"
+      (selectList)="onSelectList($event)"
+      (selectCategory)="onSelectCategory($event)"
+      (createList)="onCreateList($event)">
+    </app-browse-list-popover>
   </app-popover>
   <div class="card-info" (click)="viewDetails.emit(item)">
     <h3 class="card-title">{{ item.title }}</h3>

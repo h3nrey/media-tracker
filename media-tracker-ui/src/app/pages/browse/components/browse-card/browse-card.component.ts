@@ -10,11 +10,12 @@ import { firstValueFrom } from 'rxjs';
 
 import { FormsModule } from '@angular/forms';
 import { PopoverComponent } from '../../../../components/ui/popover/popover.component';
+import { BrowseListPopoverComponent } from '../browse-list-popover/browse-list-popover.component';
 
 @Component({
   selector: 'app-browse-card',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, FormsModule, PopoverComponent],
+  imports: [CommonModule, LucideAngularModule, FormsModule, PopoverComponent, BrowseListPopoverComponent],
   templateUrl: './browse-card.component.html',
   styleUrl: './browse-card.component.scss'
 })
@@ -35,10 +36,10 @@ export class BrowseCardComponent {
   @Output() playTrailer = new EventEmitter<BrowseItem>();
 
   // List management state
-  showListMenu = signal(false);
+  // Action Menu state
+  showActionMenu = signal(false);
+  actionMenuInitialView = signal<'lists' | 'status'>('lists');
   availableLists = signal<List[]>([]);
-  isCreatingList = signal(false);
-  newListName = '';
 
   readonly StarIcon = Star;
   readonly BookmarkIcon = Bookmark;
@@ -48,34 +49,46 @@ export class BrowseCardComponent {
   readonly PlusIcon = Plus;
   readonly PlayIcon = Play;
 
-  async toggleListMenu(event: Event) {
+  async toggleActionMenu(event: Event, initialView: 'lists' | 'status' = 'lists') {
     event.stopPropagation();
-    if (!this.showListMenu()) {
+    if (!this.showActionMenu() || initialView !== this.actionMenuInitialView()) {
       const lists = await firstValueFrom(this.listService.getLists$());
       this.availableLists.set(lists);
+      this.actionMenuInitialView.set(initialView);
+      this.showActionMenu.set(true);
+    } else {
+      this.showActionMenu.set(false);
     }
-    this.showListMenu.update(v => !v);
   }
 
-  async addToList(list: List, event: Event) {
-    event.stopPropagation();
+  async onSelectList(list: List) {
     this.addToListEvent.emit({ item: this.item, list });
-    this.showListMenu.set(false);
+    this.showActionMenu.set(false);
   }
 
-  async createAndAddList(event: Event) {
-    event.stopPropagation();
-    if (!this.newListName.trim()) return;
+  async onSelectCategory(category: Category) {
+    this.changeCategory.emit({ item: this.item, category });
+    this.showActionMenu.set(false);
+  }
 
+  async onCategoryClick(event: Event) {
+    event.stopPropagation();
+    if (this.isAdded) {
+      this.toggleActionMenu(event, 'status');
+    } else {
+      // If not added, still open the status menu so user can choose where to add
+      this.toggleActionMenu(event, 'status');
+    }
+  }
+
+  async onCreateList(name: string) {
     try {
       const newListId = await this.listService.addList({
-        name: this.newListName,
+        name,
         mediaItemIds: [],
         animeIds: []
       });
-      this.toast.success(`Lista "${this.newListName}" criada!`);
-      this.newListName = '';
-      this.isCreatingList.set(false);
+      this.toast.success(`Lista "${name}" criada!`);
       
       // Refresh lists
       const lists = await firstValueFrom(this.listService.getLists$());

@@ -19,6 +19,9 @@ export class KanbanCardComponent implements OnInit {
   @Output() delete = new EventEmitter<MediaItem>();
   @Output() increment = new EventEmitter<MediaItem>();
   @Input() url = 'anime';
+  @Input() isSelected = false;
+  
+  @Output() mediaClick = new EventEmitter<{ media: MediaItem, event: MouseEvent }>();
   
   readonly StarIcon = Star;
   readonly MoreVerticalIcon = MoreVertical;
@@ -49,6 +52,12 @@ export class KanbanCardComponent implements OnInit {
   toggleMenu(event: Event) {
     event.stopPropagation();
     this.menuOpen.update(v => !v);
+  }
+
+  onCardClick(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.mediaClick.emit({ media: this.media, event });
   }
 
   onEdit(event: Event) {

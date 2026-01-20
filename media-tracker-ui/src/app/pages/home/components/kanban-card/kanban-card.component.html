@@ -1,5 +1,5 @@
 @if(media) {
-<div class="media-card" cdkDrag [routerLink]="['/'+url, media.id]">
+<div class="media-card" [class.selected]="isSelected" cdkDrag (click)="onCardClick($event)">
   <div class="card-actions">
     <button class="menu-btn" (click)="toggleMenu($event)">
       <lucide-icon [img]="MoreVerticalIcon" [size]="16"></lucide-icon>

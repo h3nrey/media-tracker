@@ -34,7 +34,8 @@
               @if (media.mediaTypeId === 1) {
                 <app-kanban-anime-card 
                   [anime]="media"
-                  (click)="animeClick.emit(media)"
+                  [isSelected]="selectedIds().has(media.id!)"
+                  (mediaClick)="onMediaClick($event)"
                   (edit)="onEdit($event)"
                   (delete)="onDelete($event)"
                   (increment)="onIncrement($event)"
@@ -42,7 +43,8 @@
               } @else if (media.mediaTypeId === 3) {
                  <app-kanban-game-card 
                   [game]="media"
-                  (click)="animeClick.emit(media)"
+                  [isSelected]="selectedIds().has(media.id!)"
+                  (mediaClick)="onMediaClick($event)"
                   (edit)="onEdit($event)"
                   (delete)="onDelete($event)"
                   (increment)="onIncrement($event)"
@@ -58,4 +60,9 @@
       }
     </div>
   }
+
+  <app-list-view-selection-bar
+    [selectedCount]="selectedIds().size"
+    (deselectAll)="clearAllSelection()">
+  </app-list-view-selection-bar>
 </div>

@@ -237,7 +237,8 @@ export class MalService {
     return {
       title: jikanAnime.title_english || jikanAnime.title,
       coverImage: jikanAnime.images.webp.large_image_url || jikanAnime.images.jpg.large_image_url,
-      malId: jikanAnime.mal_id,
+      externalId: jikanAnime.mal_id,
+      externalApi: 'mal',
       mediaTypeId: 1, // Anime
       progressTotal: jikanAnime.episodes || 0,
       statusId: statusId,

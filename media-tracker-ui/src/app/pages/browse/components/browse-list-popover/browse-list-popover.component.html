@@ -1,0 +1,64 @@
+<div class="list-menu" (click)="$event.stopPropagation()">
+  <div class="menu-header">
+    <div class="header-tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'status'"
+        (click)="activeTab.set('status')">
+        Status
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'lists'"
+        (click)="activeTab.set('lists')">
+        Listas
+      </button>
+    </div>
+    <button class="close-btn" (click)="onClose()">
+      <lucide-icon [img]="XIcon" [size]="14"></lucide-icon>
+    </button>
+  </div>
+
+  <div class="menu-content">
+    @if (activeTab() === 'lists') {
+      <div class="list-options">
+        @for (list of availableLists(); track list.id) {
+          <button class="list-option" (click)="onSelectList(list)">
+            {{ list.name }}
+          </button>
+        }
+      </div>
+
+      <div class="new-list-section">
+        @if (isCreatingList()) {
+          <div class="create-list-form">
+            <input 
+              type="text" 
+              [ngModel]="newListName()" 
+              (ngModelChange)="newListName.set($event)"
+              placeholder="Nome da lista..." 
+              (keyup.enter)="onCreateSubmit()"
+              autofocus>
+            <div class="form-actions">
+              <button class="cancel-btn" (click)="onCancelCreate()">Cancelar</button>
+              <button class="save-btn" (click)="onCreateSubmit()" [disabled]="!newListName().trim()">Criar</button>
+            </div>
+          </div>
+        } @else {
+          <button class="create-toggle-btn" (click)="onCreateToggle()">
+            <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon>
+            <span>Criar Nova Lista</span>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="list-options">
+        @for (cat of categories(); track cat.id) {
+          <button class="list-option" (click)="onSelectCategory(cat)">
+            {{ cat.name }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+</div>

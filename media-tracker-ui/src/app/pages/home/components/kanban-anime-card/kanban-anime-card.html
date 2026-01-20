@@ -1,9 +1,11 @@
 @if (anime) {
   <app-kanban-card 
     [media]="anime" 
+    [isSelected]="isSelected"
     (edit)="edit.emit($event)" 
     (delete)="delete.emit($event)" 
     (increment)="increment.emit($event)"
+    (mediaClick)="mediaClick.emit($event)"
   >
     <div class="anime-info">
       <h3>{{ anime.title }}</h3>

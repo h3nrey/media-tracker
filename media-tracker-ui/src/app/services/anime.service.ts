@@ -129,9 +129,20 @@ export class AnimeService {
     }));
   }
 
+
   async addAnime(anime: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();
     const { logs, ...animeData } = anime;
+
+    // Safety check: prevent duplicates
+    if (animeData.externalId && animeData.externalApi) {
+      const existing = await db.mediaItems
+        .where('externalId').equals(animeData.externalId)
+        .and(m => m.externalApi === animeData.externalApi && !m.isDeleted)
+        .first();
+      if (existing) return existing.id!;
+    }
+
     const id = await db.mediaItems.add({
       ...animeData,
       mediaTypeId: MediaType.ANIME,
@@ -140,6 +151,16 @@ export class AnimeService {
       isDeleted: false
     } as MediaItem);
     
+    // Save metadata if available
+    const animeTyped = anime as any;
+    if (animeTyped.studios || animeTyped.externalId) {
+      await db.animeMetadata.add({
+        mediaItemId: id as number,
+        studios: animeTyped.studios || [],
+        malId: animeTyped.externalId || animeTyped.malId
+      });
+    }
+
     if (logs && logs.length > 0) {
       const logsToAdd = logs.map(log => ({
         ...log,

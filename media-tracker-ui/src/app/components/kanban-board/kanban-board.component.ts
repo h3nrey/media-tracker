@@ -11,11 +11,12 @@ import { AlertService } from '../../services/alert.service';
 import { KanbanAnimeCard } from '../../pages/home/components/kanban-anime-card/kanban-anime-card';
 import { KanbanGameCard } from '../../pages/home/components/kanban-game-card/kanban-game-card.component';
 import { LucideAngularModule } from 'lucide-angular';
+import { ListViewSelectionBarComponent } from '../list-view/components/list-view-selection-bar/list-view-selection-bar.component';
 
 @Component({
   selector: 'app-kanban-board',
   standalone: true,
-  imports: [CommonModule, DragDropModule, KanbanAnimeCard, KanbanGameCard, LucideAngularModule],
+  imports: [CommonModule, DragDropModule, KanbanAnimeCard, KanbanGameCard, LucideAngularModule, ListViewSelectionBarComponent],
   templateUrl: './kanban-board.component.html',
   styleUrl: './kanban-board.component.scss'
 })
@@ -26,6 +27,8 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
   
   columns = signal<MediaByCategory[]>([]);
   loading = signal(true);
+  selectedIds = signal<Set<number>>(new Set());
+  private lastClickedId = signal<number | null>(null);
   private subscription?: Subscription;
 
   constructor(
@@ -43,14 +46,96 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
   }
 
   async onDelete(media: MediaItem) {
+    const selected = this.selectedIds();
+    let itemsToDelete: MediaItem[] = [];
+
+    if (selected.has(media.id!)) {
+      itemsToDelete = this.columns().flatMap(c => c.media).filter(m => selected.has(m.id!));
+    } else {
+      itemsToDelete = [media];
+    }
+
     const confirmed = await this.alertService.showConfirm(
-      `Are you sure you want to delete "${media.title}"?`,
+      itemsToDelete.length === 1
+        ? `Are you sure you want to delete "${media.title}"?`
+        : `Are you sure you want to delete ${itemsToDelete.length} selected items?`,
       'Delete Media',
       'error'
     );
+
     if (confirmed) {
-      await this.mediaService.deleteMedia(media.id!);
+      for (const item of itemsToDelete) {
+        if (item.id) {
+          await this.mediaService.deleteMedia(item.id);
+        }
+      }
+      this.selectedIds.set(new Set());
     }
+  }
+
+  onMediaClick({ media, event }: { media: MediaItem, event: MouseEvent }) {
+    const isShift = event.shiftKey;
+    const isCtrl = event.ctrlKey || event.metaKey;
+    const currentId = media.id!;
+    const categoryId = media.statusId;
+
+    if (isShift || isCtrl) {
+      if (isShift && this.lastClickedId()) {
+        const column = this.columns().find(c => c.category.supabaseId === categoryId);
+        if (column) {
+          const lastId = this.lastClickedId();
+          const currentIndex = column.media.findIndex(m => m.id === currentId);
+          const lastIndex = column.media.findIndex(m => m.id === lastId);
+
+          if (currentIndex !== -1 && lastIndex !== -1) {
+            const start = Math.min(currentIndex, lastIndex);
+            const end = Math.max(currentIndex, lastIndex);
+            const rangeIds = column.media.slice(start, end + 1).map(m => m.id!);
+            
+            const isCurrentlySelected = this.selectedIds().has(currentId);
+
+            this.selectedIds.update(set => {
+              const newSet = new Set(set);
+              if (isCurrentlySelected) {
+                rangeIds.forEach(id => newSet.delete(id));
+              } else {
+                rangeIds.forEach(id => newSet.add(id));
+              }
+              return newSet;
+            });
+            this.lastClickedId.set(currentId);
+            return;
+          }
+        }
+      }
+      
+      // Fallback for Shift without lastClickedId or for Ctrl
+      this.toggleSelection(currentId);
+      return;
+    }
+
+    // Standard click (no modifiers): Select only this one and navigate
+    this.selectedIds.set(new Set([currentId]));
+    this.lastClickedId.set(currentId);
+    this.animeClick.emit(media);
+  }
+
+  private toggleSelection(id: number) {
+    this.selectedIds.update(set => {
+      const newSet = new Set(set);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+    this.lastClickedId.set(id);
+  }
+
+  clearAllSelection() {
+    this.selectedIds.set(new Set());
+    this.lastClickedId.set(null);
   }
 
   async onIncrement(media: MediaItem) {
@@ -132,30 +217,61 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
   }
 
   private async handleCategoryChange(event: CdkDragDrop<MediaItem[]>, targetCategoryId: number) {
-    const media = event.previousContainer.data[event.previousIndex];
-    console.log("media", media)
+    const movedMedia = event.previousContainer.data[event.previousIndex];
+    const selectedIds = this.selectedIds();
     
-    transferArrayItem(
-      event.previousContainer.data,
-      event.container.data,
-      event.previousIndex,
-      event.currentIndex
-    );
-    
-    console.log('status atual', media.statusId)
-    console.log('status novo', targetCategoryId)
-    if (media.id) {
-      try {
-        await this.mediaService.updateMediaStatus(media.id, targetCategoryId);
-      } catch (error) {
-        console.error('Error updating media status:', error);
-        transferArrayItem(
-          event.container.data,
-          event.previousContainer.data,
-          event.currentIndex,
-          event.previousIndex
-        );
+    // Determine which items to move
+    let itemsToMove: MediaItem[] = [];
+    if (selectedIds.has(movedMedia.id!)) {
+      // Move all selected items that are in the previous container
+      itemsToMove = event.previousContainer.data.filter(m => selectedIds.has(m.id!));
+    } else {
+      // Only move the dragged item
+      itemsToMove = [movedMedia];
+    }
+
+    // Capture original indices and items for potential reversal
+    const originalPositions = itemsToMove.map(item => ({
+      item,
+      index: event.previousContainer.data.indexOf(item)
+    })).sort((a, b) => b.index - a.index); // Sort descending to not mess up indices during removal
+
+    // UI Update: Move items locally
+    originalPositions.forEach(pos => {
+      const currentIndex = event.previousContainer.data.indexOf(pos.item);
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        currentIndex,
+        event.container.data.length // Add to end of target
+      );
+    });
+
+    // Database Update
+    try {
+      const updatePromises = itemsToMove.map(item => 
+        this.mediaService.updateMediaStatus(item.id!, targetCategoryId)
+      );
+      await Promise.all(updatePromises);
+      
+      // Clear selection after bulk move if it was a bulk move
+      if (itemsToMove.length > 1) {
+        this.clearAllSelection();
       }
+    } catch (error) {
+      console.error('Error updating media status:', error);
+      // Revert UI changes in case of error (reverse order to restore indices correctly)
+      originalPositions.sort((a, b) => a.index - b.index).forEach(pos => {
+        const currentIndex = event.container.data.indexOf(pos.item);
+        if (currentIndex !== -1) {
+          transferArrayItem(
+            event.container.data,
+            event.previousContainer.data,
+            currentIndex,
+            pos.index
+          );
+        }
+      });
     }
   }
 

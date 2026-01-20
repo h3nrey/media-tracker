@@ -1,9 +1,11 @@
 @if (game) {
   <app-kanban-card 
     [media]="game" 
+    [isSelected]="isSelected"
     (edit)="edit.emit($event)" 
     (delete)="delete.emit($event)" 
     (increment)="increment.emit($event)"
+    (mediaClick)="mediaClick.emit($event)"
     [url]="'game'"
   >
     <div class="game-info">

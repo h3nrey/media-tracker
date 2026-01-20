@@ -46,8 +46,8 @@
             
             <div class="hero-action-group">
               <button class="action-btn" [class.added]="isItemAdded(featured.externalId)" 
-                (click)="quickAddMedia(featured); $event.stopPropagation()"
-                [title]="isItemAdded(featured.externalId) ? 'Adicionado à biblioteca' : 'Adicionar aos Desejos'">
+                (click)="toggleHeroListMenu($event, 'status')"
+                [title]="isItemAdded(featured.externalId) ? 'Mudar Status' : 'Adicionar aos Desejos'">
                 <lucide-icon [img]="isItemAdded(featured.externalId) ? CheckIcon : BookmarkIcon" [size]="20"></lucide-icon>
               </button>
 
@@ -92,42 +92,15 @@
         [isOpen]="showHeroListMenu()" 
         (close)="showHeroListMenu.set(false)"
         [customStyle]="{ width: '18rem', height: '24rem' }">
-        <div class="list-menu" (click)="$event.stopPropagation()">
-          <div class="menu-header">
-            <span>Adicionar à Lista</span>
-            <button class="close-btn" (click)="showHeroListMenu.set(false)">
-              <lucide-icon [img]="XIcon" [size]="14"></lucide-icon>
-            </button>
-          </div>
-
-          <div class="menu-content">
-            <div class="list-options">
-              @for (list of availableLists(); track list.id) {
-                <button class="list-option" (click)="addToListFromHero(list, featured)">
-                  {{ list.name }}
-                </button>
-              }
-            </div>
-
-            <div class="new-list-section">
-              @if (isCreatingList()) {
-                <div class="create-list-form">
-                  <input type="text" [(ngModel)]="newListName" placeholder="Nome da lista..." (keyup.enter)="createAndAddListFromHero($event)"
-                    autofocus>
-                  <div class="form-actions">
-                    <button class="cancel-btn" (click)="isCreatingList.set(false)">Cancelar</button>
-                    <button class="save-btn" (click)="createAndAddListFromHero($event)" [disabled]="!newListName.trim()">Criar</button>
-                  </div>
-                </div>
-              } @else {
-                <button class="create-toggle-btn" (click)="isCreatingList.set(true)">
-                  <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon>
-                  <span>Criar Nova Lista</span>
-                </button>
-              }
-            </div>
-          </div>
-        </div>
+        <app-browse-list-popover
+          [availableLists]="availableLists()"
+          [categories]="categories()"
+          [initialView]="heroPopoverInitialView()"
+          (close)="showHeroListMenu.set(false)"
+          (selectList)="addToListFromHero($event, featured)"
+          (selectCategory)="changeCategory(featured, $event)"
+          (createList)="createAndAddListFromHero($event)">
+        </app-browse-list-popover>
       </app-popover>
 
     } @else if (isLoadingFeatured()) {

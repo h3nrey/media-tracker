@@ -14,9 +14,11 @@ import { KanbanCardComponent } from '../kanban-card/kanban-card.component';
 })
 export class KanbanAnimeCard {
   @Input() anime!: MediaItem;
+  @Input() isSelected = false;
   @Output() edit = new EventEmitter<MediaItem>();
   @Output() delete = new EventEmitter<MediaItem>();
   @Output() increment = new EventEmitter<MediaItem>();
+  @Output() mediaClick = new EventEmitter<{ media: MediaItem, event: MouseEvent }>();
   
   readonly StarIcon = Star;
 

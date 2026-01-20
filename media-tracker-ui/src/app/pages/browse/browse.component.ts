@@ -19,6 +19,7 @@ import { BrowseCardComponent } from './components/browse-card/browse-card.compon
 import { ListService } from '../../services/list.service';
 import { List } from '../../models/list.model';
 import { TrailerOverlayComponent } from './components/trailer-overlay/trailer-overlay.component';
+import { BrowseListPopoverComponent } from './components/browse-list-popover/browse-list-popover.component';
 import { Play } from 'lucide-angular';
 import { SelectComponent } from '../../components/ui/select/select';
 import { PopoverComponent } from '../../components/ui/popover/popover.component';
@@ -51,7 +52,7 @@ interface BrowseSection {
 @Component({
   selector: 'app-browse',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, BrowseCardComponent, TrailerOverlayComponent, SelectComponent, PopoverComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, BrowseCardComponent, TrailerOverlayComponent, SelectComponent, PopoverComponent, BrowseListPopoverComponent],
   templateUrl: './browse.component.html',
   styleUrl: './browse.component.scss'
 })
@@ -122,9 +123,8 @@ export class BrowseComponent implements OnInit, OnDestroy {
   selectedTrailer = signal<{ url: string, title: string } | null>(null);
   
   showHeroListMenu = signal(false);
+  heroPopoverInitialView = signal<'lists' | 'status'>('lists');
   availableLists = signal<List[]>([]);
-  isCreatingList = signal(false);
-  newListName = '';
 
   // Search state
   searchQuery = signal<string>('');
@@ -179,28 +179,26 @@ export class BrowseComponent implements OnInit, OnDestroy {
     }
   }
 
-  async toggleHeroListMenu(event: Event) {
+  async toggleHeroListMenu(event: Event, initialView: 'lists' | 'status' = 'lists') {
     event.stopPropagation();
-    if (!this.showHeroListMenu()) {
+    if (!this.showHeroListMenu() || initialView !== this.heroPopoverInitialView()) {
       const lists = await firstValueFrom(this.listService.getLists$());
       this.availableLists.set(lists);
+      this.heroPopoverInitialView.set(initialView);
+      this.showHeroListMenu.set(true);
+    } else {
+      this.showHeroListMenu.set(false);
     }
-    this.showHeroListMenu.update(v => !v);
   }
 
-  async createAndAddListFromHero(event: Event) {
-    event.stopPropagation();
-    if (!this.newListName.trim()) return;
-
+  async createAndAddListFromHero(name: string) {
     try {
       const newListId = await this.listService.addList({
-        name: this.newListName,
+        name,
         mediaItemIds: [],
         animeIds: []
       });
-      this.toast.success(`Lista "${this.newListName}" criada!`);
-      this.newListName = '';
-      this.isCreatingList.set(false);
+      this.toast.success(`Lista "${name}" criada!`);
       
       // Refresh lists
       const lists = await firstValueFrom(this.listService.getLists$());
@@ -333,20 +331,30 @@ export class BrowseComponent implements OnInit, OnDestroy {
     event?.stopPropagation();
 
     try {
-      if (this.currentMediaType() === MediaType.GAME) {
-        const localGame = await this.mediaService.getMediaByExternalId(item.externalId, 'igdb');
-        if (localGame?.id) {
-          await this.mediaService.updateMediaStatus(localGame.id, category.supabaseId!);
-          this.toast.success(`Movido para ${category.name}!`);
-        }
+      // 1. Check if already in library
+      const apiType = this.currentMediaType() === MediaType.GAME ? 'igdb' : 'mal';
+      const local = await this.mediaService.getMediaByExternalId(item.externalId, apiType);
+      
+      const statusId = category.supabaseId || category.id!;
+
+      if (local && local.id) {
+        // 2a. If in library, just update status
+        await this.mediaService.updateMediaStatus(local.id, statusId);
+        this.toast.success(`Movido para ${category.name}!`);
       } else {
-        const localAnime = await this.mediaService.getMediaByExternalId(item.externalId, 'mal');
-        if (localAnime?.id) {
-          await this.mediaService.updateMediaStatus(localAnime.id, category.supabaseId!);
-          this.toast.success(`Movido para ${category.name}!`);
+        // 2b. If not in library, add it with the selected status
+        if (this.currentMediaType() === MediaType.GAME) {
+          await this.gameService.addGameFromIgdb(item.rawItem, statusId);
+        } else {
+          const animeToAdd = this.malService.convertJikanToAnime(item.rawItem, statusId);
+          await this.animeService.addAnime({ ...animeToAdd, mediaTypeId: MediaType.ANIME });
         }
+        this.addedItemIds.add(item.externalId);
+        this.toast.success(`Adicionado a ${category.name}!`);
       }
+      
       this.showCategoryTooltip.set(null);
+      this.showHeroListMenu.set(false);
     } catch (error) {
       this.toast.error('Falha ao atualizar categoria');
       console.error(error);

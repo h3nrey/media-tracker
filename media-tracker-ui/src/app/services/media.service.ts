@@ -199,6 +199,15 @@ export class MediaService {
   async addMedia(media: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();
     const { logs, screenshots, ...mediaData } = media;
+
+    // Safety check: prevent duplicates by externalId
+    if (mediaData.externalId && mediaData.externalApi) {
+      const existing = await db.mediaItems
+        .where('externalId').equals(mediaData.externalId)
+        .and(m => m.externalApi === mediaData.externalApi && !m.isDeleted)
+        .first();
+      if (existing) return existing.id!;
+    }
     
     const id = await db.mediaItems.add({
       ...mediaData,
