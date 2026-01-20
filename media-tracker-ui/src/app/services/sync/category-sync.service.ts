@@ -18,7 +18,16 @@ export class CategorySyncService {
     if (error) throw error;
 
     for (const local of localCategories) {
-      const remote = remoteCategories?.find(r => r.id === local.supabaseId);
+      let remote = remoteCategories?.find(r => r.id === local.supabaseId);
+      
+      if (!remote && !local.supabaseId) {
+        // Match by name for default/pre-existing categories
+        remote = remoteCategories?.find(r => r.name === local.name && !r.is_deleted);
+        if (remote) {
+          await db.categories.update(local.id!, { supabaseId: remote.id });
+          local.supabaseId = remote.id;
+        }
+      }
       
       if (!remote) {
         if (!local.isDeleted) {

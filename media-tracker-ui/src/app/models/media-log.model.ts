@@ -6,5 +6,6 @@ export interface MediaLog {
   endDate?: Date | string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  lastSyncedAt?: Date;
   isDeleted?: boolean;
 }

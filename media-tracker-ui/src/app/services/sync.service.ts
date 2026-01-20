@@ -6,6 +6,8 @@ import { AnimeSyncService } from './sync/anime-sync.service';
 import { GameSyncService } from './sync/game-sync.service';
 import { ListSyncService } from './sync/list-sync.service';
 
+import { MediaLogSyncService } from './sync/media-log-sync.service';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -15,6 +17,7 @@ export class SyncService {
   private animeSync = inject(AnimeSyncService);
   private gameSync = inject(GameSyncService);
   private listSync = inject(ListSyncService);
+  private logSync = inject(MediaLogSyncService);
 
   private isSyncingSubject = new BehaviorSubject<boolean>(false);
   isSyncing$ = this.isSyncingSubject.asObservable();
@@ -31,6 +34,7 @@ export class SyncService {
       await this.watchSourceSync.sync();
       await this.animeSync.sync();
       await this.gameSync.sync();
+      await this.logSync.sync(); // Sync logs after media items
       await this.listSync.sync();
       
       console.log('Sync completed successfully');

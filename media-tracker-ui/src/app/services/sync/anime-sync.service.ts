@@ -35,6 +35,13 @@ export class AnimeSyncService {
         }
       }
       
+      const normalizeDate = (d: any) => {
+        if (!d) return null;
+        const date = new Date(d);
+        if (isNaN(date.getTime())) return null;
+        return date.toISOString().split('T')[0]; // Store as YYYY-MM-DD
+      };
+
       const supabaseData = {
         media_type_id: 1,
         title: local.title,
@@ -46,6 +53,9 @@ export class AnimeSyncService {
         score: local.score,
         genres: local.genres,
         release_year: local.releaseYear,
+        start_date: normalizeDate(local.startDate),
+        end_date: normalizeDate(local.endDate),
+        activity_dates: local.activityDates?.map(d => normalizeDate(d)).filter(d => !!d),
         trailer_url: local.trailerUrl,
         notes: local.notes,
         source_links: local.sourceLinks,
@@ -89,6 +99,8 @@ export class AnimeSyncService {
         const localHasChanges = !local.lastSyncedAt || local.updatedAt > local.lastSyncedAt;
         const remoteHasChanges = !local.lastSyncedAt || remoteUpdatedAt > local.lastSyncedAt;
 
+        const parseRemoteDate = (d: any) => d ? new Date(d) : undefined;
+
         if (localIsNewer && localHasChanges) {
           // Local wins and pushes
           await this.supabase.from('media_items').update(supabaseData).eq('id', local.supabaseId);
@@ -107,6 +119,9 @@ export class AnimeSyncService {
             score: remote.score,
             genres: remote.genres || [],
             releaseYear: remote.release_year,
+            startDate: parseRemoteDate(remote.start_date),
+            endDate: parseRemoteDate(remote.end_date),
+            activityDates: remote.activity_dates?.map((d: any) => new Date(d)) || [],
             trailerUrl: remote.trailer_url,
             notes: remote.notes,
             sourceLinks: remote.source_links || [],
@@ -130,6 +145,9 @@ export class AnimeSyncService {
             score: remote.score,
             genres: remote.genres || [],
             releaseYear: remote.release_year,
+            startDate: parseRemoteDate(remote.start_date),
+            endDate: parseRemoteDate(remote.end_date),
+            activityDates: remote.activity_dates?.map((d: any) => new Date(d)) || [],
             trailerUrl: remote.trailer_url,
             notes: remote.notes,
             sourceLinks: remote.source_links || [],
