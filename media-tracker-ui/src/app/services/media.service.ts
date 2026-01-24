@@ -137,7 +137,7 @@ export class MediaService {
       map(allMedia => 
         categories.map(category => ({
           category,
-          media: allMedia.filter(m => m.statusId === category.supabaseId)
+          media: allMedia.filter(m => m.statusId === category.id)
         }))
       )
     );
@@ -156,7 +156,7 @@ export class MediaService {
         const filteredMedia = filterFn(allMedia);
         return categories.map(category => ({
           category,
-          media: filteredMedia.filter(m => m.statusId === category.supabaseId)
+          media: filteredMedia.filter(m => m.statusId === category.id)
         }));
       })
     );
