@@ -13,7 +13,7 @@
             <button 
               class="add-column-btn" 
               [style.background]="column.category.color"
-              (click)="openAddDialog(column.category.supabaseId || column.category.id!)"
+              (click)="openAddDialog(column.category.id!)"
               title="Add media to {{ column.category.name }}"
             >
               <span class="add-icon">+</span>
@@ -28,7 +28,7 @@
             [cdkDropListConnectedTo]="getConnectedLists()"
             [cdkDropListAutoScrollDisabled]="false"
             cdkDropListOrientation="vertical"
-            (cdkDropListDropped)="onDrop($event, column.category.supabaseId || column.category.id!)"
+            (cdkDropListDropped)="onDrop($event, column.category.id!)"
           >
             @for (media of column.media; track trackByMediaId($index, media)) {
               @if (media.mediaTypeId === 1) {

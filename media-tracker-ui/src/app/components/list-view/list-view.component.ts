@@ -40,7 +40,7 @@ export class ListViewComponent implements OnInit, OnDestroy {
 
   categories = signal<Category[]>([]);
   mediaByCategory = signal<Map<number, MediaItem[]>>(new Map());
-  collapsedSections = new Set<number>(); // Track collapsed categories (using supabaseId)
+  collapsedSections = new Set<number>(); // Track collapsed categories (using local id)
   
   loading = signal(true);
   selectedIds = signal<Set<number>>(new Set());
@@ -70,7 +70,7 @@ export class ListViewComponent implements OnInit, OnDestroy {
             const mediaMap = new Map<number, MediaItem[]>();
             
             categories.forEach((category: Category) => {
-              const catId = category.supabaseId!;
+              const catId = category.id!;
               mediaMap.set(catId, filteredMedia.filter(m => m.statusId === catId));
             });
             
@@ -88,21 +88,21 @@ export class ListViewComponent implements OnInit, OnDestroy {
     });
   }
 
-  getMediaForCategory(supabaseId: number): MediaItem[] {
-    const allMedia = this.mediaByCategory().get(supabaseId) || [];
+  getMediaForCategory(categoryId: number): MediaItem[] {
+    const allMedia = this.mediaByCategory().get(categoryId) || [];
     return this.filterService.filterMedia(allMedia);
   }
 
-  toggleSection(supabaseId: number) {
-    if (this.collapsedSections.has(supabaseId)) {
-      this.collapsedSections.delete(supabaseId);
+  toggleSection(categoryId: number) {
+    if (this.collapsedSections.has(categoryId)) {
+      this.collapsedSections.delete(categoryId);
     } else {
-      this.collapsedSections.add(supabaseId);
+      this.collapsedSections.add(categoryId);
     }
   }
 
-  isSectionCollapsed(supabaseId: number): boolean {
-    return this.collapsedSections.has(supabaseId);
+  isSectionCollapsed(categoryId: number): boolean {
+    return this.collapsedSections.has(categoryId);
   }
 
   private toggleSelection(id: number) {
@@ -221,7 +221,7 @@ export class ListViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  onAddMedia(supabaseId: number) {
-    this.addAnimeToCategory.emit(supabaseId);
+  onAddMedia(categoryId: number) {
+    this.addAnimeToCategory.emit(categoryId);
   }
 }

@@ -81,7 +81,7 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
 
     if (isShift || isCtrl) {
       if (isShift && this.lastClickedId()) {
-        const column = this.columns().find(c => c.category.supabaseId === categoryId);
+        const column = this.columns().find(c => c.category.id === categoryId);
         if (column) {
           const lastId = this.lastClickedId();
           const currentIndex = column.media.findIndex(m => m.id === currentId);
@@ -174,7 +174,7 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
               console.log("filteredMedia", filteredMedia);
               const columns: MediaByCategory[] = categories.filter(category => !category.isDeleted).map(category => ({
                 category,
-                media: filteredMedia.filter(m => m.statusId === category.supabaseId)
+                media: filteredMedia.filter(m => m.statusId === category.id)
               }));
               console.log("columns", columns);
               return columns;
@@ -279,8 +279,8 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
     return this.columns().map((_, index) => `column-${index}`);
   }
 
-  openAddDialog(supabaseId: number) {
-    this.addAnimeToCategory.emit(supabaseId);
+  openAddDialog(categoryId: number) {
+    this.addAnimeToCategory.emit(categoryId);
   }
 
   trackByCategoryId(index: number, column: MediaByCategory): number {
