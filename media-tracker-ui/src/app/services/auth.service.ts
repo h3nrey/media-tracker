@@ -16,6 +16,7 @@ export interface AuthUser {
 export class AuthService {
   currentUser = signal<AuthUser | null>(null);
   isLoading = signal(false);
+  isReady = signal(false);
 
   constructor(
     private supabase: SupabaseService,
@@ -40,6 +41,8 @@ export class AuthService {
       });
     } catch (error) {
       console.error('Error initializing auth:', error);
+    } finally {
+      this.isReady.set(true);
     }
   }
 

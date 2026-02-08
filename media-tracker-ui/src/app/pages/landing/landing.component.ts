@@ -68,9 +68,5 @@ export class LandingComponent {
     });
   }
 
-  ngOnInit() {
-    if (this.authService.currentUser()) {
-      this.router.navigate(['/']);
-    }
-  }
+  ngOnInit() {}
 }
