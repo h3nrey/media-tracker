@@ -76,13 +76,13 @@ export class BoardFiltersComponent implements OnInit {
       item.activityDates?.forEach(d => {
         activityYears.add(new Date(d).getFullYear());
       });
-      item.logs?.forEach(log => {
-        if (log.startDate) {
-          const startYear = new Date(log.startDate).getFullYear();
+      item.runs?.forEach(run => {
+        if (run.startDate) {
+          const startYear = new Date(run.startDate).getFullYear();
           if (!isNaN(startYear)) activityYears.add(startYear);
         }
-        if (log.endDate) {
-          const endYear = new Date(log.endDate).getFullYear();
+        if (run.endDate) {
+          const endYear = new Date(run.endDate).getFullYear();
           if (!isNaN(endYear)) activityYears.add(endYear);
         }
       });

@@ -8,12 +8,13 @@ import { DatePickerComponent } from '../../../ui/date-picker/date-picker.compone
 import { Category } from '../../../../models/status.model';
 import { WatchSource } from '../../../../models/watch-source.model';
 import { MediaType } from '../../../../models/media-type.model';
-import { MediaLog } from '../../../../models/media-log.model';
+import { MediaRun } from '../../../../models/media-run.model';
+import { MediaJournalComponent } from '../shared/media-journal/media-journal';
 
 @Component({
   selector: 'app-movie-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, DatePickerComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, DatePickerComponent, MediaJournalComponent],
   templateUrl: './movie-form.component.html',
   styleUrl: './movie-form.component.scss'
 })
@@ -46,7 +47,7 @@ export class MovieFormComponent {
   releaseYear = signal<number | undefined>(undefined);
   notes = signal('');
   activityDates = signal<Date[]>([]);
-  logs = signal<MediaLog[]>([]);
+  runs = signal<MediaRun[]>([]);
   sourceLinks = signal<any[]>([]);
 
   showDatePicker = signal(false);
@@ -87,7 +88,7 @@ export class MovieFormComponent {
     this.releaseYear.set(data.releaseYear);
     this.notes.set(data.notes || '');
     this.activityDates.set(data.activityDates || []);
-    this.logs.set(data.logs || []);
+    this.runs.set(data.runs || data.logs || []);
     this.sourceLinks.set(data.source_links || data.sourceLinks || []);
   }
 
@@ -104,21 +105,8 @@ export class MovieFormComponent {
     this.activityDates.update(dates => dates.filter((_, i) => i !== index));
   }
 
-  addLog() {
-    this.logs.update(logs => [...logs, { mediaItemId: 0, startDate: new Date() }]);
-  }
+  // Methods handled by MediaJournalComponent now
 
-  removeLog(index: number) {
-    this.logs.update(logs => logs.filter((_, i) => i !== index));
-  }
-
-  updateLogDate(index: number, field: 'startDate' | 'endDate', date: Date | string) {
-    this.logs.update(logs => {
-      const newLogs = [...logs];
-      newLogs[index] = { ...newLogs[index], [field]: date };
-      return newLogs;
-    });
-  }
 
   addLink() {
     if (this.newLinkSourceId() && this.newLinkUrl().trim()) {
@@ -157,7 +145,7 @@ export class MovieFormComponent {
       releaseYear: this.releaseYear(),
       notes: this.notes(),
       activityDates: this.activityDates(),
-      logs: this.logs(),
+      runs: this.runs(),
       source_links: this.sourceLinks()
     };
     this.save.emit(mediaData);

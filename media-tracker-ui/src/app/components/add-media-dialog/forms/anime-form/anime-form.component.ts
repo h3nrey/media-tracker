@@ -10,7 +10,7 @@ import { SelectComponent } from '../../../ui/select/select';
 import { Category } from '../../../../models/status.model';
 import { WatchSource } from '../../../../models/watch-source.model';
 import { MediaItem, MediaType, MediaGalleryImage } from '../../../../models/media-type.model';
-import { MediaLog } from '../../../../models/media-log.model';
+import { MediaRun } from '../../../../models/media-run.model';
 
 import { MediaJournalComponent } from '../shared/media-journal/media-journal';
 import { MediaGalleryFormComponent } from '../shared/media-gallery-form/media-gallery-form';
@@ -61,7 +61,7 @@ export class AnimeFormComponent {
   releaseYear = signal<number | undefined>(undefined);
   notes = signal('');
   activityDates = signal<Date[]>([]);
-  logs = signal<MediaLog[]>([]);
+  runs = signal<MediaRun[]>([]);
   sourceLinks = signal<any[]>([]);
   screenshots = signal<MediaGalleryImage[]>([]);
 
@@ -105,7 +105,7 @@ export class AnimeFormComponent {
     this.releaseYear.set(data.releaseYear);
     this.notes.set(data.notes || '');
     this.activityDates.set(data.activityDates || []);
-    this.logs.set(data.logs || []);
+    this.runs.set(data.runs || data.logs || []);
     this.sourceLinks.set(data.source_links || data.sourceLinks || []);
     this.screenshots.set(data.screenshots || []);
   }
@@ -161,7 +161,7 @@ export class AnimeFormComponent {
       releaseYear: this.releaseYear(),
       notes: this.notes(),
       activityDates: this.activityDates(),
-      logs: this.logs(),
+      runs: this.runs(),
       source_links: this.sourceLinks(),
       screenshots: this.screenshots()
     };

@@ -8,7 +8,7 @@ import { AnimeMetadata } from '../models/anime-metadata.model';
 import { MangaMetadata } from '../models/manga-metadata.model';
 import { GameMetadata } from '../models/game-metadata.model';
 import { MovieMetadata } from '../models/movie-metadata.model';
-import { MediaLog } from '../models/media-log.model';
+import { MediaRun, GameSession, EpisodeProgress, ChapterProgress } from '../models/media-run.model';
 
 export class AnimeTrackerDatabase extends Dexie {
   anime!: Table<Anime, number>;
@@ -24,8 +24,13 @@ export class AnimeTrackerDatabase extends Dexie {
   mangaMetadata!: Table<MangaMetadata, number>;
   gameMetadata!: Table<GameMetadata, number>;
   movieMetadata!: Table<MovieMetadata, number>;
-  mediaLogs!: Table<MediaLog, number>;
   mediaImages!: Table<MediaGalleryImage, number>;
+  
+  // New media runs tables
+  mediaRuns!: Table<MediaRun, number>;
+  gameSessions!: Table<GameSession, number>;
+  episodeProgress!: Table<EpisodeProgress, number>;
+  chapterProgress!: Table<ChapterProgress, number>;
 
   constructor() {
     super('AnimeTrackerDB');
@@ -150,6 +155,28 @@ export class AnimeTrackerDatabase extends Dexie {
       categories: '++id, supabaseId, name, order, createdAt, updatedAt, lastSyncedAt, isDeleted',
       watchSources: '++id, supabaseId, name, baseUrl, createdAt, updatedAt, lastSyncedAt, isDeleted',
       folders: '++id, supabaseId, name, order, createdAt, updatedAt, lastSyncedAt, isDeleted'
+    });
+
+    // Version 10: Replace media_logs with media_runs system
+    this.version(10).stores({
+      mediaTypes: '++id, name, createdAt',
+      mediaItems: '++id, supabaseId, mediaTypeId, title, externalId, externalApi, statusId, score, releaseYear, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      animeMetadata: 'mediaItemId, malId',
+      mangaMetadata: 'mediaItemId, malId',
+      gameMetadata: 'mediaItemId, igdbId',
+      movieMetadata: 'mediaItemId, tmdbId',
+      mediaImages: '++id, supabaseId, mediaItemId, url, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      lists: '++id, supabaseId, name, folderId, mediaTypeId, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      categories: '++id, supabaseId, name, order, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      watchSources: '++id, supabaseId, name, baseUrl, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      folders: '++id, supabaseId, name, order, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      // New media runs tables
+      mediaRuns: '++id, supabaseId, userId, mediaItemId, runNumber, startDate, endDate, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      gameSessions: '++id, supabaseId, runId, playedAt, createdAt, updatedAt, lastSyncedAt',
+      episodeProgress: '++id, supabaseId, runId, episodeNumber, watchedAt, createdAt, lastSyncedAt',
+      chapterProgress: '++id, supabaseId, runId, chapterNumber, readAt, createdAt, lastSyncedAt',
+      // Remove mediaLogs
+      mediaLogs: null
     });
   }
 

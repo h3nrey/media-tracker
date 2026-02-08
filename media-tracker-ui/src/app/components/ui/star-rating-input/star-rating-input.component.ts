@@ -44,10 +44,7 @@ import { LucideAngularModule, Star } from 'lucide-angular';
       display: flex;
       gap: 0.25rem;
       align-items: center;
-      background: var(--app-surface);
       padding: 0.25rem 0.5rem;
-      border-radius: 999px;
-      border: 1px solid var(--app-border);
     }
 
     .star-btn {
@@ -67,11 +64,11 @@ import { LucideAngularModule, Star } from 'lucide-angular';
       }
 
       &.filled {
-        color: #fbbf24; // Amber for regular stars
+        color: var(--app-primary); 
         
         lucide-icon {
           fill: currentColor;
-          filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.4));
+          filter: drop-shadow(0 0 8px rgba(var(--app-primary-rgb), 0.4));
         }
       }
     }
@@ -128,13 +125,13 @@ export class StarRatingInputComponent {
   hoveredStar = signal<number | null>(null);
 
   labels: Record<number, string> = {
-    0: 'Unrated',
-    1: 'Appalling',
-    2: 'Bad',
-    3: 'Average',
-    4: 'Good',
-    5: 'Excellent',
-    6: 'Masterpiece'
+    0: 'Sem nota',
+    1: 'Horrível',
+    2: 'Ruim',
+    3: 'Médio',
+    4: 'Bom',
+    5: 'Excelente',
+    6: 'Obra-prima'
   };
 
   onHover(star: number | null) {

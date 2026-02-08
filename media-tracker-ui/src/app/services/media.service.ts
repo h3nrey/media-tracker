@@ -54,11 +54,11 @@ export class MediaService {
       const filtered = items.filter(m => !m.isDeleted);
       
       return Promise.all(filtered.map(async item => {
-        const logs = await db.mediaLogs.where('mediaItemId').equals(item.id!).toArray();
+        const runs = await db.mediaRuns.where('mediaItemId').equals(item.id!).toArray();
         const screenshots = await db.mediaImages.where('mediaItemId').equals(item.id!).toArray();
-        return {
-          ...item,
-          logs: logs.filter(l => !l.isDeleted),
+        return { 
+          ...item, 
+          runs: runs.filter(r => !r.isDeleted),
           screenshots: screenshots.filter(s => !s.isDeleted)
         };
       }));
@@ -89,11 +89,11 @@ export class MediaService {
     const filtered = items.filter(m => !m.isDeleted);
     
     const mediaItems = await Promise.all(filtered.map(async item => {
-      const logs = await db.mediaLogs.where('mediaItemId').equals(item.id!).toArray();
+      const runs = await db.mediaRuns.where('mediaItemId').equals(item.id!).toArray();
       const screenshots = await db.mediaImages.where('mediaItemId').equals(item.id!).toArray();
       return {
         ...item,
-        logs: logs.filter(l => !l.isDeleted),
+        runs: runs.filter(r => !r.isDeleted),
         screenshots: screenshots.filter(s => !s.isDeleted)
       };
     }));
@@ -123,11 +123,11 @@ export class MediaService {
       const filtered = items.filter(m => !m.isDeleted);
       
       return Promise.all(filtered.map(async item => {
-        const logs = await db.mediaLogs.where('mediaItemId').equals(item.id!).toArray();
+        const runs = await db.mediaRuns.where('mediaItemId').equals(item.id!).toArray();
         const screenshots = await db.mediaImages.where('mediaItemId').equals(item.id!).toArray();
         return {
           ...item,
-          logs: logs.filter(l => !l.isDeleted),
+          runs: runs.filter(r => !r.isDeleted),
           screenshots: screenshots.filter(s => !s.isDeleted)
         };
       }));
@@ -168,11 +168,11 @@ export class MediaService {
     const item = await db.mediaItems.get(id);
     if (!item) return undefined;
     
-    const logs = await db.mediaLogs.where('mediaItemId').equals(id).toArray();
+    const runs = await db.mediaRuns.where('mediaItemId').equals(id).toArray();
     const screenshots = await db.mediaImages.where('mediaItemId').equals(id).toArray();
     return { 
       ...item, 
-      logs: logs.filter(l => !l.isDeleted),
+      runs: runs.filter(r => !r.isDeleted),
       screenshots: screenshots.filter(s => !s.isDeleted)
     };
   }
@@ -200,32 +200,33 @@ export class MediaService {
 
   async addMedia(media: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();
-    const { logs, screenshots, ...mediaData } = media;
+    const { runs, screenshots, ...rest } = media;
 
     // Safety check: prevent duplicates by externalId
-    if (mediaData.externalId && mediaData.externalApi) {
+    if (rest.externalId && rest.externalApi) {
       const existing = await db.mediaItems
-        .where('externalId').equals(mediaData.externalId)
-        .and(m => m.externalApi === mediaData.externalApi && !m.isDeleted)
+        .where('externalId').equals(rest.externalId)
+        .and(m => m.externalApi === rest.externalApi && !m.isDeleted)
         .first();
       if (existing) return existing.id!;
     }
     
     const id = await db.mediaItems.add({
-      ...mediaData,
+      ...rest,
       createdAt: now,
       updatedAt: now,
       isDeleted: false
     } as MediaItem);
     
-    if (logs && logs.length > 0) {
-      const logsToAdd = logs.map(log => ({
-        ...log,
+    if (runs && runs.length > 0) {
+      const runsToAdd = runs.map(run => ({
+        ...run,
         mediaItemId: id as number,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        isDeleted: false
       }));
-      await db.mediaLogs.bulkAdd(logsToAdd);
+      await db.mediaRuns.bulkAdd(runsToAdd);
     }
 
     if (screenshots && screenshots.length > 0) {
@@ -247,25 +248,24 @@ export class MediaService {
 
   async updateMedia(id: number, updates: Partial<MediaItem>): Promise<number> {
     const now = new Date();
-    const { logs, screenshots, ...itemUpdates } = updates;
+    const { runs, screenshots, ...rest } = updates;
 
     const result = await db.mediaItems.update(id, {
-      ...itemUpdates,
+      ...rest,
       updatedAt: now
     });
 
-    if (logs) {
-      // Clear existing logs and replace with the new list to handle deletions/updates cleanly
-      await db.mediaLogs.where('mediaItemId').equals(id).delete();
-      if (logs.length > 0) {
-        const logsToAdd = logs.map(log => ({
-          ...log,
-          id: undefined, // Clear local ID to allow re-insertion
+    if (runs) {
+      await db.mediaRuns.where('mediaItemId').equals(id).delete();
+      if (runs.length > 0) {
+        const runsToAdd = runs.map(run => ({
+          ...run,
           mediaItemId: id,
-          createdAt: log.createdAt || now,
-          updatedAt: now
+          createdAt: run.createdAt || now,
+          updatedAt: now,
+          isDeleted: false
         }));
-        await db.mediaLogs.bulkAdd(logsToAdd);
+        await db.mediaRuns.bulkAdd(runsToAdd);
       }
     }
 
@@ -411,9 +411,9 @@ export class MediaService {
         const addedInYear = createdDate && createdDate.getFullYear() === targetYear;
         
         const hasActivityDates = m.activityDates && m.activityDates.length > 0;
-        const hasLogs = m.logs && m.logs.length > 0;
+        const hasRuns = m.runs && m.runs.length > 0;
 
-        if (!hasActivityDates && !hasLogs) {
+        if (!hasActivityDates && !hasRuns) {
           return !!addedInYear;
         }
 
@@ -422,13 +422,13 @@ export class MediaService {
           return dDate.getFullYear() === targetYear;
         }) || false;
 
-        const activeInYearByLog = m.logs?.some(log => {
-          const startYear = log.startDate ? new Date(log.startDate).getFullYear() : null;
-          const endYear = log.endDate ? new Date(log.endDate).getFullYear() : null;
+        const activeInYearByRun = m.runs?.some(run => {
+          const startYear = run.startDate ? new Date(run.startDate).getFullYear() : null;
+          const endYear = run.endDate ? new Date(run.endDate).getFullYear() : null;
           return startYear === targetYear || endYear === targetYear;
         }) || false;
         
-        return activeInYearByDate || activeInYearByLog;
+        return activeInYearByDate || activeInYearByRun;
       });
     }
 
@@ -460,13 +460,13 @@ export class MediaService {
         const d = new Date(item.endDate);
         return isNaN(d.getTime()) ? null : d;
       }
-      if (item.logs && item.logs.length > 0) {
-        const logEndDates = item.logs
-          .filter(l => !l.isDeleted && l.endDate)
-          .map(l => new Date(l.endDate!))
-          .filter(d => !isNaN(d.getTime()));
-        if (logEndDates.length > 0) {
-          return new Date(Math.max(...logEndDates.map(d => d.getTime())));
+      if (item.runs && item.runs.length > 0) {
+        const lastRun = item.runs.sort((a: any, b: any) => 
+          new Date(b.endDate || 0).getTime() - new Date(a.endDate || 0).getTime()
+        )[0];
+        if (lastRun?.endDate) {
+          const d = new Date(lastRun.endDate);
+          return isNaN(d.getTime()) ? null : d;
         }
       }
       return null;

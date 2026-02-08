@@ -1,0 +1,82 @@
+<div class="dialog-overlay" *ngIf="run()" (click)="close.emit()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    <header class="dialog-header">
+      <div class="run-info">
+        <span class="run-badge">#{{ run()?.runNumber }}</span>
+        <div class="title-group">
+          <h2>{{ getRunLabel(run()?.runNumber || 0) }}</h2>
+          <div class="run-dates">
+            <lucide-icon [img]="CalendarIcon" [size]="14"></lucide-icon>
+            {{ formatDate(run()?.startDate) }} — {{ run()?.endDate ? formatDate(run()?.endDate) : 'Em andamento' }}
+          </div>
+        </div>
+      </div>
+      <button class="close-btn" (click)="close.emit()">
+        <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+      </button>
+    </header>
+
+    <div class="dialog-content">
+      <div class="details-grid">
+        <!-- Left Column: Rating & Notes -->
+        <div class="meta-column">
+          <div class="detail-section">
+            <div class="section-title">Sua Avaliação</div>
+            <div class="rating-wrapper">
+              <app-star-rating-input 
+                [value]="run()?.rating || 0" 
+                (valueChange)="updateRating($event)">
+              </app-star-rating-input>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <div class="section-title">Notas Pessoais</div>
+            <textarea 
+              class="notes-textarea" 
+              placeholder="Como foi essa experiência? O que você gostou ou não? Algum momento específico para lembrar?"
+              [(ngModel)]="run()!.notes"
+              (blur)="updateNotes()">
+            </textarea>
+          </div>
+        </div>
+
+        <div class="content-column">
+          <div class="detail-section">
+            <div class="section-title">
+              {{ mediaType() === 'game' ? 'Sessões de Jogo' : 'Episódios' }}
+            </div>
+            <div class="media-specific-container">
+
+              @switch(mediaType()) {
+                @case('game') {
+                  <app-game-sessions [runId]="run()!.id!"></app-game-sessions>
+                }
+                @case('anime') {
+                  <app-episode-progress 
+                    [runId]="run()!.id!" 
+                    [totalEpisodes]="totalCount()">
+                  </app-episode-progress>
+                }
+                @case('manga') {
+                  <app-chapter-progress 
+                    [runId]="run()!.id!"
+                    [totalChapters]="totalCount()">
+                  </app-chapter-progress>
+                }
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="dialog-footer">
+      <button class="delete-btn" (click)="deleteRun()">
+        <lucide-icon [img]="DeleteIcon" [size]="16"></lucide-icon>
+        Remover
+      </button>
+      <button class="btn-primary" (click)="close.emit()">Concluído</button>
+    </footer>
+  </div>
+</div>

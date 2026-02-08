@@ -1,0 +1,66 @@
+<div class="dialog-overlay" *ngIf="isOpen()" (click)="onClose()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    <header class="dialog-header">
+      <div class="title-group">
+        <lucide-icon [img]="PlusIcon" [size]="20"></lucide-icon>
+        <h2>Start New {{ mediaType() === 'game' ? 'Playthrough' : 'Watchthrough' }}</h2>
+      </div>
+      <button class="close-btn" (click)="onClose()">
+        <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+      </button>
+    </header>
+
+    <div class="dialog-content">
+      <div class="form-section">
+        <label>Time Period</label>
+        <div class="date-row">
+          <div class="date-field">
+            <span class="field-label">Start Date</span>
+            <button class="date-btn" (click)="togglePicker('start')" cdkOverlayOrigin #startOrigin="cdkOverlayOrigin">
+              <lucide-icon [img]="CalendarIcon" [size]="16"></lucide-icon>
+              {{ startDate() | date:'mediumDate' }}
+            </button>
+            <app-date-picker 
+              [trigger]="startOrigin"
+              [isOpen]="activePicker() === 'start'"
+              [selectedDate]="startDate()"
+              (dateChange)="updateDate('start', $event)"
+              (close)="activePicker.set(null)">
+            </app-date-picker>
+          </div>
+
+          <div class="date-field">
+            <span class="field-label">End Date (Optional)</span>
+            <button class="date-btn" [class.empty]="!endDate()" (click)="togglePicker('end')" cdkOverlayOrigin #endOrigin="cdkOverlayOrigin">
+              <lucide-icon [img]="CalendarIcon" [size]="16"></lucide-icon>
+              {{ endDate() ? (endDate() | date:'mediumDate') : 'Currently Ongoing' }}
+            </button>
+            <app-date-picker 
+              [trigger]="endOrigin"
+              [isOpen]="activePicker() === 'end'"
+              [selectedDate]="endDate()"
+              (dateChange)="updateDate('end', $event)"
+              (close)="activePicker.set(null)">
+            </app-date-picker>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label>Initial Notes</label>
+        <textarea 
+          [(ngModel)]="notes"
+          placeholder="Any initial thoughts or goals for this run?">
+        </textarea>
+      </div>
+    </div>
+
+    <footer class="dialog-footer">
+      <button class="btn-secondary" (click)="onClose()">Cancel</button>
+      <button class="btn-primary" (click)="onSave()">
+        <lucide-icon [img]="SaveIcon" [size]="18"></lucide-icon>
+        Create Run
+      </button>
+    </footer>
+  </div>
+</div>

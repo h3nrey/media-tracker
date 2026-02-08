@@ -59,50 +59,11 @@
     <div class="form-card full-width">
       <h4 class="card-section-title">Timeline & Links</h4>
       <div class="field-item spacing-bottom">
-        <div class="meta-header">
-          <label>Watch Logs</label>
-          <button class="btn-premium-toggle small" (click)="addLog()">
-            <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon>
-            Add Log
-          </button>
-        </div>
-        
-        <div class="logs-list">
-          @for (log of logs(); track $index; let i = $index) {
-            <div class="log-item">
-              <div class="log-dates">
-                <div class="date-input-group">
-                  <span class="date-label">Start</span>
-                  <div class="date-picker-trigger" (click)="activeLogPicker.set({index: i, field: 'startDate'})">
-                    {{ (log.startDate | date:'MMM d, y') || 'Set Start' }}
-                  </div>
-                </div>
-                <div class="date-input-group">
-                  <span class="date-label">End</span>
-                  <div class="date-picker-trigger" (click)="activeLogPicker.set({index: i, field: 'endDate'})">
-                    {{ (log.endDate | date:'MMM d, y') || 'Set End' }}
-                  </div>
-                </div>
-              </div>
-              <button class="btn-remove-log" (click)="removeLog(i)" title="Remove Log">
-                <lucide-icon [img]="XIcon" [size]="14"></lucide-icon>
-              </button>
-              
-              @if (activeLogPicker()?.index === i) {
-                <div class="log-date-picker-popover">
-                  <app-date-picker 
-                    [selectedDate]="$any((activeLogPicker()?.field === 'startDate' ? log.startDate : log.endDate) || today)" 
-                    (dateChange)="updateLogDate(i, activeLogPicker()!.field, $event); activeLogPicker.set(null)" 
-                    (close)="activeLogPicker.set(null)">
-                  </app-date-picker>
-                </div>
-              }
-            </div>
-          }
-          @if (logs().length === 0) {
-            <div class="empty-logs">No logs recorded yet</div>
-          }
-        </div>
+        <app-media-journal 
+          [runs]="runs()" 
+          [emptyMessage]="'Track when you watched this movie.'"
+          (runsChange)="runs.set($event)">
+        </app-media-journal>
       </div>
 
       <div class="field-item">

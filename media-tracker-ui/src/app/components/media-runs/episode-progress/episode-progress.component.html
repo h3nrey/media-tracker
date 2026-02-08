@@ -1,0 +1,29 @@
+<div class="progress-wrapper">
+  <div class="progress-stats">
+    <div class="label">
+      Watched: <span>{{ watchedEpisodes().length }}</span> / {{ totalEpisodes || '?' }}
+    </div>
+    <div class="percentage" *ngIf="totalEpisodes">{{ getProgressPercentage() | number:'1.0-0' }}%</div>
+  </div>
+
+  <div class="progress-bar-bg" *ngIf="totalEpisodes">
+    <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+  </div>
+
+  <div class="episode-grid">
+    <div 
+      *ngFor="let ep of getVisibleEpisodes()" 
+      class="episode-item"
+      [class.watched]="watchedEpisodes().includes(ep)"
+      (click)="toggleEpisode(ep)">
+      {{ ep }}
+    </div>
+  </div>
+
+  <button 
+    *ngIf="getEpisodeList().length > 24" 
+    class="show-more-btn" 
+    (click)="showAll.set(!showAll())">
+    {{ showAll() ? 'Show Less' : 'Show All Episodes' }}
+  </button>
+</div>

@@ -1,0 +1,62 @@
+<div class="runs-container">
+  <div class="header">
+    <h3>
+      <lucide-icon [img]="HistoryIcon"></lucide-icon>
+      Histórico
+    </h3>
+    <div class="header-actions">
+      @if (mediaType() === 'game' && runs().length > 0) {
+        <button class="quick-log-btn" (click)="quickLogSession()" title="Quick Log 1h Session">
+          <lucide-icon [img]="ClockIcon"></lucide-icon>
+          Quick Log
+        </button>
+      }
+      @if (runs().length > 0) {
+        <button class="add-btn" (click)="createNewRun()">
+          <lucide-icon [img]="PlusIcon"></lucide-icon>
+          Start New Run
+      </button>
+      }
+    </div>
+  </div>
+
+  <div class="runs-list">
+    @for (run of runs(); track run.id) {
+      <div 
+          class="run-card" 
+          (click)="openRunDetails(run)">
+        
+        <div class="run-info">
+          <span class="run-badge">#{{ run.runNumber }}</span>
+          <div class="run-dates">
+            <span class="label">{{ getRunLabel(run.runNumber) }}</span>
+            <span class="date-range">
+              {{ formatDate(run.startDate) }} — {{ run.endDate ? formatDate(run.endDate) : 'Ongoing' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="run-meta">
+          @if (run.rating) {
+            <div class="rating-badge">
+              <lucide-icon [img]="StarIcon" [size]="14" fill="currentColor"></lucide-icon>
+              {{ run.rating }}
+            </div>
+          }
+          <button class="delete-btn" (click)="deleteRun($event, run.id!)" title="Delete Run">
+            <lucide-icon [img]="DeleteIcon" [size]="18"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state">
+        <lucide-icon [img]="EmptyIcon" [size]="48"></lucide-icon>
+        <p>No history entries yet. Start your first run to track your progress!</p>
+        <button class="start-btn" (click)="createNewRun()">
+          <lucide-icon [img]="PlayIcon"></lucide-icon>
+          Start First Playthrough
+        </button>
+      </div>
+    }
+  </div>
+</div>

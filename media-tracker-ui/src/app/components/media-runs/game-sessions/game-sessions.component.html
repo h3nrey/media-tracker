@@ -1,0 +1,49 @@
+<div class="sessions-wrapper">
+  <div class="session-header">
+    <div class="stat">
+      Total time: <span>{{ getTotalDuration() }}</span>
+    </div>
+    <button class="add-session" (click)="isAdding.set(true)" *ngIf="!isAdding()">
+      <lucide-icon [img]="PlusIcon"></lucide-icon>
+      adicionar sessão
+    </button>
+  </div>
+
+  @if (isAdding()) {
+    <app-game-session-form
+      (save)="addSession($event)"
+      (cancel)="isAdding.set(false)">
+    </app-game-session-form>
+  }
+
+  <div class="sessions-list">
+    @for (session of sessions(); track session.id) {
+      <div class="session-item">
+        <div class="left">
+          <div class="date-box">
+            <span class="day">{{ session.playedAt | date:'dd' }}</span>
+            <span class="month">{{ session.playedAt | date:'MMM' }}</span>
+          </div>
+          <div class="details">
+            <div class="duration">
+              <lucide-icon [img]="ClockIcon"></lucide-icon>
+              {{ formatDuration(session.durationMinutes) }}
+            </div>
+            @if (session.notes) {
+              <div class="notes">
+                {{ session.notes }}
+              </div>
+            }
+          </div>
+        </div>
+        <button class="delete-session" (click)="deleteSession(session.id!)" title="Delete session">
+          <lucide-icon [img]="XIcon"></lucide-icon>
+        </button>
+      </div>
+    } @empty {
+      <div class="no-sessions">
+        <p>No play sessions logged for this run yet.</p>
+      </div>
+    }
+  </div>
+</div>

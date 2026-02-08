@@ -1,0 +1,105 @@
+.progress-wrapper {
+  .progress-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    .label {
+      font-size: 0.9rem;
+      color: var(--app-text-secondary);
+      font-weight: 500;
+      span {
+        color: var(--app-primary);
+        font-weight: 700;
+      }
+    }
+
+    .percentage {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--app-primary);
+      background: rgba(var(--app-primary-rgb), 0.1);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+  }
+
+  .progress-bar-bg {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 999px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(to right, var(--app-primary), rgba(var(--app-primary-rgb), 0.7));
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 12px rgba(var(--app-primary-rgb), 0.5);
+      border-radius: 999px;
+    }
+  }
+
+  .episode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 0.6rem;
+
+    .episode-item {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--app-text-muted);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.07);
+        border-color: rgba(var(--app-primary-rgb), 0.4);
+        color: var(--app-primary);
+        transform: scale(1.1) translateY(-2px);
+        z-index: 10;
+      }
+
+      &.watched {
+        background: var(--app-primary);
+        border-color: var(--app-primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(var(--app-primary-rgb), 0.3);
+        
+        &:hover {
+          filter: brightness(1.2);
+          box-shadow: 0 6px 16px rgba(var(--app-primary-rgb), 0.4);
+        }
+      }
+    }
+  }
+
+  .show-more-btn {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    color: var(--app-text-secondary);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--app-primary);
+      border-color: rgba(var(--app-primary-rgb), 0.2);
+    }
+  }
+}

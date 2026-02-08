@@ -27,3 +27,16 @@
 <app-toast></app-toast>
 <app-alert></app-alert>
 <app-shortcuts-dialog></app-shortcuts-dialog>
+<app-add-run-dialog
+  [isOpen]="dialogService.isAddRunOpen()"
+  [mediaType]="dialogService.currentAddRunData()?.mediaType || 'anime'"
+  (close)="dialogService.closeAddRun()"
+  (save)="onConfirmAddRun($event)">
+</app-add-run-dialog>
+
+<app-run-details-dialog
+  [run]="dialogService.currentRunDetails()"
+  [mediaType]="dialogService.currentRunMediaType()"
+  [totalCount]="dialogService.currentRunTotalCount()"
+  (close)="dialogService.closeRunDetails()">
+</app-run-details-dialog>

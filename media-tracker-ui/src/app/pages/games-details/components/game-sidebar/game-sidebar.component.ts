@@ -2,15 +2,17 @@ import { Component, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MediaItem } from '../../../../models/media-type.model';
 import { Category } from '../../../../models/status.model';
+import { List } from '../../../../models/list.model';
 import { AnimeLinksComponent } from '../../../animes-details/components/anime-links/anime-links.component';
-import { LucideAngularModule, Play, Edit3, Star, Monitor } from 'lucide-angular';
+import { LucideAngularModule, Play, Edit3, Star, Monitor, List as ListIcon, Clock } from 'lucide-angular';
 import { SelectComponent } from '../../../../components/ui/select/select';
 import { GameDetails } from '../../game-details.model';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-game-sidebar',
   standalone: true,
-  imports: [CommonModule, AnimeLinksComponent, LucideAngularModule, SelectComponent],
+  imports: [CommonModule, AnimeLinksComponent, LucideAngularModule, SelectComponent, RouterModule],
   templateUrl: './game-sidebar.component.html',
   styleUrl: './game-sidebar.component.scss'
 })
@@ -18,8 +20,10 @@ export class GameSidebarComponent {
   game = input<GameDetails | null>(null);
   category = input<Category | null>(null);
   categories = input<Category[]>([]);
+  lists = input<List[]>([]);
   
   edit = output<void>();
+  quickLog = output<void>();
   updateScore = output<number>();
   updateCategory = output<number>();
   saveLinks = output<any[]>();
@@ -28,6 +32,8 @@ export class GameSidebarComponent {
   readonly EditIcon = Edit3;
   readonly StarIcon = Star;
   readonly PlatformIcon = Monitor;
+  readonly ListIcon = ListIcon;
+  readonly ClockIcon = Clock;
 
   readonly scoreLabels: Record<number, string> = {
     1: 'shit',

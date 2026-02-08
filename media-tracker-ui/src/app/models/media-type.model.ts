@@ -1,4 +1,4 @@
-import { MediaLog } from "./media-log.model";
+import { MediaRun } from "./media-run.model";
 
 export enum MediaType {
   ANIME = 1,
@@ -40,7 +40,7 @@ export interface MediaItem {
   lastSyncedAt?: Date;
   progressCurrent?: number;
   progressTotal?: number;
-  logs?: MediaLog[];
+  runs?: MediaRun[];
   screenshots?: MediaGalleryImage[];
   reviews?: import('./review.model').MediaReview[];
   isDeleted?: boolean;

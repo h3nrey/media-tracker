@@ -10,7 +10,7 @@ import { SelectComponent } from '../../../ui/select/select';
 import { Category } from '../../../../models/status.model';
 import { WatchSource } from '../../../../models/watch-source.model';
 import { MediaItem, MediaType, MediaGalleryImage } from '../../../../models/media-type.model';
-import { MediaLog } from '../../../../models/media-log.model';
+import { MediaRun } from '../../../../models/media-run.model';
 
 import { MediaJournalComponent } from '../shared/media-journal/media-journal';
 import { MediaGalleryFormComponent } from '../shared/media-gallery-form/media-gallery-form';
@@ -55,7 +55,7 @@ export class GameFormComponent {
   releaseYear = signal<number | undefined>(undefined);
   notes = signal('');
   activityDates = signal<Date[]>([]);
-  logs = signal<MediaLog[]>([]);
+  runs = signal<MediaRun[]>([]);
   sourceLinks = signal<any[]>([]);
   platforms = signal<string[]>([]);
   screenshots = signal<MediaGalleryImage[]>([]);
@@ -98,7 +98,7 @@ export class GameFormComponent {
     this.releaseYear.set(data.releaseYear);
     this.notes.set(data.notes || '');
     this.activityDates.set(data.activityDates || []);
-    this.logs.set(data.logs || []);
+    this.runs.set(data.runs || data.logs || []);
     this.sourceLinks.set(data.source_links || data.sourceLinks || []);
     this.platforms.set(data.platforms || []);
     this.screenshots.set(data.screenshots || []);
@@ -149,7 +149,7 @@ export class GameFormComponent {
       statusId: this.selectedCategoryId(),
       notes: this.notes(),
       activityDates: this.activityDates(),
-      logs: this.logs(),
+      runs: this.runs(),
       source_links: this.sourceLinks(),
       platforms: this.platforms(),
       screenshots: this.screenshots()

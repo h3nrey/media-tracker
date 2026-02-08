@@ -7,13 +7,13 @@ import { ListService } from '../../services/list.service';
 import { DialogService } from '../../services/dialog.service';
 import { ToastService } from '../../services/toast.service';
 import { Anime } from '../../models/anime.model';
-import { MediaLog } from '../../models/media-log.model';
 import { Category } from '../../models/status.model';
 import { List } from '../../models/list.model';
+import { MediaRunService } from '../../services/media-run.service';
+import { EpisodeProgressService } from '../../services/episode-progress.service';
 import { take, Subscription } from 'rxjs';
 
-import { AnimeListsComponent } from './components/anime-lists/anime-lists.component';
-import { AnimeHistoryComponent } from './components/anime-history/anime-history.component';
+import { MediaRunsListComponent } from '../../components/media-runs/media-runs-list.component';
 import { AnimeLinksComponent } from './components/anime-links/anime-links.component';
 import { AnimeDetails, AnimeSidebarComponent } from './components/anime-sidebar/anime-sidebar.component';
 import { AnimeInfoComponent } from './components/anime-info/anime-info.component';
@@ -25,8 +25,7 @@ import { LucideAngularModule } from 'lucide-angular';
   standalone: true,
   imports: [
     CommonModule,
-    AnimeListsComponent,
-    AnimeHistoryComponent,
+    MediaRunsListComponent,
     AnimeSidebarComponent,
     AnimeInfoComponent,
     MediaReviewsComponent,
@@ -42,6 +41,8 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
   private listService = inject(ListService);
   private dialogService = inject(DialogService);
   private toastService = inject(ToastService);
+  private runService = inject(MediaRunService);
+  private progressService = inject(EpisodeProgressService);
   private router = inject(Router);
 
   anime = signal<AnimeDetails | null>(null);
@@ -107,11 +108,14 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
       });
       this.anime.update(a => a ? { ...a, progressCurrent: newCount } : null);
       
+      // Update active run progress
+      const activeRun = await this.runService.getActiveRun(currentAnime.id);
+      if (activeRun) {
+        await this.progressService.markEpisodeWatched(activeRun.id!, newCount);
+      }
+
       if (total && newCount === total) {
-        this.toastService.success(`You've finished ${currentAnime.title}!`, {
-          label: 'Log Date',
-          action: () => this.onAddLog()
-        });
+        this.toastService.success(`You've finished ${currentAnime.title}!`);
       }
     }
   }
@@ -127,6 +131,12 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
         progressCurrent: newCount
       });
       this.anime.update(a => a ? { ...a, progressCurrent: newCount } : null);
+
+      // Update active run progress (unwatch the episode we just removed)
+      const activeRun = await this.runService.getActiveRun(currentAnime.id);
+      if (activeRun) {
+        await this.progressService.markEpisodeUnwatched(activeRun.id!, current);
+      }
     }
   }
 
@@ -138,6 +148,12 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
       progressCurrent: 0
     });
     this.anime.update(a => a ? { ...a, progressCurrent: 0 } : null);
+
+    // Clear active run progress
+    const activeRun = await this.runService.getActiveRun(currentAnime.id);
+    if (activeRun) {
+      await this.progressService.clearProgress(activeRun.id!);
+    }
   }
 
   async completeEpisodes() {
@@ -151,10 +167,14 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
       });
       this.anime.update(a => a ? { ...a, progressCurrent: total } : null);
 
-      this.toastService.success(`You've finished ${currentAnime.title}!`, {
-        label: 'Log Date',
-        action: () => this.onAddLog()
-      });
+      // Update active run progress (mark all as watched)
+      const activeRun = await this.runService.getActiveRun(currentAnime.id);
+      if (activeRun) {
+        const episodes = Array.from({ length: total }, (_, i) => i + 1);
+        await this.progressService.markEpisodesWatched(activeRun.id!, episodes);
+      }
+
+      this.toastService.success(`You've finished ${currentAnime.title}!`);
     }
   }
 
@@ -173,36 +193,6 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async onAddLog() {
-    const currentAnime = this.anime();
-    if (!currentAnime || !currentAnime.id) return;
-
-    const logs = [...(currentAnime.logs || []), { mediaItemId: currentAnime.id, startDate: new Date(), endDate: new Date() }];
-    await this.animeService.updateAnime(currentAnime.id, { logs });
-    this.anime.update(a => a ? { ...a, logs } : null);
-  }
-
-  async onRemoveLog(index: number) {
-    const currentAnime = this.anime();
-    if (!currentAnime || !currentAnime.id || !currentAnime.logs) return;
-
-    const logs = [...currentAnime.logs];
-    logs.splice(index, 1);
-    
-    await this.animeService.updateAnime(currentAnime.id, { logs });
-    this.anime.update(a => a ? { ...a, logs } : null);
-  }
-
-  async onUpdateLog(event: { index: number, log: Partial<MediaLog> }) {
-    const currentAnime = this.anime();
-    if (!currentAnime || !currentAnime.id || !currentAnime.logs) return;
-
-    const logs = [...currentAnime.logs];
-    logs[event.index] = { ...logs[event.index], ...event.log };
-
-    await this.animeService.updateAnime(currentAnime.id, { logs });
-    this.anime.update(a => a ? { ...a, logs } : null);
-  }
 
   async onUpdateScore(score: number) {
     const currentAnime = this.anime();

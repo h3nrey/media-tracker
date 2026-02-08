@@ -19,6 +19,9 @@ import { ToastComponent } from './components/ui/toast/toast.component';
 import { AlertComponent } from './components/ui/alert/alert.component';
 import { ShortcutsDialogComponent } from './components/shortcuts-dialog/shortcuts-dialog.component';
 import { ShortcutService } from './services/shortcut.service';
+import { AddRunDialogComponent } from './components/media-runs/add-run-dialog/add-run-dialog.component';
+import { RunDetailsDialogComponent } from './components/media-runs/run-details-dialog/run-details-dialog.component';
+import { MediaRunService } from './services/media-run.service';
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -35,7 +38,9 @@ import { ShortcutService } from './services/shortcut.service';
     ThemeSettingsDialogComponent,
     ToastComponent,
     AlertComponent,
-    ShortcutsDialogComponent
+    ShortcutsDialogComponent,
+    AddRunDialogComponent,
+    RunDetailsDialogComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
@@ -44,10 +49,11 @@ export class App implements OnInit {
   protected readonly title = signal('Anime Tracker');
   private categoryService = inject(CategoryService);
   private syncService = inject(SyncService);
-  private dialogService = inject(DialogService);
+  public dialogService = inject(DialogService);
   private shortcutService = inject(ShortcutService);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private runService = inject(MediaRunService);
 
   showHeader = signal(true);
 
@@ -109,6 +115,28 @@ export class App implements OnInit {
 
   openThemeSettingsDialog() {
     this.themeSettingsDialog.open();
+  }
+
+  async onConfirmAddRun(data: { startDate: Date, endDate?: Date, notes?: string }) {
+    const runData = this.dialogService.currentAddRunData();
+    if (!runData) return;
+
+    try {
+      await this.runService.createRun({
+        mediaItemId: runData.mediaItemId,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        notes: data.notes,
+        runNumber: 0
+      } as any);
+      this.dialogService.closeAddRun();
+      // We don't need to manually refresh here because the individual components listen to DB changes usually 
+      // or we can emit an event if needed. But MediaRunsListComponent already does a loadRuns.
+      // Wait, if it's on a different component, we might need a way to tell it to refresh.
+      // But actually MediaRunsListComponent reloads on certain triggers.
+    } catch (error: any) {
+      console.error('Failed to create run:', error);
+    }
   }
 }
 

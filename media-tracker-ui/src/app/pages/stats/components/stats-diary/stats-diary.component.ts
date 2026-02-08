@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { MediaItem } from '../../../../models/media-type.model';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { LucideAngularModule, Calendar, Gamepad, Zap, History } from 'lucide-angular';
-import { MediaLog } from '../../../../models/media-log.model';
+import { MediaRun } from '../../../../models/media-run.model';
 
 interface StatsDiaryData {
   days: { date: Date; count: number; media: string[]; level: number }[];
@@ -71,11 +71,11 @@ export class StatsDiaryComponent {
         });
       }
       
-      if (item.logs) {
-        item.logs.forEach(log => {
-          if (log.startDate) {
-            const start = new Date(log.startDate);
-            const end = log.endDate ? new Date(log.endDate) : start;
+      if (item.runs) {
+        item.runs.forEach(run => {
+          if (run.startDate) {
+            const start = new Date(run.startDate);
+            const end = run.endDate ? new Date(run.endDate) : start;
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
               if (d.getFullYear() === year) {
                 const key = d.toISOString().split('T')[0];
@@ -180,10 +180,10 @@ export class StatsDiaryComponent {
     list.forEach(item => {
       const itemDates: Date[] = [];
       if (item.activityDates) item.activityDates.forEach(d => itemDates.push(new Date(d)));
-      if (item.logs) {
-        item.logs.forEach(l => {
-          if (l.startDate) itemDates.push(new Date(l.startDate));
-          if (l.endDate) itemDates.push(new Date(l.endDate));
+      if (item.runs) {
+        item.runs.forEach(run => {
+          if (run.startDate) itemDates.push(new Date(run.startDate));
+          if (run.endDate) itemDates.push(new Date(run.endDate));
         });
       }
 

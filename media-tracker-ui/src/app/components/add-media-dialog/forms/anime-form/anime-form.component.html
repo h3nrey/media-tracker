@@ -87,9 +87,9 @@
         @if (activeTab() === 'journal') {
           <div class="tab-pane fade-in">
              <app-media-journal 
-               [logs]="logs()" 
+               [runs]="runs()" 
                [emptyMessage]="'Track when you watched this anime.'"
-               (logsChange)="logs.set($event)">
+               (runsChange)="runs.set($event)">
              </app-media-journal>
           </div>
         }

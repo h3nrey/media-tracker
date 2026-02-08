@@ -10,7 +10,9 @@
           [game]="game()" 
           [category]="category()" 
           [categories]="categories()"
+          [lists]="lists()"
           (edit)="onEdit()" 
+          (quickLog)="onQuickLog()"
           (updateScore)="onUpdateScore($event)"
           (updateCategory)="onUpdateCategory($event)"
           (saveLinks)="onSaveLinks($event)">
@@ -25,16 +27,11 @@
           <div class="divider"></div>
 
           <div class="details-sections">
-            <div class="section-group">
-              <app-game-lists [lists]="lists()"></app-game-lists>
-            </div>
-            <div class="section-group">
-              <app-game-history 
-                [logs]="game()?.logs"
-                (addLog)="onAddLog()"
-                (removeLog)="onRemoveLog($event)"
-                (updateLog)="onUpdateLog($event)">
-              </app-game-history>
+            <div class="section-group full-width">
+              <app-media-runs-list 
+                [mediaItemId]="game()!.id!" 
+                [mediaType]="'game'">
+              </app-media-runs-list>
             </div>
           </div>
 

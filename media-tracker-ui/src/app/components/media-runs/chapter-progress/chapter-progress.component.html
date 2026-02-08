@@ -1,0 +1,34 @@
+<div class="progress-wrapper">
+  <div class="progress-stats">
+    <div class="label">
+      Read: <span>{{ getLastRead() }}</span> / {{ totalChapters || '?' }}
+    </div>
+    <div class="percentage" *ngIf="totalChapters">{{ getProgressPercentage() | number:'1.0-0' }}%</div>
+  </div>
+
+  <div class="progress-bar-bg" *ngIf="totalChapters">
+    <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+  </div>
+
+  <div class="quick-update">
+    <div class="current-info" *ngIf="!showInput()">
+        <span class="title">Current Progress</span>
+        <span class="value">Chapter {{ getLastRead() }}</span>
+    </div>
+
+    <button class="edit-toggle" *ngIf="!showInput()" (click)="showInput.set(true)">
+        <lucide-icon name="edit-3"></lucide-icon>
+        Update
+    </button>
+
+    <div class="input-mode" *ngIf="showInput()">
+        <input type="number" [(ngModel)]="bulkInput" min="0" (keyup.enter)="setProgress()">
+        <button class="confirm-btn" (click)="setProgress()">
+            <lucide-icon name="check"></lucide-icon>
+        </button>
+        <button class="edit-toggle" (click)="showInput.set(false)" style="padding: 0.4rem;">
+            <lucide-icon name="x" style="margin: 0;"></lucide-icon>
+        </button>
+    </div>
+  </div>
+</div>

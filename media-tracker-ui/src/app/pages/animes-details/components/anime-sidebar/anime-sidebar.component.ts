@@ -1,22 +1,23 @@
 import { Component, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Anime } from '../../../../models/anime.model';
-import { MediaLog } from '../../../../models/media-log.model';
+import { MediaRun } from '../../../../models/media-run.model';
 import { Category } from '../../../../models/status.model';
+import { List } from '../../../../models/list.model';
 import { AnimeLinksComponent } from '../anime-links/anime-links.component';
-import { LucideAngularModule, Play, Edit3, Plus, Star, Minus, RotateCcw, CheckCheck } from 'lucide-angular';
+import { LucideAngularModule, Play, Edit3, Plus, Star, Minus, RotateCcw, CheckCheck, List as ListIcon } from 'lucide-angular';
 import { SelectComponent } from '../../../../components/ui/select/select';
-
+import { RouterModule } from '@angular/router';
 
 export interface AnimeDetails extends Anime {
   sourceLinks?: any[];
-  logs?: MediaLog[];
+  runs?: MediaRun[];
 }
 
 @Component({
   selector: 'app-anime-sidebar',
   standalone: true,
-  imports: [CommonModule, AnimeLinksComponent, LucideAngularModule, SelectComponent],
+  imports: [CommonModule, AnimeLinksComponent, LucideAngularModule, SelectComponent, RouterModule],
   templateUrl: './anime-sidebar.component.html',
   styleUrl: './anime-sidebar.component.scss'
 })
@@ -24,6 +25,7 @@ export class AnimeSidebarComponent {
   anime = input<AnimeDetails | null>(null);
   category = input<Category | null>(null);
   categories = input<Category[]>([]);
+  lists = input<List[]>([]);
   
   edit = output<void>();
   incrementEpisode = output<void>();
@@ -41,6 +43,7 @@ export class AnimeSidebarComponent {
   readonly ResetIcon = RotateCcw;
   readonly CheckIcon = CheckCheck;
   readonly StarIcon = Star;
+  readonly ListIcon = ListIcon;
 
   readonly scoreLabels: Record<number, string> = {
     1: 'shit',
