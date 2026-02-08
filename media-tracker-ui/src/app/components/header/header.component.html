@@ -65,5 +65,11 @@
         </div>
       }
     </div>
+
+    @if (authService.currentUser()) {
+      <app-user-menu />
+    } @else {
+      <app-login-button />
+    }
   </div>
 </header>

@@ -1,0 +1,27 @@
+<div class="dropdown-wrapper">
+  <button class="user-btn" (click)="toggleUserMenu()" [class.active]="showUserDropdown()">
+    @if (authService.currentUser()?.avatarUrl) {
+      <img [src]="authService.currentUser()!.avatarUrl" alt="User avatar" class="user-avatar" />
+    } @else {
+      <div class="user-avatar-placeholder">
+        {{ getInitials(authService.currentUser()!.displayName || authService.currentUser()!.email) }}
+      </div>
+    }
+    <span class="user-name">{{ authService.currentUser()!.displayName || authService.currentUser()!.email }}</span>
+    <lucide-icon [name]="ChevronDownIcon" [size]="14"></lucide-icon>
+  </button>
+
+  @if (showUserDropdown()) {
+    <div class="dropdown-menu" (click)="showUserDropdown.set(false)">
+      <div class="user-info">
+        <div class="user-info-name">{{ authService.currentUser()!.displayName || 'User' }}</div>
+        <div class="user-info-email">{{ authService.currentUser()!.email }}</div>
+      </div>
+      <div class="dropdown-divider"></div>
+      <button class="dropdown-item" (click)="signOut()">
+        <lucide-icon [name]="LogOutIcon" [size]="16"></lucide-icon>
+        Sign Out
+      </button>
+    </div>
+  }
+</div>

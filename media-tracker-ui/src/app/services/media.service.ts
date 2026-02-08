@@ -15,6 +15,7 @@ import { CategoryService } from './status.service';
 import { JikanAnime } from '../models/mal-anime.model';
 import { ReviewService } from './review.service';
 import { of, catchError, combineLatest as combineLatestRxjs, switchMap, firstValueFrom } from 'rxjs';
+import { SupabaseService } from './supabase.service';
 
 export interface MediaByCategory {
   category: Category;
@@ -30,6 +31,7 @@ export class MediaService {
   private igdbService = inject(IgdbService);
   private categoryService = inject(CategoryService);
   private reviewService = inject(ReviewService);
+  private supabaseService = inject(SupabaseService);
 
   public filterUpdate$ = new BehaviorSubject<number>(0);
   public metadataSyncRequested = signal(false);
@@ -288,11 +290,52 @@ export class MediaService {
   }
 
   async updateMediaStatus(id: number, statusId: number): Promise<number> {
+    console.log("updateMediaStatus", id, statusId);
     const result = await db.mediaItems.update(id, {
       statusId,
       updatedAt: new Date()
     });
     this.syncService.sync();
+    return result;
+  }
+
+  async updateMediaStatusWithSync(id: number, localCategoryId: number): Promise<number> {
+    const now = new Date();
+    
+    const result = await db.mediaItems.update(id, {
+      statusId: localCategoryId,
+      updatedAt: now
+    });
+
+    const mediaItem = await db.mediaItems.get(id);
+    if (!mediaItem?.supabaseId) {
+      console.warn('Media item has no supabaseId, skipping remote update');
+      return result;
+    }
+
+    const category = await db.categories.get(localCategoryId);
+    if (!category?.supabaseId) {
+      console.warn(`Category ${localCategoryId} has no supabaseId, skipping remote update`);
+      return result;
+    }
+
+    try {
+      await this.supabaseService.client
+        .from('media_items')
+        .update({
+          status_id: category.supabaseId,
+          updated_at: now.toISOString()
+        })
+        .eq('id', mediaItem.supabaseId);
+      
+      console.log(`✅ Updated media ${mediaItem.title} category to ${category.name} on Supabase`);
+      
+      await db.mediaItems.update(id, { lastSyncedAt: now });
+    } catch (error) {
+      console.error('Failed to update Supabase:', error);
+      this.syncService.sync();
+    }
+
     return result;
   }
 

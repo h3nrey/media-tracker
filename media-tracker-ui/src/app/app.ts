@@ -1,9 +1,12 @@
-import { Component, OnInit, signal, inject, ViewChild } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, OnInit, signal, inject, ViewChild, effect } from '@angular/core';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { filter } from 'rxjs/operators';
 import { MobileNavComponent } from './components/mobile-library/mobile-nav/mobile-nav.component';
 import { CategoryService } from './services/status.service';
 import { SyncService } from './services/sync.service';
 import { DialogService } from './services/dialog.service';
+import { AuthService } from './services/auth.service';
 
 import { HeaderComponent } from './components/header/header.component';
 import { AddMediaDialogComponent } from './components/add-media-dialog/add-media-dialog.component';
@@ -20,6 +23,7 @@ import { ShortcutService } from './services/shortcut.service';
   selector: 'app-root',
   standalone: true,
   imports: [
+    CommonModule,
     RouterOutlet, 
     MobileNavComponent, 
     AddMediaDialogComponent, 
@@ -42,6 +46,10 @@ export class App implements OnInit {
   private syncService = inject(SyncService);
   private dialogService = inject(DialogService);
   private shortcutService = inject(ShortcutService);
+  private router = inject(Router);
+  private authService = inject(AuthService);
+
+  showHeader = signal(true);
 
   @ViewChild(ManageCategoriesDialogComponent) manageCategoriesDialog!: ManageCategoriesDialogComponent;
   @ViewChild(ManageSourcesDialogComponent) manageSourcesDialog!: ManageSourcesDialogComponent;
@@ -49,10 +57,35 @@ export class App implements OnInit {
   @ViewChild(MetadataSyncDialogComponent) metadataSyncDialog!: MetadataSyncDialogComponent;
   @ViewChild(ThemeSettingsDialogComponent) themeSettingsDialog!: ThemeSettingsDialogComponent;
   
-  async ngOnInit() {
-    await this.syncService.sync();
-    await this.categoryService.seedDefaultCategories();
+  constructor() {
+    effect(() => {
+      this.handleSync();
+    });
   }
+
+  async ngOnInit() {
+    this.handleHeader();
+  }
+
+  handleSync() {
+    const user = this.authService.currentUser();
+    if (user) {
+      console.log('User logged in, triggering sync');
+      this.syncService.sync();
+      this.categoryService.seedDefaultCategories();
+    }
+  }
+
+  handleHeader() {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      this.showHeader.set(!event.url.includes('/landing'));
+    });
+
+    this.showHeader.set(!this.router.url.includes('/landing'));
+  }
+
 
   openAddDialog() {
     this.dialogService.openAddAnime();
@@ -78,3 +111,4 @@ export class App implements OnInit {
     this.themeSettingsDialog.open();
   }
 }
+

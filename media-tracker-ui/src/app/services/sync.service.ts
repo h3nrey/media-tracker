@@ -5,8 +5,9 @@ import { WatchSourceSyncService } from './sync/watch-source-sync.service';
 import { AnimeSyncService } from './sync/anime-sync.service';
 import { GameSyncService } from './sync/game-sync.service';
 import { ListSyncService } from './sync/list-sync.service';
-
 import { MediaLogSyncService } from './sync/media-log-sync.service';
+import { AuthService } from './auth.service';
+import { SupabaseService } from './supabase.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,23 +19,26 @@ export class SyncService {
   private gameSync = inject(GameSyncService);
   private listSync = inject(ListSyncService);
   private logSync = inject(MediaLogSyncService);
+  private authService = inject(AuthService);
+  private supabase = inject(SupabaseService).client;
 
   private isSyncingSubject = new BehaviorSubject<boolean>(false);
   isSyncing$ = this.isSyncingSubject.asObservable();
 
   async sync() {
+    const user = this.authService.currentUser();
+    if (!user) return
+
     if (this.isSyncingSubject.value) return;
     
-    console.log('Starting coordinated sync...');
     this.isSyncingSubject.next(true);
     
     try {
-      // Order matters due to foreign keys
       await this.categorySync.sync();
       await this.watchSourceSync.sync();
       await this.animeSync.sync();
       await this.gameSync.sync();
-      await this.logSync.sync(); // Sync logs after media items
+      await this.logSync.sync();
       await this.listSync.sync();
       
       console.log('Sync completed successfully');

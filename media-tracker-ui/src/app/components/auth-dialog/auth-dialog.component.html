@@ -1,0 +1,180 @@
+<div class="auth-dialog-overlay" (click)="close()">
+  <div class="auth-dialog" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="close()" aria-label="Close">
+      <lucide-icon [name]="XIcon" [size]="20"></lucide-icon>
+    </button>
+
+    <div class="auth-header">
+      <h2 class="auth-title">
+        @if (isLogin) {
+          Welcome Back
+        } @else if (isSignup) {
+          Create Account
+        } @else {
+          Reset Password
+        }
+      </h2>
+      <p class="auth-subtitle">
+        @if (isLogin) {
+          Sign in to sync your media across devices
+        } @else if (isSignup) {
+          Join to track and sync your media collection
+        } @else {
+          Enter your email to receive a password reset link
+        }
+      </p>
+    </div>
+
+    <form class="auth-form" (ngSubmit)="submit()">
+      @if (isSignup) {
+        <div class="form-group">
+          <label for="displayName" class="form-label">
+            <lucide-icon [name]="UserIcon" [size]="16"></lucide-icon>
+            Display Name (Optional)
+          </label>
+          <input
+            id="displayName"
+            type="text"
+            class="form-input"
+            placeholder="How should we call you?"
+            [(ngModel)]="displayName"
+            name="displayName"
+          />
+        </div>
+      }
+
+      <div class="form-group">
+        <label for="email" class="form-label">
+          <lucide-icon [name]="MailIcon" [size]="16"></lucide-icon>
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          class="form-input"
+          placeholder="your@email.com"
+          [(ngModel)]="email"
+          name="email"
+          required
+          autocomplete="email"
+        />
+      </div>
+
+      @if (!isReset) {
+        <div class="form-group">
+          <label for="password" class="form-label">
+            <lucide-icon [name]="LockIcon" [size]="16"></lucide-icon>
+            Password
+          </label>
+          <div class="password-input-wrapper">
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              class="form-input"
+              placeholder="••••••••"
+              [(ngModel)]="password"
+              name="password"
+              required
+              [attr.autocomplete]="isLogin ? 'current-password' : 'new-password'"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            >
+              <lucide-icon [name]="showPassword() ? EyeOffIcon : EyeIcon" [size]="18"></lucide-icon>
+            </button>
+          </div>
+          @if (isSignup) {
+            <small class="form-hint">At least 6 characters</small>
+          }
+        </div>
+      }
+
+      @if (isSignup) {
+        <div class="form-group">
+          <label for="confirmPassword" class="form-label">
+            <lucide-icon [name]="LockIcon" [size]="16"></lucide-icon>
+            Confirm Password
+          </label>
+          <div class="password-input-wrapper">
+            <input
+              id="confirmPassword"
+              [type]="showConfirmPassword() ? 'text' : 'password'"
+              class="form-input"
+              placeholder="••••••••"
+              [(ngModel)]="confirmPassword"
+              name="confirmPassword"
+              required
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="toggleConfirmPasswordVisibility()"
+              [attr.aria-label]="showConfirmPassword() ? 'Hide password' : 'Show password'"
+            >
+              <lucide-icon [name]="showConfirmPassword() ? EyeOffIcon : EyeIcon" [size]="18"></lucide-icon>
+            </button>
+          </div>
+          @if (confirmPassword() && password() !== confirmPassword()) {
+            <small class="form-error">Passwords do not match</small>
+          }
+        </div>
+      }
+
+      @if (isLogin) {
+        <div class="form-actions-row">
+          <button type="button" class="link-btn" (click)="switchMode('reset')">
+            Forgot password?
+          </button>
+        </div>
+      }
+
+      <button
+        type="submit"
+        class="submit-btn"
+        [disabled]="!isValid || authService.isLoading()"
+      >
+        @if (authService.isLoading()) {
+          <lucide-icon [name]="LoaderIcon" [size]="18" class="spinner"></lucide-icon>
+          Processing...
+        } @else {
+          @if (isLogin) {
+            Sign In
+          } @else if (isSignup) {
+            Create Account
+          } @else {
+            Send Reset Link
+          }
+        }
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      @if (isLogin) {
+        <p>
+          Don't have an account?
+          <button type="button" class="link-btn" (click)="switchMode('signup')">
+            Sign up
+          </button>
+        </p>
+      } @else if (isSignup) {
+        <p>
+          Already have an account?
+          <button type="button" class="link-btn" (click)="switchMode('login')">
+            Sign in
+          </button>
+        </p>
+      } @else {
+        <p>
+          Remember your password?
+          <button type="button" class="link-btn" (click)="switchMode('login')">
+            Sign in
+          </button>
+        </p>
+      }
+    </div>
+  </div>
+</div>

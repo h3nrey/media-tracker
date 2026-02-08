@@ -220,47 +220,39 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
     const movedMedia = event.previousContainer.data[event.previousIndex];
     const selectedIds = this.selectedIds();
     
-    // Determine which items to move
     let itemsToMove: MediaItem[] = [];
     if (selectedIds.has(movedMedia.id!)) {
-      // Move all selected items that are in the previous container
       itemsToMove = event.previousContainer.data.filter(m => selectedIds.has(m.id!));
     } else {
-      // Only move the dragged item
       itemsToMove = [movedMedia];
     }
 
-    // Capture original indices and items for potential reversal
     const originalPositions = itemsToMove.map(item => ({
       item,
       index: event.previousContainer.data.indexOf(item)
-    })).sort((a, b) => b.index - a.index); // Sort descending to not mess up indices during removal
+    })).sort((a, b) => b.index - a.index); 
 
-    // UI Update: Move items locally
     originalPositions.forEach(pos => {
       const currentIndex = event.previousContainer.data.indexOf(pos.item);
       transferArrayItem(
         event.previousContainer.data,
         event.container.data,
         currentIndex,
-        event.container.data.length // Add to end of target
+        event.container.data.length
       );
     });
 
-    // Database Update
     try {
       const updatePromises = itemsToMove.map(item => 
-        this.mediaService.updateMediaStatus(item.id!, targetCategoryId)
+        this.mediaService.updateMediaStatusWithSync(item.id!, targetCategoryId)
       );
       await Promise.all(updatePromises);
       
-      // Clear selection after bulk move if it was a bulk move
       if (itemsToMove.length > 1) {
         this.clearAllSelection();
       }
     } catch (error) {
       console.error('Error updating media status:', error);
-      // Revert UI changes in case of error (reverse order to restore indices correctly)
       originalPositions.sort((a, b) => a.index - b.index).forEach(pos => {
         const currentIndex = event.container.data.indexOf(pos.item);
         if (currentIndex !== -1) {

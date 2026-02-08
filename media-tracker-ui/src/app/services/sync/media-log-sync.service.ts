@@ -2,15 +2,18 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../supabase.service';
 import { db } from '../database.service';
 import { MediaLog } from '../../models/media-log.model';
+import { AuthService } from '../auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MediaLogSyncService {
   private supabase = inject(SupabaseService).client;
+  private authService = inject(AuthService);
 
   async sync() {
     console.log('Syncing media logs...');
+    const user = this.authService.currentUser()!;
     const localLogs = await db.mediaLogs.toArray();
     const { data: remoteLogs, error } = await this.supabase
       .from('media_logs')
@@ -32,10 +35,11 @@ export class MediaLogSyncService {
         if (!d) return null;
         const date = new Date(d);
         if (isNaN(date.getTime())) return null;
-        return date.toISOString().split('T')[0]; // Store as YYYY-MM-DD
+        return date.toISOString().split('T')[0];
       };
 
       const supabaseData = {
+        user_id: user.id,
         media_item_id: mapLocalToSupabaseMediaId(local.mediaItemId),
         start_date: normalizeDate(local.startDate),
         end_date: normalizeDate(local.endDate),

@@ -1,18 +1,23 @@
-<app-header 
-  class="desktop-only"
-  (addAnime)="openAddDialog()" 
-  (manageCategories)="openManageCategoriesDialog()"
-  (manageSources)="openManageSourcesDialog()"
-  (bulkImport)="openBulkImportDialog()"
-  (refreshMetadata)="openMetadataSyncDialog()"
-  (openThemeSettings)="openThemeSettingsDialog()"
-></app-header>
+@if (showHeader()) {
+  <app-header 
+    class="desktop-only"
+    (addAnime)="openAddDialog()" 
+    (manageCategories)="openManageCategoriesDialog()"
+    (manageSources)="openManageSourcesDialog()"
+    (bulkImport)="openBulkImportDialog()"
+    (refreshMetadata)="openMetadataSyncDialog()"
+    (openThemeSettings)="openThemeSettingsDialog()"
+  ></app-header>
+}
 
 <main class="app-content">
   <router-outlet />
 </main>
 
-<app-mobile-nav class="mobile-only"></app-mobile-nav>
+@if (showHeader()) {
+  <app-mobile-nav class="mobile-only"></app-mobile-nav>
+}
+
 <app-add-media-dialog></app-add-media-dialog>
 <app-manage-categories-dialog></app-manage-categories-dialog>
 <app-manage-sources-dialog></app-manage-sources-dialog>
