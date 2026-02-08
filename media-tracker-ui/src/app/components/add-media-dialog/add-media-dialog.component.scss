@@ -145,7 +145,7 @@
 
 // --- Edit Reference Banner ---
 .edit-reference-banner {
-  background: rgba(var(--app-primary-rgb), 0.1);
+  background: rgba(var(--app-primary), 0.1);
   border: 1px dashed var(--app-primary);
   border-radius: 12px;
   padding: 1rem 1.5rem;
@@ -321,7 +321,6 @@
 .search-empty-action {
   text-align: center;
   padding: 2rem;
-  background: rgba(var(--app-primary-rgb), 0.05);
   border-radius: 20px;
   border: 2px dashed var(--app-border);
 
