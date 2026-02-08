@@ -5,7 +5,11 @@
     (edit)="edit.emit($event)" 
     (delete)="delete.emit($event)" 
     (increment)="increment.emit($event)"
+    (complete)="complete.emit($event)"
+    (addNewRun)="addNewRun.emit($event)"
+    (addLog)="addLog.emit($event)"
     (mediaClick)="mediaClick.emit($event)"
+    [isCompleted]="isCompleted()"
     [url]="'game'"
   >
     <div class="game-info">
@@ -19,7 +23,7 @@
       }
       <div class="meta">
         <!-- Games usually show hours played or completion status, for now generic progress -->
-        <span>{{ game.progressCurrent }} hrs</span>
+        <span>{{ playedTime() | number:'1.1-1' }} hrs</span>
         
         @if (game.score > 0) {
           <span class="score" [ngClass]="getScoreColorClass(game.score)">

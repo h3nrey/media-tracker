@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject, ViewChild, effect } from '@angular/c
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
+import { MediaService } from './services/media.service';
 import { MobileNavComponent } from './components/mobile-library/mobile-nav/mobile-nav.component';
 import { CategoryService } from './services/status.service';
 import { SyncService } from './services/sync.service';
@@ -54,6 +55,7 @@ export class App implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private runService = inject(MediaRunService);
+  private mediaService = inject(MediaService);
 
   showHeader = signal(true);
 
@@ -136,6 +138,19 @@ export class App implements OnInit {
       // But actually MediaRunsListComponent reloads on certain triggers.
     } catch (error: any) {
       console.error('Failed to create run:', error);
+    }
+  }
+
+  async onRunUpdated() {
+    this.mediaService.triggerFilterUpdate();
+    
+    // Refresh the run data in the dialog 
+    const currentRun = this.dialogService.currentRunDetails();
+    if (currentRun?.id) {
+      const updatedRun = await this.runService.getRunById(currentRun.id);
+      if (updatedRun) {
+        this.dialogService.updateSelectedRun(updatedRun);
+      }
     }
   }
 }

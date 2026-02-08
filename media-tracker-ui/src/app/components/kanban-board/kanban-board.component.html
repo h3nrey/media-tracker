@@ -39,6 +39,9 @@
                   (edit)="onEdit($event)"
                   (delete)="onDelete($event)"
                   (increment)="onIncrement($event)"
+                  (complete)="onComplete($event)"
+                  (addNewRun)="onAddNewRun($event)"
+                  (addLog)="onAddLog($event)"
                 ></app-kanban-anime-card>
               } @else if (media.mediaTypeId === 3) {
                  <app-kanban-game-card 
@@ -48,6 +51,9 @@
                   (edit)="onEdit($event)"
                   (delete)="onDelete($event)"
                   (increment)="onIncrement($event)"
+                  (complete)="onComplete($event)"
+                  (addNewRun)="onAddNewRun($event)"
+                  (addLog)="onAddLog($event)"
                 ></app-kanban-game-card>
               }
             } @empty {

@@ -50,18 +50,20 @@
 
               @switch(mediaType()) {
                 @case('game') {
-                  <app-game-sessions [runId]="run()!.id!"></app-game-sessions>
+                  <app-game-sessions [runId]="run()!.id!" (updated)="updated.emit()"></app-game-sessions>
                 }
                 @case('anime') {
                   <app-episode-progress 
                     [runId]="run()!.id!" 
-                    [totalEpisodes]="totalCount()">
+                    [totalEpisodes]="totalCount()"
+                    (updated)="updated.emit()">
                   </app-episode-progress>
                 }
                 @case('manga') {
                   <app-chapter-progress 
                     [runId]="run()!.id!"
-                    [totalChapters]="totalCount()">
+                    [totalChapters]="totalCount()"
+                    (updated)="updated.emit()">
                   </app-chapter-progress>
                 }
               }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, inject, signal, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, CheckCheck, X } from 'lucide-angular';
 import { EpisodeProgress } from '../../../models/media-run.model';
@@ -14,6 +14,8 @@ import { EpisodeProgressService } from '../../../services/episode-progress.servi
 export class EpisodeProgressComponent implements OnInit {
   @Input({ required: true }) runId!: number;
   @Input() totalEpisodes: number = 0;
+  
+  updated = output<void>();
 
   private progressService = inject(EpisodeProgressService);
 
@@ -53,6 +55,7 @@ export class EpisodeProgressComponent implements OnInit {
     }
     
     await this.loadProgress();
+    this.updated.emit();
     console.log('After reload, watched episodes:', this.watchedEpisodes());
   }
 
@@ -60,12 +63,14 @@ export class EpisodeProgressComponent implements OnInit {
     const episodes = Array.from({ length: episodeNumber }, (_, i) => i + 1);
     await this.progressService.markEpisodesWatched(this.runId, episodes);
     await this.loadProgress();
+    this.updated.emit();
   }
 
   async clearAll() {
     if (confirm('Desmarcar todos os episódios?')) {
       await this.progressService.clearProgress(this.runId);
       await this.loadProgress();
+      this.updated.emit();
     }
   }
 
@@ -76,6 +81,7 @@ export class EpisodeProgressComponent implements OnInit {
       const episodes = Array.from({ length: this.totalEpisodes }, (_, i) => i + 1);
       await this.progressService.markEpisodesWatched(this.runId, episodes);
       await this.loadProgress();
+      this.updated.emit();
     }
   }
 

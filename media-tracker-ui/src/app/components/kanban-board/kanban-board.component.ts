@@ -8,6 +8,9 @@ import { CategoryService } from '../../services/status.service';
 import { FilterService } from '../../services/filter.service';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { AlertService } from '../../services/alert.service';
+import { MediaRunService } from '../../services/media-run.service';
+import { EpisodeProgressService } from '../../services/episode-progress.service';
+import { DialogService } from '../../services/dialog.service';
 import { KanbanAnimeCard } from '../../pages/home/components/kanban-anime-card/kanban-anime-card';
 import { KanbanGameCard } from '../../pages/home/components/kanban-game-card/kanban-game-card.component';
 import { LucideAngularModule } from 'lucide-angular';
@@ -36,7 +39,10 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
     private categoryService: CategoryService,
     private filterService: FilterService,
     private mediaTypeState: MediaTypeStateService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private runService: MediaRunService,
+    private episodeProgressService: EpisodeProgressService,
+    private dialogService: DialogService
   ) {}
 
   // ...
@@ -140,14 +146,94 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
 
   async onIncrement(media: MediaItem) {
     if (!media.id) return;
-    const current = media.progressCurrent || 0;
-    const total = media.progressTotal || 0;
     
-    if (total > 0 && current >= total) return; 
+    // Get the active/last run for this media
+    const runs = await this.runService.getRunsForMedia(media.id);
+    const lastRun = runs.length > 0 ? runs[runs.length - 1] : null;
+    
+    if (!lastRun?.id) {
+      console.warn('No run found for media:', media.title);
+      return;
+    }
 
-    await this.mediaService.updateMedia(media.id, { 
-      progressCurrent: current + 1 
-    });
+    // Mark the next episode as watched
+    try {
+      await this.episodeProgressService.markNextEpisodeWatched(lastRun.id);
+      this.mediaService.triggerFilterUpdate();
+    } catch (error) {
+      console.error('Error marking next episode:', error);
+    }
+  }
+
+  async onComplete(media: MediaItem) {
+    if (!media.id) return;
+    
+    // Find the "Completed" category
+    const completedCategory = this.columns().find(c => 
+      c.category.name.toLowerCase() === 'completed' || 
+      c.category.name.toLowerCase() === 'completado'
+    );
+    
+    if (!completedCategory?.category.id) {
+      console.warn('No completed category found');
+      return;
+    }
+
+    // Update progress to total (mark as completed)
+    const updates: Partial<MediaItem> = {
+      progressCurrent: media.progressTotal || 0,
+      statusId: completedCategory.category.id
+    };
+
+    await this.mediaService.updateMedia(media.id, updates);
+    this.mediaService.triggerFilterUpdate();
+    
+    // Show feedback
+    this.alertService.showAlert(`"${media.title}" marked as completed!`, 'Completed', 'success');
+  }
+
+  async onAddNewRun(media: MediaItem) {
+    if (!media.id) return;
+    
+    try {
+      // Start new run
+      await this.runService.startNewRun(media.id);
+      
+      // Find "Ativo" category
+      const activeCategory = this.columns().find(c => 
+        c.category.name.toLowerCase() === 'ativo' || 
+        c.category.name.toLowerCase() === 'active' ||
+        c.category.name.toLowerCase() === 'watching' ||
+        c.category.name.toLowerCase() === 'playing'
+      );
+      
+      if (activeCategory?.category.id) {
+        await this.mediaService.updateMedia(media.id, { 
+          statusId: activeCategory.category.id,
+          progressCurrent: 0
+        });
+      }
+
+      this.mediaService.triggerFilterUpdate();
+      
+      this.alertService.showAlert(`New run started for "${media.title}"!`, 'Success', 'success');
+    } catch (error: any) {
+      console.error('Error starting new run:', error);
+      this.alertService.showAlert(error.message || 'Error starting new run', 'Error', 'error');
+    }
+  }
+
+  async onAddLog(media: MediaItem) {
+    if (!media.id) return;
+    
+    // Get the active run for this game
+    const activeRun = await this.runService.getActiveRun(media.id);
+    if (activeRun) {
+      this.dialogService.openRunDetails(activeRun, 'game', media.progressTotal || 0);
+    } else {
+      // If no active run, navigate to details to let user start one or manage logs
+      this.onMediaClick({ media, event: new MouseEvent('click') });
+    }
   }
 
   async ngOnInit() {

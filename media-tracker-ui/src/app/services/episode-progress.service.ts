@@ -2,7 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, from } from 'rxjs';
 import { liveQuery } from 'dexie';
 import { db } from './database.service';
-import { EpisodeProgress } from '../models/media-run.model';
+import { EpisodeProgress, MediaRun } from '../models/media-run.model';
+import { MediaItem } from '../models/media-type.model';
 import { SyncService } from './sync.service';
 import { SupabaseService } from './supabase.service';
 
@@ -65,8 +66,54 @@ export class EpisodeProgressService {
       createdAt: now
     } as EpisodeProgress);
 
+    // Auto-complete run if it's the last episode
+    await this.checkRunCompletion(runId);
+
     this.syncService.sync();
     return id as number;
+  }
+
+  /**
+   * Check if a run should be marked as finished
+   */
+  async checkRunCompletion(runId: number): Promise<void> {
+    const run = await db.mediaRuns.get(runId);
+    if (!run || run.endDate) return;
+
+    const media = await db.mediaItems.get(run.mediaItemId);
+    if (!media || !media.progressTotal) return;
+
+    const watchedEpisodes = await db.episodeProgress
+      .where('runId')
+      .equals(runId)
+      .toArray();
+
+    if (watchedEpisodes.length >= media.progressTotal) {
+      const now = new Date();
+      
+      // 1. Mark run as finished
+      await db.mediaRuns.update(runId, {
+        endDate: now,
+        updatedAt: now
+      });
+
+      // 2. Move media to completed category and update progress
+      const completedCategory = await db.categories
+        .where('name')
+        .anyOfIgnoreCase(['completed', 'completado', 'finalizado', 'concluído'])
+        .first();
+
+      const updates: Partial<MediaItem> = {
+        progressCurrent: media.progressTotal,
+        updatedAt: now
+      };
+
+      if (completedCategory) {
+        updates.statusId = completedCategory.id;
+      }
+
+      await db.mediaItems.update(media.id!, updates);
+    }
   }
 
   async markEpisodeUnwatched(runId: number, episodeNumber: number): Promise<void> {
@@ -161,6 +208,8 @@ export class EpisodeProgressService {
         } as EpisodeProgress);
       }
     }
+
+    await this.checkRunCompletion(runId);
 
     this.syncService.sync();
   }

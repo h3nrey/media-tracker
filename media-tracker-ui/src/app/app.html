@@ -38,5 +38,6 @@
   [run]="dialogService.currentRunDetails()"
   [mediaType]="dialogService.currentRunMediaType()"
   [totalCount]="dialogService.currentRunTotalCount()"
-  (close)="dialogService.closeRunDetails()">
+  (close)="dialogService.closeRunDetails()"
+  (updated)="onRunUpdated()">
 </app-run-details-dialog>
