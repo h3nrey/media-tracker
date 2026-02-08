@@ -1,4 +1,4 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, input, output, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Anime } from '../../../../models/anime.model';
 import { MediaRun } from '../../../../models/media-run.model';
@@ -8,6 +8,8 @@ import { AnimeLinksComponent } from '../anime-links/anime-links.component';
 import { LucideAngularModule, Play, Edit3, Plus, Star, Minus, RotateCcw, CheckCheck, List as ListIcon } from 'lucide-angular';
 import { SelectComponent } from '../../../../components/ui/select/select';
 import { RouterModule } from '@angular/router';
+import { MediaRunService } from '../../../../services/media-run.service';
+import { EpisodeProgressService } from '../../../../services/episode-progress.service';
 
 export interface AnimeDetails extends Anime {
   sourceLinks?: any[];
@@ -36,6 +38,12 @@ export class AnimeSidebarComponent {
   updateCategory = output<number>();
   saveLinks = output<any[]>();
 
+  private runService = inject(MediaRunService);
+  private progressService = inject(EpisodeProgressService);
+
+  activeRunEpisodeCount = signal<number>(0);
+  activeRun = signal<MediaRun | null>(null);
+
   readonly PlayIcon = Play;
   readonly EditIcon = Edit3;
   readonly PlusIcon = Plus;
@@ -56,6 +64,40 @@ export class AnimeSidebarComponent {
 
   hoveredStar = signal<number | null>(null);
 
+  constructor() {
+    effect(() => {
+      const currentAnime = this.anime();
+      if (currentAnime?.id) {
+        this.loadActiveRun(currentAnime.id);
+      }
+    });
+
+    effect(() => {
+      const run = this.activeRun();
+      if (run?.id) {
+        const subscription = this.progressService.getEpisodesForRun$(run.id).subscribe(episodes => {
+          this.activeRunEpisodeCount.set(episodes.length);
+        });
+        
+        return () => subscription.unsubscribe();
+      } else {
+        this.activeRunEpisodeCount.set(0);
+        return undefined;
+      }
+    });
+  }
+
+  async loadActiveRun(animeId: number) {
+    const runs = await this.runService.getRunsForMedia(animeId);
+    const lastRun = runs.length > 0 ? runs[runs.length - 1] : null;
+    
+    this.activeRun.set(lastRun);
+  }
+
+  get activeRunRating(): number {
+    return this.activeRun()?.rating || 0;
+  }
+
   get categoryOptions() {
     return this.categories().map(c => ({ value: c.supabaseId || c.id, label: c.name }));
   }
@@ -63,7 +105,8 @@ export class AnimeSidebarComponent {
   get progress(): number {
     const a = this.anime();
     if (!a || !a.progressTotal) return 0;
-    return Math.min(100, Math.round(((a.progressCurrent || 0) / a.progressTotal) * 100));
+    const current = this.activeRunEpisodeCount();
+    return Math.min(100, Math.round((current / a.progressTotal) * 100));
   }
 
   get currentLabel(): string {
@@ -71,8 +114,13 @@ export class AnimeSidebarComponent {
     return score !== null ? this.scoreLabels[score] : '';
   }
 
-  setScore(score: number) {
-    this.updateScore.emit(score);
+  async setScore(score: number) {
+    const run = this.activeRun();
+    if (run?.id) {
+      this.activeRun.set({ ...run, rating: score });
+      
+      await this.runService.updateRun(run.id, { rating: score });
+    }
   }
 
   onHover(star: number | null) {

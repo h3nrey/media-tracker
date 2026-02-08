@@ -4,12 +4,14 @@ import { liveQuery } from 'dexie';
 import { db } from './database.service';
 import { EpisodeProgress } from '../models/media-run.model';
 import { SyncService } from './sync.service';
+import { SupabaseService } from './supabase.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EpisodeProgressService {
   private syncService = inject(SyncService);
+  private supabaseService = inject(SupabaseService);
 
   /**
    * Get all watched episodes for a specific run
@@ -25,9 +27,7 @@ export class EpisodeProgressService {
     }));
   }
 
-  /**
-   * Get all watched episodes for a specific run (promise version)
-   */
+
   async getEpisodesForRun(runId: number): Promise<EpisodeProgress[]> {
     const episodes = await db.episodeProgress
       .where('runId')
@@ -37,9 +37,6 @@ export class EpisodeProgressService {
     return episodes.sort((a, b) => a.episodeNumber - b.episodeNumber);
   }
 
-  /**
-   * Check if a specific episode has been watched
-   */
   async isEpisodeWatched(runId: number, episodeNumber: number): Promise<boolean> {
     const episode = await db.episodeProgress
       .where(['runId', 'episodeNumber'])
@@ -49,15 +46,11 @@ export class EpisodeProgressService {
     return !!episode;
   }
 
-  /**
-   * Mark an episode as watched
-   */
   async markEpisodeWatched(runId: number, episodeNumber: number): Promise<number> {
     const now = new Date();
 
-    // Check if already marked
     const existing = await db.episodeProgress
-      .where(['runId', 'episodeNumber'])
+      .where('[runId+episodeNumber]')
       .equals([runId, episodeNumber])
       .first();
     
@@ -76,29 +69,42 @@ export class EpisodeProgressService {
     return id as number;
   }
 
-  /**
-   * Mark an episode as unwatched (delete the progress entry)
-   */
   async markEpisodeUnwatched(runId: number, episodeNumber: number): Promise<void> {
+    console.log('[EpisodeProgressService] markEpisodeUnwatched called:', { runId, episodeNumber });
+    
+    // Find using compound index
     const episode = await db.episodeProgress
-      .where(['runId', 'episodeNumber'])
+      .where('[runId+episodeNumber]')
       .equals([runId, episodeNumber])
       .first();
     
     if (episode?.id) {
+      console.log('[EpisodeProgressService] Deleting episode:', episode);
+      
+      // Delete from Supabase first if it has a supabaseId
+      if (episode.supabaseId) {
+        console.log('[EpisodeProgressService] Deleting from Supabase:', episode.supabaseId);
+        const { error } = await this.supabaseService.client
+          .from('episode_progress')
+          .delete()
+          .eq('id', episode.supabaseId);
+        
+        if (error) {
+          console.error('[EpisodeProgressService] Error deleting from Supabase:', error);
+        }
+      }
+      
+      // Then delete locally
       await db.episodeProgress.delete(episode.id);
-      this.syncService.sync();
+    } else {
+      console.log('[EpisodeProgressService] Episode not found to delete');
     }
   }
 
-  /**
-   * Mark the next unwatched episode as watched
-   */
   async markNextEpisodeWatched(runId: number): Promise<number | null> {
     const watchedEpisodes = await this.getEpisodesForRun(runId);
     const watchedNumbers = watchedEpisodes.map(e => e.episodeNumber);
     
-    // Find the next episode number
     let nextEpisode = 1;
     while (watchedNumbers.includes(nextEpisode)) {
       nextEpisode++;
@@ -107,9 +113,6 @@ export class EpisodeProgressService {
     return this.markEpisodeWatched(runId, nextEpisode);
   }
 
-  /**
-   * Get progress statistics for a run
-   */
   async getProgressStats(runId: number, totalEpisodes?: number): Promise<{
     episodesWatched: number;
     episodesTotal: number | null;
@@ -122,7 +125,6 @@ export class EpisodeProgressService {
     const watchedNumbers = episodes.map(e => e.episodeNumber);
     const lastWatched = watchedNumbers.length > 0 ? Math.max(...watchedNumbers) : null;
     
-    // Find next episode to watch
     let nextEpisode = 1;
     while (watchedNumbers.includes(nextEpisode)) {
       nextEpisode++;
@@ -141,9 +143,6 @@ export class EpisodeProgressService {
     };
   }
 
-  /**
-   * Mark multiple episodes as watched (for binge watching)
-   */
   async markEpisodesWatched(runId: number, episodeNumbers: number[]): Promise<void> {
     const now = new Date();
     
@@ -166,9 +165,6 @@ export class EpisodeProgressService {
     this.syncService.sync();
   }
 
-  /**
-   * Mark a range of episodes as watched
-   */
   async markEpisodeRangeWatched(runId: number, fromEpisode: number, toEpisode: number): Promise<void> {
     const episodes = Array.from(
       { length: toEpisode - fromEpisode + 1 }, 
@@ -178,9 +174,6 @@ export class EpisodeProgressService {
     await this.markEpisodesWatched(runId, episodes);
   }
 
-  /**
-   * Get watch history (all episodes with dates)
-   */
   async getWatchHistory(runId: number): Promise<EpisodeProgress[]> {
     const episodes = await this.getEpisodesForRun(runId);
     return episodes.sort((a, b) => 
@@ -188,14 +181,22 @@ export class EpisodeProgressService {
     );
   }
 
-  /**
-   * Delete all progress for a run
-   */
   async clearProgress(runId: number): Promise<void> {
     const episodes = await this.getEpisodesForRun(runId);
     const ids = episodes.map(e => e.id!).filter(id => !!id);
+    const supabaseIds = episodes.map(e => e.supabaseId).filter(id => !!id);
+    
+    if (supabaseIds.length > 0) {
+      const { error } = await this.supabaseService.client
+        .from('episode_progress')
+        .delete()
+        .in('id', supabaseIds);
+      
+      if (error) {
+        console.error('[EpisodeProgressService] Error deleting from Supabase:', error);
+      }
+    }
     
     await db.episodeProgress.bulkDelete(ids);
-    this.syncService.sync();
   }
 }

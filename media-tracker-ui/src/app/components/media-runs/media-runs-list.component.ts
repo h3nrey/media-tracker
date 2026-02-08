@@ -15,6 +15,7 @@ import { AddRunDialogComponent } from './add-run-dialog/add-run-dialog.component
 import { RunDetailsDialogComponent } from './run-details-dialog/run-details-dialog.component';
 import { DialogService } from '../../services/dialog.service';
 import { FormsModule } from '@angular/forms';
+import { getScoreColorClass } from '../../utils/anime-utils';
 
 @Component({
   selector: 'app-media-runs-list',
@@ -126,6 +127,10 @@ export class MediaRunsListComponent implements OnInit {
     if (runNumber === 4) return `Fourth ${action}`;
     if (runNumber === 5) return `Fifth ${action}`;
     return `${runNumber}th ${action}`;
+  }
+
+  getScoreColorClass(score: number): string {
+    return getScoreColorClass(score);
   }
 }
 

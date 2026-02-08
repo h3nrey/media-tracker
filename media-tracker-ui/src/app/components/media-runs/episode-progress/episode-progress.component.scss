@@ -19,7 +19,8 @@
       font-size: 0.85rem;
       font-weight: 800;
       color: var(--app-primary);
-      background: rgba(var(--app-primary-rgb), 0.1);
+      background: transparent;
+      border: 1px solid var(--app-primary);
       padding: 0.2rem 0.5rem;
       border-radius: 4px;
     }
@@ -35,10 +36,53 @@
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(to right, var(--app-primary), rgba(var(--app-primary-rgb), 0.7));
+      background: linear-gradient(to right, var(--app-primary), var(--app-primary-hover));
       transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 12px rgba(var(--app-primary-rgb), 0.5);
       border-radius: 999px;
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+
+    .action-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--app-text-secondary);
+
+      &:hover {
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      &.clear-btn {
+        &:hover {
+          border-color: rgba(239, 68, 68, 0.5);
+          color: #ef4444;
+          background: rgba(239, 68, 68, 0.1);
+        }
+      }
+
+      &.watch-all-btn {
+        &:hover {
+          border-color: var(--app-primary);
+          color: var(--app-primary);
+          background: rgba(var(--app-primary), 0.1);
+        }
+      }
     }
   }
 
@@ -60,10 +104,14 @@
       color: var(--app-text-muted);
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      pointer-events: auto;
+      padding: 0;
+      font-family: inherit;
 
       &:hover {
         background: rgba(255, 255, 255, 0.07);
-        border-color: rgba(var(--app-primary-rgb), 0.4);
+        border-color: rgba(var(--app-primary), 0.4);
         color: var(--app-primary);
         transform: scale(1.1) translateY(-2px);
         z-index: 10;
@@ -72,12 +120,10 @@
       &.watched {
         background: var(--app-primary);
         border-color: var(--app-primary);
-        color: white;
-        box-shadow: 0 4px 12px rgba(var(--app-primary-rgb), 0.3);
+        color: black;
         
         &:hover {
           filter: brightness(1.2);
-          box-shadow: 0 6px 16px rgba(var(--app-primary-rgb), 0.4);
         }
       }
     }
@@ -99,7 +145,7 @@
     &:hover {
       background: rgba(255, 255, 255, 0.05);
       color: var(--app-primary);
-      border-color: rgba(var(--app-primary-rgb), 0.2);
+      border-color: rgba(var(--app-primary), 0.2);
     }
   }
 }

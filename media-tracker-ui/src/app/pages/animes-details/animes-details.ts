@@ -98,23 +98,22 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     const currentAnime = this.anime();
     if (!currentAnime || !currentAnime.id) return;
 
-    const current = currentAnime.progressCurrent || 0;
     const total = currentAnime.progressTotal;
+    
+    // Get last run (active or most recent completed)
+    const runs = await this.runService.getRunsForMedia(currentAnime.id);
+    const lastRun = runs.length > 0 ? runs[runs.length - 1] : null;
+    if (!lastRun?.id) return;
+
+    // Get current episode count
+    const episodes = await this.progressService.getEpisodesForRun(lastRun.id);
+    const current = episodes.length;
 
     if (!total || current < total) {
-      const newCount = current + 1;
-      await this.animeService.updateAnime(currentAnime.id, {
-        progressCurrent: newCount
-      });
-      this.anime.update(a => a ? { ...a, progressCurrent: newCount } : null);
-      
-      // Update active run progress
-      const activeRun = await this.runService.getActiveRun(currentAnime.id);
-      if (activeRun) {
-        await this.progressService.markEpisodeWatched(activeRun.id!, newCount);
-      }
+      const nextEpisode = current + 1;
+      await this.progressService.markEpisodeWatched(lastRun.id, nextEpisode);
 
-      if (total && newCount === total) {
+      if (total && nextEpisode === total) {
         this.toastService.success(`You've finished ${currentAnime.title}!`);
       }
     }
@@ -124,19 +123,19 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     const currentAnime = this.anime();
     if (!currentAnime || !currentAnime.id) return;
 
-    const current = currentAnime.progressCurrent || 0;
-    if (current > 0) {
-      const newCount = current - 1;
-      await this.animeService.updateAnime(currentAnime.id, {
-        progressCurrent: newCount
-      });
-      this.anime.update(a => a ? { ...a, progressCurrent: newCount } : null);
+    // Get last run (active or most recent completed)
+    const runs = await this.runService.getRunsForMedia(currentAnime.id);
+    const lastRun = runs.length > 0 ? runs[runs.length - 1] : null;
+    if (!lastRun?.id) return;
 
-      // Update active run progress (unwatch the episode we just removed)
-      const activeRun = await this.runService.getActiveRun(currentAnime.id);
-      if (activeRun) {
-        await this.progressService.markEpisodeUnwatched(activeRun.id!, current);
-      }
+    // Get current episode count
+    const episodes = await this.progressService.getEpisodesForRun(lastRun.id);
+    const current = episodes.length;
+
+    if (current > 0) {
+      // Find the highest episode number and unwatch it
+      const maxEpisode = Math.max(...episodes.map(e => e.episodeNumber));
+      await this.progressService.markEpisodeUnwatched(lastRun.id, maxEpisode);
     }
   }
 
@@ -144,15 +143,11 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     const currentAnime = this.anime();
     if (!currentAnime || !currentAnime.id) return;
 
-    await this.animeService.updateAnime(currentAnime.id, {
-      progressCurrent: 0
-    });
-    this.anime.update(a => a ? { ...a, progressCurrent: 0 } : null);
-
-    // Clear active run progress
-    const activeRun = await this.runService.getActiveRun(currentAnime.id);
-    if (activeRun) {
-      await this.progressService.clearProgress(activeRun.id!);
+    // Get last run and clear its progress
+    const runs = await this.runService.getRunsForMedia(currentAnime.id);
+    const lastRun = runs.length > 0 ? runs[runs.length - 1] : null;
+    if (lastRun?.id) {
+      await this.progressService.clearProgress(lastRun.id);
     }
   }
 
@@ -161,18 +156,21 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     if (!currentAnime || !currentAnime.id) return;
 
     const total = currentAnime.progressTotal;
-    if (total && currentAnime.progressCurrent !== total) {
-      await this.animeService.updateAnime(currentAnime.id, {
-        progressCurrent: total
-      });
-      this.anime.update(a => a ? { ...a, progressCurrent: total } : null);
+    if (!total) return;
 
-      // Update active run progress (mark all as watched)
-      const activeRun = await this.runService.getActiveRun(currentAnime.id);
-      if (activeRun) {
-        const episodes = Array.from({ length: total }, (_, i) => i + 1);
-        await this.progressService.markEpisodesWatched(activeRun.id!, episodes);
-      }
+    // Get last run (active or most recent completed)
+    const runs = await this.runService.getRunsForMedia(currentAnime.id);
+    const lastRun = runs.length > 0 ? runs[runs.length - 1] : null;
+    if (!lastRun?.id) return;
+
+    // Get current episode count
+    const episodes = await this.progressService.getEpisodesForRun(lastRun.id);
+    const current = episodes.length;
+
+    if (current !== total) {
+      // Mark all episodes as watched
+      const allEpisodes = Array.from({ length: total }, (_, i) => i + 1);
+      await this.progressService.markEpisodesWatched(lastRun.id, allEpisodes);
 
       this.toastService.success(`You've finished ${currentAnime.title}!`);
     }

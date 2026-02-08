@@ -178,6 +178,26 @@ export class AnimeTrackerDatabase extends Dexie {
       // Remove mediaLogs
       mediaLogs: null
     });
+
+    // Version 11: Add compound indexes for episode and chapter progress
+    this.version(11).stores({
+      mediaTypes: '++id, name, createdAt',
+      mediaItems: '++id, supabaseId, mediaTypeId, title, externalId, externalApi, statusId, score, releaseYear, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      animeMetadata: 'mediaItemId, malId',
+      mangaMetadata: 'mediaItemId, malId',
+      gameMetadata: 'mediaItemId, igdbId',
+      movieMetadata: 'mediaItemId, tmdbId',
+      mediaImages: '++id, supabaseId, mediaItemId, url, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      lists: '++id, supabaseId, name, folderId, mediaTypeId, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      categories: '++id, supabaseId, name, order, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      watchSources: '++id, supabaseId, name, baseUrl, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      folders: '++id, supabaseId, name, order, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      mediaRuns: '++id, supabaseId, userId, mediaItemId, runNumber, startDate, endDate, createdAt, updatedAt, lastSyncedAt, isDeleted',
+      gameSessions: '++id, supabaseId, runId, playedAt, createdAt, updatedAt, lastSyncedAt',
+      // Add compound indexes for querying by runId+episodeNumber and runId+chapterNumber
+      episodeProgress: '++id, supabaseId, runId, episodeNumber, [runId+episodeNumber], watchedAt, createdAt, lastSyncedAt',
+      chapterProgress: '++id, supabaseId, runId, chapterNumber, [runId+chapterNumber], readAt, createdAt, lastSyncedAt'
+    });
   }
 
   async seedDefaultCategories(): Promise<void> {

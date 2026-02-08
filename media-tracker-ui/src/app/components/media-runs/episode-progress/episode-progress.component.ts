@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideAngularModule, CheckCheck, X } from 'lucide-angular';
 import { EpisodeProgress } from '../../../models/media-run.model';
 import { EpisodeProgressService } from '../../../services/episode-progress.service';
 
@@ -20,6 +20,9 @@ export class EpisodeProgressComponent implements OnInit {
   watchedEpisodes = signal<number[]>([]);
   showAll = signal(false);
 
+  readonly CheckAllIcon = CheckCheck;
+  readonly ClearIcon = X;
+
   async ngOnInit() {
     await this.loadProgress();
   }
@@ -29,13 +32,51 @@ export class EpisodeProgressComponent implements OnInit {
     this.watchedEpisodes.set(data.map(e => e.episodeNumber));
   }
 
-  async toggleEpisode(episodeNumber: number) {
-    if (this.watchedEpisodes().includes(episodeNumber)) {
+  async toggleEpisode(episodeNumber: number, event?: MouseEvent) {
+    console.log('toggleEpisode called:', { episodeNumber, shiftKey: event?.shiftKey, runId: this.runId });
+
+    if (event?.shiftKey) {
+      console.log('Shift key detected, marking up to episode', episodeNumber);
+      await this.markUpTo(episodeNumber);
+      return;
+    }
+
+    const isWatched = this.watchedEpisodes().includes(episodeNumber);
+    console.log('Episode', episodeNumber, 'is currently', isWatched ? 'watched' : 'unwatched');
+
+    if (isWatched) {
+      console.log('Unmarking episode', episodeNumber);
       await this.progressService.markEpisodeUnwatched(this.runId, episodeNumber);
     } else {
+      console.log('Marking episode', episodeNumber, 'as watched');
       await this.progressService.markEpisodeWatched(this.runId, episodeNumber);
     }
+    
     await this.loadProgress();
+    console.log('After reload, watched episodes:', this.watchedEpisodes());
+  }
+
+  async markUpTo(episodeNumber: number) {
+    const episodes = Array.from({ length: episodeNumber }, (_, i) => i + 1);
+    await this.progressService.markEpisodesWatched(this.runId, episodes);
+    await this.loadProgress();
+  }
+
+  async clearAll() {
+    if (confirm('Desmarcar todos os episódios?')) {
+      await this.progressService.clearProgress(this.runId);
+      await this.loadProgress();
+    }
+  }
+
+  async watchAll() {
+    if (!this.totalEpisodes) return;
+    
+    if (confirm(`Marcar todos os ${this.totalEpisodes} episódios como assistidos?`)) {
+      const episodes = Array.from({ length: this.totalEpisodes }, (_, i) => i + 1);
+      await this.progressService.markEpisodesWatched(this.runId, episodes);
+      await this.loadProgress();
+    }
   }
 
   getEpisodeList(): number[] {

@@ -38,7 +38,7 @@
 
         <div class="run-meta">
           @if (run.rating) {
-            <div class="rating-badge">
+            <div class="rating-badge" [ngClass]="getScoreColorClass(run.rating)">
               <lucide-icon [img]="StarIcon" [size]="14" fill="currentColor"></lucide-icon>
               {{ run.rating }}
             </div>
