@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Folder as FolderIcon, MoreVertical, Pencil, Trash2 } from 'lucide-angular';
 import { RouterLink } from '@angular/router';
@@ -10,7 +10,7 @@ import { RouterLink } from '@angular/router';
   templateUrl: './list-card.component.html',
   styleUrl: './list-card.component.scss'
 })
-export class ListCardComponent {
+export class ListCardComponent implements OnInit {
   @Input() list: any;
   @Input() showActions = true;
   @Output() cardClick = new EventEmitter<void>();
@@ -23,6 +23,10 @@ export class ListCardComponent {
   readonly DeleteIcon = Trash2;
 
   showMenu = signal(false);
+
+  ngOnInit() {
+    console.log(this.list);
+  }
 
   toggleMenu(event: Event) {
     event.preventDefault();

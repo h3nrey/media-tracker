@@ -84,23 +84,14 @@
     </button>
   </div>
 
+  <app-media-list-section
+    [mediaId]="game()!.id!"
+    [lists]="lists()"
+    (updated)="listUpdated.emit()">
+  </app-media-list-section>
+
   <div class="side-links">
     <app-anime-links [sourceLinks]="game()?.sourceLinks" (saveLinks)="onSaveLinks($event)"></app-anime-links>
-  </div>
-
-  <div class="sidebar-lists" *ngIf="lists().length > 0">
-    <div class="sidebar-section-header">
-      <lucide-icon [img]="ListIcon" [size]="16"></lucide-icon>
-      <h3>Associated Lists</h3>
-    </div>
-    <div class="compact-lists">
-      @for (list of lists(); track list.id) {
-        <div class="compact-list-item" [routerLink]="['/list-details', list.id]">
-          <span class="list-name">{{ list.name }}</span>
-          <span class="item-count">{{ (list.mediaItemIds?.length || list.animeIds?.length || 0) }}</span>
-        </div>
-      }
-    </div>
   </div>
 </div>
 </aside>

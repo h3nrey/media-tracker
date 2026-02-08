@@ -1,0 +1,133 @@
+.list-section {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--app-text-primary);
+
+            lucide-icon {
+                color: var(--app-primary);
+            }
+
+            h3 {
+                margin: 0;
+                font-size: 1.1rem;
+                font-weight: 700;
+            }
+        }
+
+        .popover-wrapper {
+            position: relative;
+        }
+
+        .add-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.7rem;
+            background: transparent;
+            color: var(--app-primary);
+            border: 1px solid var(--app-border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            &:hover {
+                background: var(--app-primary-hover);
+                transform: translateY(-1px);
+            }
+        }
+    }
+
+    .lists-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+
+        .list-tag {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            justify-content: space-between;
+            gap: 0.5rem;
+            background: var(--app-bg);
+            border: 1px solid var(--app-border);
+            border-radius: 0.25rem;
+            padding: 0.4rem 0.6rem 0.4rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            .list-name {
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: var(--app-text-primary);
+            }
+
+            .remove-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 20px;
+                height: 20px;
+                background: var(--app-surface-hover);
+                border: none;
+                border-radius: 50%;
+                color: var(--app-text-muted);
+                cursor: pointer;
+                transition: all 0.2s;
+
+                &:hover {
+                    background: #ff4d4d;
+                    color: white;
+                }
+            }
+
+            &:hover {
+                border-color: var(--app-primary);
+                background: var(--app-surface-hover);
+
+                .list-name {
+                    color: var(--app-primary);
+                }
+            }
+        }
+
+        .empty-state {
+            width: 100%;
+            padding: 1rem;
+            text-align: center;
+            color: var(--app-text-muted);
+            font-size: 0.9rem;
+            font-style: italic;
+            background: var(--app-bg);
+            border: 1px dashed var(--app-border);
+            border-radius: 12px;
+        }
+    }
+}
+
+::ng-deep {
+    .popover-wrapper {
+        .popover-content {
+            right: 0;
+            top: calc(100% + 10px);
+            width: 280px;
+        }
+    }
+}

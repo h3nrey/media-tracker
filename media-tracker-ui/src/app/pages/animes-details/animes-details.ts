@@ -18,6 +18,7 @@ import { AnimeLinksComponent } from './components/anime-links/anime-links.compon
 import { AnimeDetails, AnimeSidebarComponent } from './components/anime-sidebar/anime-sidebar.component';
 import { AnimeInfoComponent } from './components/anime-info/anime-info.component';
 import { MediaReviewsComponent } from '../../components/media-reviews/media-reviews.component';
+import { MediaListSectionComponent } from '../../components/media-list-section/media-list-section.component';
 import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
@@ -29,6 +30,7 @@ import { LucideAngularModule } from 'lucide-angular';
     AnimeSidebarComponent,
     AnimeInfoComponent,
     MediaReviewsComponent,
+    MediaListSectionComponent,
     LucideAngularModule
   ],
   templateUrl: './animes-details.html',
@@ -217,5 +219,14 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
     const cat = await this.categoryService.getCategoryById(statusId);
     this.category.set(cat || null);
     this.anime.update(a => a ? { ...a, statusId } : null);
+  }
+
+  onListUpdated() {
+    const id = this.anime()?.id;
+    if (id) {
+      this.listService.getListsContainingItem$(id).pipe(take(1)).subscribe((listsData: List[]) => {
+        this.lists.set(listsData);
+      });
+    }
   }
 }

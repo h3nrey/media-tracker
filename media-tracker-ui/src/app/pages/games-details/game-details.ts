@@ -7,8 +7,6 @@ import { CategoryService } from '../../services/status.service';
 import { ListService } from '../../services/list.service';
 import { DialogService } from '../../services/dialog.service';
 import { ToastService } from '../../services/toast.service';
-import { MediaItem } from '../../models/media-type.model';
-import { GameMetadata } from '../../models/game-metadata.model';
 import { Category } from '../../models/status.model';
 import { List } from '../../models/list.model';
 import { take, Subscription } from 'rxjs';
@@ -20,6 +18,7 @@ import { GameSidebarComponent } from './components/game-sidebar/game-sidebar.com
 import { GameInfoComponent } from './components/game-info/game-info.component';
 import { MediaRunsListComponent } from '../../components/media-runs/media-runs-list.component';
 import { MediaReviewsComponent } from '../../components/media-reviews/media-reviews.component';
+import { MediaListSectionComponent } from '../../components/media-list-section/media-list-section.component';
 
 @Component({
   selector: 'app-games-details',
@@ -30,7 +29,8 @@ import { MediaReviewsComponent } from '../../components/media-reviews/media-revi
     GameSidebarComponent,
     GameInfoComponent,
     MediaRunsListComponent,
-    MediaReviewsComponent
+    MediaReviewsComponent,
+    MediaListSectionComponent
   ],
   templateUrl: './game-details.html',
   styleUrl: './game-details.scss'
@@ -143,5 +143,14 @@ export class GamesDetailsComponent implements OnInit, OnDestroy {
     const cat = await this.categoryService.getCategoryById(statusId);
     this.category.set(cat || null);
     this.game.update(g => g ? { ...g, statusId } : null);
+  }
+
+  onListUpdated() {
+    const id = this.game()?.id;
+    if (id) {
+      this.listService.getListsContainingItem$(id).pipe(take(1)).subscribe((listsData: List[]) => {
+        this.lists.set(listsData);
+      });
+    }
   }
 }

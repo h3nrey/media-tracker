@@ -87,18 +87,18 @@
   
     .list-option {
       width: 100%;
-      padding: 0.85rem 1.25rem;
+      padding: 0.65rem 1rem;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.08);
       color: var(--app-text-secondary);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 600;
       border-radius: 10px;
       cursor: pointer;
       transition: all 0.2s ease;
       display: block;
       text-align: left;
-      line-height: 1.4;
+      line-height: 1.2;
       appearance: none;
       -webkit-appearance: none;
       box-sizing: border-box;

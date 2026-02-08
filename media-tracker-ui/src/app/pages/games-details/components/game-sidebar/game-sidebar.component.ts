@@ -9,10 +9,12 @@ import { SelectComponent } from '../../../../components/ui/select/select';
 import { GameDetails } from '../../game-details.model';
 import { RouterModule } from '@angular/router';
 
+import { MediaListSectionComponent } from '../../../../components/media-list-section/media-list-section.component';
+
 @Component({
   selector: 'app-game-sidebar',
   standalone: true,
-  imports: [CommonModule, AnimeLinksComponent, LucideAngularModule, SelectComponent, RouterModule],
+  imports: [CommonModule, AnimeLinksComponent, LucideAngularModule, SelectComponent, RouterModule, MediaListSectionComponent],
   templateUrl: './game-sidebar.component.html',
   styleUrl: './game-sidebar.component.scss'
 })
@@ -27,6 +29,7 @@ export class GameSidebarComponent {
   updateScore = output<number>();
   updateCategory = output<number>();
   saveLinks = output<any[]>();
+  listUpdated = output<void>();
 
   readonly PlayIcon = Play;
   readonly EditIcon = Edit3;

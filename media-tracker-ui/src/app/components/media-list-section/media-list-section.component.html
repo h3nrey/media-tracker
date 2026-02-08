@@ -1,0 +1,46 @@
+<div class="list-section">
+  <div class="section-header">
+    <div class="title-group">
+      <lucide-icon [img]="ListIcon" [size]="20"></lucide-icon>
+      <h3>Listas</h3>
+    </div>
+    
+    <div class="popover-wrapper">
+      <button class="add-btn" #popoverOrigin (click)="toggleAddPopover($event)">
+        <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon>
+        <!-- <span>Adicionar à Lista</span> -->
+      </button>
+
+      <app-popover 
+        [origin]="popoverOrigin" 
+        [isOpen]="showAddPopover()" 
+        (close)="showAddPopover.set(false)"
+        [customStyle]="{ 'width': '340px', 'height': '380px', 'max-height': '80vh' }">
+        <app-browse-list-popover
+          [availableLists]="availableLists()"
+          [initialView]="'lists'"
+          (close)="showAddPopover.set(false)"
+          (selectList)="onSelectList($event)"
+          (createList)="onCreateList($event)">
+        </app-browse-list-popover>
+      </app-popover>
+    </div>
+  </div>
+
+  <div class="lists-grid">
+    @if (lists().length > 0) {
+      @for (list of lists(); track list.id) {
+        <div class="list-tag" [routerLink]="['/list-details', list.id]">
+          <span class="list-name">{{ list.name }}</span>
+          <button class="remove-btn" (click)="removeFromList(list, $event)" title="Remover da lista">
+            <lucide-icon [img]="XIcon" [size]="12"></lucide-icon>
+          </button>
+        </div>
+      }
+    } @else {
+      <div class="empty-state">
+        Este item ainda não está em nenhuma lista.
+      </div>
+    }
+  </div>
+</div>

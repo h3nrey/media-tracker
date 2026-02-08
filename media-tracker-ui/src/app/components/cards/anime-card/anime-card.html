@@ -15,7 +15,7 @@
     <h3 class="title">{{ item().title }}</h3>
     <div class="meta">
       <span class="episodes">
-        {{ item().progressCurrent }}/{{ item().progressTotal || '?' }} 
+        {{ runProgress() }}/{{ item().progressTotal || '?' }} 
         {{ item().mediaTypeId === 1 ? 'eps' : (item().mediaTypeId === 2 ? 'ch' : '') }}
       </span>
     </div>

@@ -16,10 +16,12 @@ export interface AnimeDetails extends Anime {
   runs?: MediaRun[];
 }
 
+import { MediaListSectionComponent } from '../../../../components/media-list-section/media-list-section.component';
+
 @Component({
   selector: 'app-anime-sidebar',
   standalone: true,
-  imports: [CommonModule, AnimeLinksComponent, LucideAngularModule, SelectComponent, RouterModule],
+  imports: [CommonModule, AnimeLinksComponent, LucideAngularModule, SelectComponent, RouterModule, MediaListSectionComponent],
   templateUrl: './anime-sidebar.component.html',
   styleUrl: './anime-sidebar.component.scss'
 })
@@ -37,6 +39,7 @@ export class AnimeSidebarComponent {
   updateScore = output<number>();
   updateCategory = output<number>();
   saveLinks = output<any[]>();
+  listUpdated = output<void>();
 
   private runService = inject(MediaRunService);
   private progressService = inject(EpisodeProgressService);
