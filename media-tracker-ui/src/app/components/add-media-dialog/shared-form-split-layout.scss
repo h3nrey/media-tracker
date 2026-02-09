@@ -465,3 +465,64 @@ label {
         font-size: 0.8rem;
     }
 }
+
+// --- Footer Actions ---
+.form-actions-fixed {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem 2rem;
+  background: var(--app-surface);
+  border-top: 1px solid var(--app-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  background: rgba(var(--app-surface-rgb, 20, 20, 22), 0.95);
+}
+
+.footer-btn {
+  padding: 0.875rem 1.75rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+
+  &.secondary {
+    background: transparent;
+    border: 1px solid var(--app-border);
+    color: var(--app-text-secondary);
+
+    &:hover {
+      background: var(--app-surface-hover);
+      border-color: var(--app-text-muted);
+      color: var(--app-text-primary);
+    }
+  }
+
+  &.primary {
+    background: var(--app-primary);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 12px rgba(var(--app-primary-rgb), 0.3);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(var(--app-primary-rgb), 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+}

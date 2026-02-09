@@ -61,6 +61,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'manga/:id',
+    loadComponent: () => import('./pages/manga-details/manga-details').then(m => m.MangaDetailsComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'movie/:id',
     loadComponent: () => import('./pages/movies-details/movies-details').then(m => m.MoviesDetailsComponent),
     canActivate: [authGuard]

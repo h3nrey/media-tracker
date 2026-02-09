@@ -67,12 +67,14 @@ export class HomeComponent {
     if (event?.shiftKey || event?.ctrlKey || event?.metaKey) return;
     
     const type = (media as MediaItem).mediaTypeId;
-    if (type === 1) { 
+    if (type === 1) { // Anime
       this.router.navigate(['/anime', media.id]);
-    } else if (type === 4) { 
-      this.router.navigate(['/movie', media.id]);
-    } else if (type === 3) { 
+    } else if (type === 2) { // Manga
+      this.router.navigate(['/manga', media.id]);
+    } else if (type === 3) { // Game
       this.router.navigate(['/game', media.id]);
+    } else if (type === 4) { // Movie
+      this.router.navigate(['/movie', media.id]);
     } else {
       this.router.navigate(['/media', media.id]);
     }

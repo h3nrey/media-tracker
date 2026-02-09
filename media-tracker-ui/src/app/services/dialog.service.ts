@@ -59,6 +59,10 @@ export class DialogService {
     this.openEditMedia(movie);
   }
 
+  openEditManga(manga: any) {
+    this.openEditMedia(manga);
+  }
+
   openEditGame(game: any) {
     this.openEditMedia(game);
   }

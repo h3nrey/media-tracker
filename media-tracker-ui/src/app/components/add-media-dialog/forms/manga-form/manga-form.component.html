@@ -1,88 +1,138 @@
-<div class="form-container">
-  <div class="premium-form-grid">
-    <div class="form-card full-width primary-fields">
-      <div class="form-row">
-        <div class="field-item grow">
-          <label>Status</label>
-          <div class="custom-select-wrapper">
-            <select class="premium-select" [value]="selectedCategoryId()" (change)="selectedCategoryId.set(+$any($event.target).value)">
-              @for (category of categories(); track category.id) { <option [value]="category.supabaseId">{{ category.name }}</option> }
-            </select>
+<div class="form-container-split">
+  <!-- Left Side -->
+  <div class="form-content">
+    <aside class="left-sidebar">
+      <div class="poster-wrapper">
+        @if (coverImage()) {
+          <img [src]="coverImage()" [alt]="title()" class="form-poster" />
+        } @else {
+          <div class="form-poster-placeholder">
+            <lucide-icon name="image" size="32"></lucide-icon>
           </div>
-        </div>
-        <div class="field-item">
-          <label>Score (0-11)</label>
-          <app-number-input [value]="score()" [min]="0" [max]="11" (valueChange)="score.set($event)"></app-number-input>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-card full-width">
-      <div class="field-item spacing-bottom">
-        <label>Title *</label>
-        <input type="text" class="premium-input" [value]="title()" (input)="title.set($any($event.target).value)" placeholder="Enter manga title..." />
+        }
       </div>
 
-      <div class="form-row">
-        <div class="field-item grow">
-          <label>Chapters Read</label>
-          <div class="progress-input-group">
-            <app-number-input [value]="progressCurrent()" [min]="0" [max]="progressTotal() > 0 ? progressTotal() : undefined" (valueChange)="progressCurrent.set($event)"></app-number-input>
-            @if (progressTotal() > 0 && progressCurrent() < progressTotal()) {
-              <button class="complete-btn-action" (click)="markAsComplete()" title="Finish"><lucide-icon [img]="CheckCircleIcon" [size]="18"></lucide-icon></button>
-            }
+      <div class="status-selector">
+        <label>Status</label>
+        <ui-select
+          [options]="categoryOptions()"
+          [value]="selectedCategoryId()"
+          (valueChange)="selectedCategoryId.set($event)"
+          placeholder="Select Status"
+          [variant]="'default'"
+          [rounding]="'full'"
+        ></ui-select>
+      </div>
+    </aside>
+
+    <!-- Right Side -->
+    <div class="right-content">
+      <header class="form-header-row">
+        <div class="header-title-group">
+          <h2>{{ title() || 'New Manga' }} <span class="year" *ngIf="releaseYear()">{{ releaseYear() }}</span></h2>
+        </div>
+        <button class="btn-premium-toggle small" (click)="changeSource.emit()">
+          <lucide-icon [img]="SearchIcon" [size]="14"></lucide-icon>
+          Edit Source
+        </button>
+      </header>
+
+      <div class="tabs-nav">
+        <button class="tab-btn" [class.active]="activeTab() === 'main'" (click)="activeTab.set('main')">Main</button>
+        <button class="tab-btn" [class.active]="activeTab() === 'journal'" (click)="activeTab.set('journal')">Journal</button>
+        <button class="tab-btn" [class.active]="activeTab() === 'details'" (click)="activeTab.set('details')">Details</button>
+        <button class="tab-btn" [class.active]="activeTab() === 'screenshots'" (click)="activeTab.set('screenshots')">Screenshots</button>
+      </div>
+
+      <div class="tab-content custom-scrollbar">
+        <!-- MAIN TAB -->
+        @if (activeTab() === 'main') {
+          <div class="tab-pane fade-in">
+            <div class="rating-section">
+              <label class="section-label">Rating</label>
+              <app-star-rating-input [value]="score()" (valueChange)="score.set($event)"></app-star-rating-input>
+            </div>
+
+            <div class="notes-section">
+              <label class="section-label">Review / Notes</label>
+              <textarea class="premium-textarea" rows="6" [value]="notes()" (input)="notes.set($any($event).target.value)" placeholder="What did you think?"></textarea>
+            </div>
           </div>
-        </div>
-        <div class="field-item grow">
-          <label>Total Chapters</label>
-          <app-number-input [value]="progressTotal()" [min]="0" (valueChange)="progressTotal.set($event)"></app-number-input>
-        </div>
+        }
+
+        <!-- JOURNAL TAB -->
+        @if (activeTab() === 'journal') {
+          <div class="tab-pane fade-in">
+             <app-media-journal 
+               [runs]="runs()" 
+               [emptyMessage]="'Track when you read this manga.'"
+               (runsChange)="runs.set($event)">
+             </app-media-journal>
+          </div>
+        }
+
+
+        <!-- DETAILS TAB -->
+        @if (activeTab() === 'details') {
+          <div class="tab-pane fade-in form-grid-inner">
+            <div class="field-item full"><label>Title</label><input type="text" class="premium-input" [value]="title()" (input)="title.set($any($event).target.value)" /></div>
+            <div class="field-item"><label>Release Year</label><app-number-input [value]="releaseYear() || 0" [min]="1900" (valueChange)="releaseYear.set($event || undefined)"></app-number-input></div>
+            <div class="field-item"><label>Authors</label><app-tag-input [tags]="studios()" (tagsChange)="studios.set($event)" placeholder="Add author..."></app-tag-input></div>
+            <div class="field-item full"><label>Genres</label><app-tag-input [tags]="genres()" (tagsChange)="genres.set($event)" placeholder="Add genre..."></app-tag-input></div>
+            
+            <div class="field-item full">
+              <label>Progress</label>
+              <div class="progress-row">
+                <div class="progress-input-wrapper">
+                  <span class="progress-label">Chapters Read</span>
+                  <div class="progress-input-group">
+                    <app-number-input [value]="progressCurrent()" [min]="0" [max]="progressTotal() > 0 ? progressTotal() : undefined" (valueChange)="progressCurrent.set($event)"></app-number-input>
+                    @if (progressTotal() > 0 && progressCurrent() < progressTotal()) {
+                      <button class="complete-btn-action" (click)="markAsComplete()" title="Mark as Complete">
+                        <lucide-icon [img]="CheckCircleIcon" [size]="18"></lucide-icon>
+                      </button>
+                    }
+                  </div>
+                </div>
+                <div class="progress-input-wrapper">
+                  <span class="progress-label">Total Chapters</span>
+                  <app-number-input [value]="progressTotal()" [min]="0" (valueChange)="progressTotal.set($event)"></app-number-input>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-item"><label>Cover Image URL</label><input type="text" class="premium-input" [value]="coverImage()" (input)="coverImage.set($any($event).target.value)" /></div>
+            <div class="field-item"><label>Banner Image URL</label><input type="text" class="premium-input" [value]="bannerImage()" (input)="bannerImage.set($any($event).target.value)" /></div>
+            
+            <div class="field-item full">
+              <label>Read Sources</label>
+              <div class="action-row">
+                <select class="premium-select" [ngModel]="newLinkSourceId()" (ngModelChange)="newLinkSourceId.set(+$event || null)">
+                  <option [ngValue]="null">Source</option>
+                  @for (source of sources(); track source.id) { <option [value]="source.id">{{ source.name }}</option> }
+                </select>
+                <input type="text" class="premium-input grow" placeholder="URL" [ngModel]="newLinkUrl()" (ngModelChange)="newLinkUrl.set($event)" />
+                <button class="btn-add-circle" (click)="addLink()"><lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon></button>
+              </div>
+              <div class="chip-container">
+                @for (link of sourceLinks(); track $index) {
+                  <div class="source-chip"><span class="badge">{{ getLinkSourceName(link.sourceId) }}</span><a [href]="link.url" target="_blank">Read</a><button (click)="removeLink($index)"><lucide-icon [img]="XIcon" [size]="12"></lucide-icon></button></div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- SCREENSHOTS TAB -->
+        @if (activeTab() === 'screenshots') {
+          <div class="tab-pane fade-in">
+            <div class="screenshots-section">
+              <p class="empty-state-text">Screenshots feature coming soon...</p>
+            </div>
+          </div>
+        }
       </div>
     </div>
-
-    <div class="form-card full-width">
-      <h4 class="card-section-title">Visuals</h4>
-      <div class="field-item spacing-bottom"><label>Cover Image URL</label><input type="text" class="premium-input" [value]="coverImage()" (input)="coverImage.set($any($event.target).value)" /></div>
-      <div class="field-item"><label>Banner Image URL</label><input type="text" class="premium-input" [value]="bannerImage()" (input)="bannerImage.set($any($event.target).value)" /></div>
-    </div>
-
-    <div class="form-card full-width">
-      <h4 class="card-section-title">Details</h4>
-      <div class="form-grid-inner">
-        <div class="field-item"><label>Release Year</label><app-number-input [value]="releaseYear() || 0" (valueChange)="releaseYear.set($event || undefined)"></app-number-input></div>
-        <div class="field-item full"><label>Authors</label><app-tag-input [tags]="studios()" (tagsChange)="studios.set($event)"></app-tag-input></div>
-        <div class="field-item full"><label>Genres</label><app-tag-input [tags]="genres()" (tagsChange)="genres.set($event)"></app-tag-input></div>
-      </div>
-    </div>
-
-    <div class="form-card full-width">
-      <h4 class="card-section-title">Timeline & Links</h4>
-      <div class="field-item spacing-bottom">
-        <app-media-journal 
-          [runs]="runs()" 
-          [emptyMessage]="'Track when you read this manga.'"
-          (runsChange)="runs.set($event)">
-        </app-media-journal>
-      </div>
-
-      <div class="field-item">
-        <label>Read Sources</label>
-        <div class="action-row">
-          <select class="premium-select" [ngModel]="newLinkSourceId()" (ngModelChange)="newLinkSourceId.set(+$event || null)">
-            <option [ngValue]="null">Source</option>
-            @for (source of sources(); track source.id) { <option [value]="source.id">{{ source.name }}</option> }
-          </select>
-          <input type="text" class="premium-input grow" placeholder="URL" [ngModel]="newLinkUrl()" (ngModelChange)="newLinkUrl.set($event)" />
-          <button class="btn-add-circle" (click)="addLink()"><lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon></button>
-        </div>
-        <div class="chip-container">
-          @for (link of sourceLinks(); track $index) {
-            <div class="source-chip"><span class="badge">{{ getLinkSourceName(link.sourceId) }}</span><a [href]="link.url" target="_blank">Read</a><button (click)="removeLink($index)"><lucide-icon [img]="XIcon" [size]="12"></lucide-icon></button></div>
-          }
-        </div>
-      </div>
-    </div>
-    <div class="form-card full-width"><label>Notes</label><textarea class="premium-textarea" rows="4" [value]="notes()" (input)="notes.set($any($event.target).value)"></textarea></div>
   </div>
 
   <div class="form-actions-fixed">

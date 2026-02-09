@@ -12,6 +12,7 @@ import { MediaRunService } from '../../services/media-run.service';
 import { EpisodeProgressService } from '../../services/episode-progress.service';
 import { DialogService } from '../../services/dialog.service';
 import { KanbanAnimeCard } from '../../pages/home/components/kanban-anime-card/kanban-anime-card';
+import { KanbanMangaCard } from '../../pages/home/components/kanban-manga-card/kanban-manga-card';
 import { KanbanGameCard } from '../../pages/home/components/kanban-game-card/kanban-game-card.component';
 import { KanbanMovieCard } from '../../pages/home/components/kanban-movie-card/kanban-movie-card.component';
 import { LucideAngularModule } from 'lucide-angular';
@@ -20,7 +21,7 @@ import { ListViewSelectionBarComponent } from '../list-view/components/list-view
 @Component({
   selector: 'app-kanban-board',
   standalone: true,
-  imports: [CommonModule, DragDropModule, KanbanAnimeCard, KanbanGameCard, KanbanMovieCard, LucideAngularModule, ListViewSelectionBarComponent],
+  imports: [CommonModule, DragDropModule, KanbanAnimeCard, KanbanMangaCard, KanbanGameCard, KanbanMovieCard, LucideAngularModule, ListViewSelectionBarComponent],
   templateUrl: './kanban-board.component.html',
   styleUrl: './kanban-board.component.scss'
 })

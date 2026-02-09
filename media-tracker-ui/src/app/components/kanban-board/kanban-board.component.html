@@ -43,6 +43,18 @@
                   (addNewRun)="onAddNewRun($event)"
                   (addLog)="onAddLog($event)"
                 ></app-kanban-anime-card>
+              } @else if (media.mediaTypeId === 2) {
+                 <app-kanban-manga-card 
+                  [manga]="media"
+                  [isSelected]="selectedIds().has(media.id!)"
+                  (mediaClick)="onMediaClick($event)"
+                  (edit)="onEdit($event)"
+                  (delete)="onDelete($event)"
+                  (increment)="onIncrement($event)"
+                  (complete)="onComplete($event)"
+                  (addNewRun)="onAddNewRun($event)"
+                  (addLog)="onAddLog($event)"
+                ></app-kanban-manga-card>
               } @else if (media.mediaTypeId === 3) {
                  <app-kanban-game-card 
                   [game]="media"

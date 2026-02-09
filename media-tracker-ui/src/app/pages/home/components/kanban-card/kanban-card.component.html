@@ -1,3 +1,4 @@
+
 @if(media) {
 <div class="media-card" 
      [class.selected]="isSelected" 
@@ -73,7 +74,47 @@
         <span>New Run</span>
       </button>
     }
+  } @else if (media.mediaTypeId === 2) { <!-- Manga -->
+    @if (!isCompleted) {
+      <button class="track-btn plus" 
+              (mousedown)="$event.stopPropagation()" 
+              (mouseup)="$event.stopPropagation()" 
+              (click)="$event.stopPropagation(); onIncrement($event)"
+              title="Add Chapter">
+        <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
+        <span>Add Chapter</span>
+      </button>
+    } @else {
+      <button class="track-btn run" 
+              (mousedown)="$event.stopPropagation()" 
+              (mouseup)="$event.stopPropagation()" 
+              (click)="$event.stopPropagation(); onAddNewRun($event)"
+              title="New Run">
+        <lucide-icon [img]="RefreshIcon" [size]="16"></lucide-icon>
+        <span>New Run</span>
+      </button>
+    }
   } @else if (media.mediaTypeId === 3) { <!-- Game -->
+    @if (!isCompleted) {
+      <button class="track-btn log" 
+              (mousedown)="$event.stopPropagation()" 
+              (mouseup)="$event.stopPropagation()" 
+              (click)="$event.stopPropagation(); onAddLog($event)"
+              title="Add Log">
+        <lucide-icon [img]="LogIcon" [size]="16"></lucide-icon>
+        <span>Add Log</span>
+      </button>
+    } @else {
+      <button class="track-btn run" 
+              (mousedown)="$event.stopPropagation()" 
+              (mouseup)="$event.stopPropagation()" 
+              (click)="$event.stopPropagation(); onAddNewRun($event)"
+              title="New Run">
+        <lucide-icon [img]="RefreshIcon" [size]="16"></lucide-icon>
+        <span>New Run</span>
+      </button>
+    }
+  } @else if (media.mediaTypeId === 4) { <!-- Movie -->
     @if (!isCompleted) {
       <button class="track-btn log" 
               (mousedown)="$event.stopPropagation()" 

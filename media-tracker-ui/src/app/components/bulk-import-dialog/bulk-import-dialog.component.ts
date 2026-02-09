@@ -15,6 +15,8 @@ import { GameService } from '../../services/game.service';
 import { IgdbService } from '../../services/igdb.service';
 import { environment } from '../../../environments/environment';
 import { MediaItem } from '../../models/media-type.model';
+import { MalService } from '../../services/mal.service';
+import { MangaService } from '../../services/manga.service';
 
 @Component({
   selector: 'app-bulk-import-dialog',
@@ -32,6 +34,8 @@ export class BulkImportDialogComponent {
   private animeService = inject(AnimeService);
   private gameService = inject(GameService);
   private igdbService = inject(IgdbService);
+  private malService = inject(MalService);
+  private mangaService = inject(MangaService);
   
   MediaType = MediaType;
   selectedMediaType = signal<MediaType>(MediaType.MOVIE);
@@ -42,8 +46,9 @@ export class BulkImportDialogComponent {
   
   mediaTypeOptions = [
     { value: MediaType.ANIME, label: 'Anime' },
-    { value: MediaType.MOVIE, label: 'Filme' },
-    { value: MediaType.GAME, label: 'Jogo' }
+    { value: MediaType.MANGA, label: 'Mangá' },
+    { value: MediaType.GAME, label: 'Jogo' },
+    { value: MediaType.MOVIE, label: 'Filme' }
   ];
 
   categoryOptions = computed(() => {
@@ -185,6 +190,10 @@ export class BulkImportDialogComponent {
           await this.importAnime(title);
           successCount++;
           this.addLog(`  ✓ Anime adicionado com sucesso`, 'success');
+        } else if (this.selectedMediaType() === MediaType.MANGA) {
+          await this.importManga(title);
+          successCount++;
+          this.addLog(`  ✓ Mangá adicionado com sucesso`, 'success');
         } else if (this.selectedMediaType() === MediaType.GAME) {
           await this.importGame(title);
           successCount++;
@@ -260,6 +269,23 @@ export class BulkImportDialogComponent {
     };
     
     await this.animeService.addAnime(animeData);
+  }
+
+  private async importManga(title: string): Promise<void> {
+    const results = await this.malService.searchManga(title, 10).toPromise();
+    
+    if (!results || results.length === 0) {
+      throw new Error('Nenhum resultado encontrado no MyAnimeList');
+    }
+
+    const manga = results[0];
+    this.addLog(`  → Encontrado: ${manga.title} (${manga.published?.prop?.from?.year || 'N/A'})`, 'info');
+    
+    const categoryId = this.selectedCategoryId();
+    console.log('📚 Importing manga with category ID:', categoryId);
+    this.addLog(`  → Usando categoria ID: ${categoryId}`, 'info');
+    
+    await this.mangaService.addMangaFromMal(manga, categoryId!);
   }
 
   private async importGame(title: string): Promise<void> {

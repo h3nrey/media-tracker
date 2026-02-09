@@ -1,13 +1,15 @@
-import { Component, input, output, signal, effect } from '@angular/core';
+import { Component, input, output, signal, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Plus, X, CheckCircle, ExternalLink, Calendar } from 'lucide-angular';
+import { LucideAngularModule, Plus, X, CheckCircle, ExternalLink, Calendar, Search } from 'lucide-angular';
 import { NumberInputComponent } from '../../../ui/number-input/number-input.component';
 import { TagInputComponent } from '../../../ui/tag-input/tag-input.component';
 import { Category } from '../../../../models/status.model';
 import { WatchSource } from '../../../../models/watch-source.model';
 import { MediaType } from '../../../../models/media-type.model';
 import { MediaRun } from '../../../../models/media-run.model';
+import { SelectComponent } from '../../../ui/select/select';
+import { StarRatingInputComponent } from '../../../ui/star-rating-input/star-rating-input.component';
 
 import { MediaJournalComponent } from '../shared/media-journal/media-journal';
 import { DatePickerComponent } from '../../../ui/date-picker/date-picker.component';
@@ -15,9 +17,19 @@ import { DatePickerComponent } from '../../../ui/date-picker/date-picker.compone
 @Component({
   selector: 'app-manga-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, DatePickerComponent, MediaJournalComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    LucideAngularModule, 
+    NumberInputComponent, 
+    TagInputComponent, 
+    DatePickerComponent, 
+    MediaJournalComponent,
+    SelectComponent,
+    StarRatingInputComponent
+  ],
   templateUrl: './manga-form.component.html',
-  styleUrl: './manga-form.component.scss' // Reusing style from Anime if possible or separate
+  styleUrl: './manga-form.component.scss'
 })
 export class MangaFormComponent {
   initialData = input<any>(null);
@@ -27,12 +39,23 @@ export class MangaFormComponent {
   
   save = output<any>();
   cancel = output<void>();
+  changeSource = output<void>();
 
   readonly PlusIcon = Plus;
   readonly XIcon = X;
   readonly CheckCircleIcon = CheckCircle;
   readonly ExternalLinkIcon = ExternalLink;
   readonly CalendarIcon = Calendar;
+  readonly SearchIcon = Search;
+
+  activeTab = signal<'main' | 'journal' | 'details' | 'screenshots'>('main');
+
+  categoryOptions = computed(() => {
+    return this.categories().map(c => ({
+      value: c.id!,
+      label: c.name
+    }));
+  });
 
   title = signal('');
   coverImage = signal('');
