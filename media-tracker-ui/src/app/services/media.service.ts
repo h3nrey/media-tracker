@@ -11,6 +11,8 @@ import { GameMetadata } from '../models/game-metadata.model';
 import { MovieMetadata } from '../models/movie-metadata.model';
 import { MalService } from './mal.service';
 import { IgdbService, IGDBGame } from './igdb.service';
+import { TmdbService } from './tmdb.service';
+import { Router } from '@angular/router';
 import { CategoryService } from './status.service';
 import { JikanAnime } from '../models/mal-anime.model';
 import { ReviewService } from './review.service';
@@ -29,6 +31,8 @@ export class MediaService {
   private syncService = inject(SyncService);
   private malService = inject(MalService);
   private igdbService = inject(IgdbService);
+  private tmdbService = inject(TmdbService);
+  private router = inject(Router);
   private categoryService = inject(CategoryService);
   private reviewService = inject(ReviewService);
   private supabaseService = inject(SupabaseService);
@@ -285,6 +289,7 @@ export class MediaService {
       }
     }
 
+    this.triggerFilterUpdate();
     this.syncService.sync();
     return result;
   }
@@ -295,6 +300,7 @@ export class MediaService {
       statusId,
       updatedAt: new Date()
     });
+    this.triggerFilterUpdate();
     this.syncService.sync();
     return result;
   }
@@ -561,6 +567,13 @@ export class MediaService {
     if (!type || type === MediaType.GAME) {
       searches.push(this.igdbService.searchGames(query).pipe(
         map(results => results.map(g => ({ ...g, _type: 'game' }))),
+        catchError(() => of([]))
+      ));
+    }
+
+    if (!type || type === MediaType.MOVIE) {
+      searches.push(this.tmdbService.searchMovies(query).pipe(
+        map(results => results.map((m: any) => ({ ...m, _type: 'movie' }))),
         catchError(() => of([]))
       ));
     }

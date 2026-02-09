@@ -4,8 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import { MalService } from '../../services/mal.service';
 import { MediaService } from '../../services/media.service';
+import { TmdbService } from '../../services/tmdb.service';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { MediaType } from '../../models/media-type.model';
+import { map } from 'rxjs/operators';
 import { IgdbService } from '../../services/igdb.service';
 import { DialogService } from '../../services/dialog.service';
 import { CategoryService } from '../../services/status.service';
@@ -71,6 +73,7 @@ export class AddMediaDialogComponent {
   private watchSourceService = inject(WatchSourceService);
   private dialogService = inject(DialogService);
   private igdbService = inject(IgdbService);
+  private tmdbService = inject(TmdbService);
   private alertService = inject(AlertService);
 
   isOpen = this.dialogService.isAddMediaOpen;
@@ -128,6 +131,7 @@ export class AddMediaDialogComponent {
             case MediaType.ANIME: return this.malService.searchAnime(query, 8);
             case MediaType.MANGA: return this.malService.searchManga(query, 8);
             case MediaType.GAME: return this.igdbService.searchGames(query, 8);
+            case MediaType.MOVIE: return this.tmdbService.searchMovies(query, 8).pipe(map(results => results.map(r => ({ ...r, _type: 'movie' }))));
             default: return of([]);
           }
         })
@@ -186,6 +190,17 @@ export class AddMediaDialogComponent {
 
     if (type === MediaType.GAME) {
       mappedData = this.igdbService.convertIGDBToMediaItem(result, categoryId);
+    } else if (type === MediaType.MOVIE) {
+      // For movies, we want more details so we fetch by ID
+      const detailedMovie = await this.tmdbService.getMovieById(result.id).toPromise();
+      if (detailedMovie) {
+        mappedData = this.tmdbService.convertTMDBToMediaItem(detailedMovie, categoryId);
+        // Map directors to studios field for generic support
+        const directors = (detailedMovie as any).credits?.crew?.filter((c: any) => c.job === 'Director').map((d: any) => d.name) || [];
+        mappedData.studios = directors;
+      } else {
+        mappedData = this.tmdbService.convertTMDBToMediaItem(result, categoryId);
+      }
     } else {
       // Anime/Manga from MAL
       mappedData = {
@@ -345,6 +360,7 @@ export class AddMediaDialogComponent {
       case MediaType.ANIME: return 'Search MyAnimeList...';
       case MediaType.MANGA: return 'Search Manga...';
       case MediaType.GAME: return 'Search IGDB...';
+      case MediaType.MOVIE: return 'Search TMDB...';
       default: return 'Search...';
     }
   });
@@ -359,6 +375,7 @@ export class AddMediaDialogComponent {
       const url = media.cover.url.startsWith('//') ? `https:${media.cover.url}` : media.cover.url;
       return url.replace('t_thumb', 't_cover_small');
     }
+    if (media.poster_path) return `https://image.tmdb.org/t/p/w185${media.poster_path}`;
     return '';
   }
 
@@ -370,12 +387,16 @@ export class AddMediaDialogComponent {
     if (type === MediaType.GAME) {
       return media.platforms?.map((p: any) => p.name).slice(0, 2).join(', ') || 'Game';
     }
+    if (type === MediaType.MOVIE) {
+      return (media.genre_ids || []).length > 0 ? 'Movie' : 'Movie';
+    }
     return '';
   }
 
   getResultYear(media: any): string {
     if (media.year || media.published?.prop?.from?.year) return (media.year || media.published?.prop?.from?.year).toString();
     if (media.first_release_date) return new Date(media.first_release_date * 1000).getFullYear().toString();
+    if (media.release_date) return new Date(media.release_date).getFullYear().toString();
     return '';
   }
 }

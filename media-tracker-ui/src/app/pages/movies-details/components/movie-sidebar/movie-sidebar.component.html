@@ -1,0 +1,74 @@
+<aside class="side-column">
+  <div class="main-poster">
+    <img [src]="movie()?.coverImage" [alt]="movie()?.title">
+  </div>
+
+  <div class="sidebar-content">
+    <div class="category-selector">
+      <ui-select 
+        [options]="categoryOptions" 
+        [value]="movie()?.statusId" 
+        (valueChange)="onCategoryChange($event)"
+        variant="prominent"
+        rounding="full">
+      </ui-select>
+    </div>
+
+  <div class="score-rating" (mouseleave)="onHover(null)">
+    <div class="stars">
+      @for (star of [1, 2, 3, 4, 5]; track star) {
+        <button 
+          class="star-btn" 
+          [class.filled]="(hoveredStar() !== null ? hoveredStar()! : activeRunRating) >= star"
+          (mouseenter)="onHover(star)"
+          (click)="setScore(star)">
+          <lucide-icon [img]="StarIcon" [size]="20" fill="currentColor"></lucide-icon>
+        </button>
+      }
+      @if (hoveredStar() === 5 || hoveredStar() === 6 || activeRunRating === 6) {
+        <button 
+          class="star-btn special-star" 
+          [class.filled]="(hoveredStar() !== null ? hoveredStar()! : activeRunRating) >= 6"
+          (mouseenter)="onHover(6)"
+          (click)="setScore(6)">
+          <lucide-icon [img]="StarIcon" [size]="20" fill="currentColor"></lucide-icon>
+        </button>
+      }
+    </div>
+    @if (hoveredStar() !== null) {
+      <span class="score-label">{{ currentLabel }}</span>
+    }
+  </div>
+
+  <div class="side-actions">
+    @if (movie()?.progressTotal) {
+      <div class="runtime-info">
+        <span class="label">Runtime</span>
+        <span class="value">{{ movie()?.progressTotal }} minutes</span>
+      </div>
+    }
+
+    @if (movie()?.trailerUrl) {
+      <a [href]="movie()?.trailerUrl" target="_blank" class="btn-primary">
+        <lucide-icon [img]="PlayIcon" [size]="18"></lucide-icon>
+        <span>Watch Trailer</span>
+      </a>
+    }
+
+    <button class="btn-outline full-width" (click)="onEdit()">
+      <lucide-icon [img]="EditIcon" [size]="18"></lucide-icon>
+      <span>Edit Movie</span>
+    </button>
+  </div>
+
+  <app-media-list-section
+    [mediaId]="movie()!.id!"
+    [lists]="lists()"
+    (updated)="listUpdated.emit()">
+  </app-media-list-section>
+
+  <div class="side-links">
+    <app-movie-links [sourceLinks]="movie()?.sourceLinks" (saveLinks)="onSaveLinks($event)"></app-movie-links>
+  </div>
+</div>
+</aside>

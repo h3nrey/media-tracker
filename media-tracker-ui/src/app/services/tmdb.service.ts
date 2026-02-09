@@ -1,15 +1,19 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, catchError, map } from 'rxjs';
+import { Observable, of, catchError, map, forkJoin } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface TMDBMovie {
   id: number;
   title: string;
   overview?: string;
   poster_path?: string;
+  backdrop_path?: string;
   release_date?: string;
   genre_ids?: number[];
+  genres?: { id: number, name: string }[];
   vote_average?: number;
+  runtime?: number;
 }
 
 @Injectable({
@@ -17,10 +21,10 @@ export interface TMDBMovie {
 })
 export class TmdbService {
   private http = inject(HttpClient);
-  // These should be configured via environment variables
-  private readonly API_KEY = '';
+  private readonly API_KEY = environment.tmdbApiKey;
   private readonly BASE_URL = 'https://api.themoviedb.org/3';
   private readonly IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+  private readonly ORIGINAL_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/original';
 
   constructor() {}
 
@@ -32,7 +36,7 @@ export class TmdbService {
       return of([]);
     }
 
-    const url = `${this.BASE_URL}/search/movie?api_key=${this.API_KEY}&query=${encodeURIComponent(query)}`;
+    const url = `${this.BASE_URL}/search/movie?api_key=${this.API_KEY}&query=${encodeURIComponent(query)}&language=pt-BR`;
     
     return this.http.get<{ results: TMDBMovie[] }>(url).pipe(
       map(response => response.results.slice(0, limit)),
@@ -45,7 +49,7 @@ export class TmdbService {
 
   getMovieById(id: number): Observable<TMDBMovie | null> {
     if (!this.API_KEY) return of(null);
-    const url = `${this.BASE_URL}/movie/${id}?api_key=${this.API_KEY}`;
+    const url = `${this.BASE_URL}/movie/${id}?api_key=${this.API_KEY}&language=pt-BR&append_to_response=credits`;
     return this.http.get<TMDBMovie>(url).pipe(
       catchError(error => {
         console.error('Error fetching movie details:', error);
@@ -54,20 +58,21 @@ export class TmdbService {
     );
   }
 
-  convertTMDBToMediaItem(movie: TMDBMovie, statusId: number) {
+  convertTMDBToMediaItem(movie: any, statusId: number) {
     return {
       title: movie.title,
       coverImage: movie.poster_path ? `${this.IMAGE_BASE_URL}${movie.poster_path}` : undefined,
+      bannerImage: movie.backdrop_path ? `${this.ORIGINAL_IMAGE_BASE_URL}${movie.backdrop_path}` : undefined,
       externalId: movie.id,
       externalApi: 'tmdb',
       mediaTypeId: 4, // Movie
-      progress_current: 0,
-      progress_total: 1, // Movies typically are 0 (not watched) or 1 (watched)
+      progressCurrent: 0,
+      progressTotal: movie.runtime || 0, 
       statusId: statusId,
       score: 0,
-      genres: [], // Need genre mapping or another request to get genre names
+      genres: movie.genres?.map((g: any) => g.name) || [],
       releaseYear: movie.release_date ? new Date(movie.release_date).getFullYear() : undefined,
-      notes: ''
+      notes: movie.overview || ''
     };
   }
 }

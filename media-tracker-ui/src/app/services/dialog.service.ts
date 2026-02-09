@@ -50,9 +50,17 @@ export class DialogService {
     this.addMediaVisible.set(true);
   }
 
-  // Legacy wrapper
+  // Explicit wrappers for clarity
   openEditAnime(anime: any) {
     this.openEditMedia(anime);
+  }
+
+  openEditMovie(movie: any) {
+    this.openEditMedia(movie);
+  }
+
+  openEditGame(game: any) {
+    this.openEditMedia(game);
   }
 
   openMediaDetails(media: any) {

@@ -67,9 +67,11 @@ export class HomeComponent {
     if (event?.shiftKey || event?.ctrlKey || event?.metaKey) return;
     
     const type = (media as MediaItem).mediaTypeId;
-    if (type === 1) { // Anime
+    if (type === 1) { 
       this.router.navigate(['/anime', media.id]);
-    } else if (type === 3) { // Game
+    } else if (type === 4) { 
+      this.router.navigate(['/movie', media.id]);
+    } else if (type === 3) { 
       this.router.navigate(['/game', media.id]);
     } else {
       this.router.navigate(['/media', media.id]);

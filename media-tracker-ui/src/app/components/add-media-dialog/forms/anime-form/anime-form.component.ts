@@ -43,7 +43,7 @@ export class AnimeFormComponent {
   readonly SearchIcon = Search;
   
   get categoryOptions() {
-    return this.categories().map(c => ({ value: c.supabaseId || c.id, label: c.name }));
+    return this.categories().map(c => ({ value: c.id, label: c.name }));
   }
 
   // Form Signals
@@ -84,7 +84,7 @@ export class AnimeFormComponent {
     effect(() => {
         const cats = this.categories();
         if (cats.length > 0 && this.selectedCategoryId() === undefined) {
-            this.selectedCategoryId.set(cats[0].supabaseId || cats[0].id);
+            this.selectedCategoryId.set(cats[0].id);
         }
     });
   }
@@ -162,7 +162,7 @@ export class AnimeFormComponent {
       notes: this.notes(),
       activityDates: this.activityDates(),
       runs: this.runs(),
-      source_links: this.sourceLinks(),
+      sourceLinks: this.sourceLinks(),
       screenshots: this.screenshots()
     };
     this.save.emit(mediaData);

@@ -55,6 +55,18 @@
                   (addNewRun)="onAddNewRun($event)"
                   (addLog)="onAddLog($event)"
                 ></app-kanban-game-card>
+              } @else if (media.mediaTypeId === 4) {
+                 <app-kanban-movie-card 
+                  [movie]="media"
+                  [isSelected]="selectedIds().has(media.id!)"
+                  (mediaClick)="onMediaClick($event)"
+                  (edit)="onEdit($event)"
+                  (delete)="onDelete($event)"
+                  (increment)="onIncrement($event)"
+                  (complete)="onComplete($event)"
+                  (addNewRun)="onAddNewRun($event)"
+                  (addLog)="onAddLog($event)"
+                ></app-kanban-movie-card>
               }
             } @empty {
               <div class="empty-column">

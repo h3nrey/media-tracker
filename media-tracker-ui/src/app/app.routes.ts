@@ -61,6 +61,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'movie/:id',
+    loadComponent: () => import('./pages/movies-details/movies-details').then(m => m.MoviesDetailsComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'media/:animeId/reviews/:id',
     loadComponent: () => import('./pages/review-detail/review-detail.component').then(m => m.ReviewDetailComponent),
     canActivate: [authGuard]
@@ -68,6 +73,11 @@ export const routes: Routes = [
   {
     path: 'stats',
     loadComponent: () => import('./pages/stats/stats.component').then(m => m.StatsComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'bulk-import',
+    loadComponent: () => import('./pages/bulk-import/bulk-import.component').then(m => m.BulkImportComponent),
     canActivate: [authGuard]
   },
   {
@@ -79,4 +89,3 @@ export const routes: Routes = [
     redirectTo: '404'
   }
 ];
-

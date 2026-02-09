@@ -219,9 +219,9 @@
 
     .start-btn {
       margin-top: 0.5rem;
-      background: var(--app-primary);
-      color: black;
-      border: none;
+      background-color: transparent;
+      color: var(--app-primary);
+      border: 1px solid var(--app-primary);
       padding: 0.8rem 1.75rem;
       border-radius: 12px;
       font-weight: 800;
@@ -233,7 +233,6 @@
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(var(--app-primary-rgb), 0.3);
       }
     }
   }

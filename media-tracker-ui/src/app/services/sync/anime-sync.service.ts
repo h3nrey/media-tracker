@@ -55,7 +55,6 @@ export class AnimeSyncService {
         release_year: local.releaseYear,
         start_date: normalizeDate(local.startDate),
         end_date: normalizeDate(local.endDate),
-        activity_dates: local.activityDates?.map(d => normalizeDate(d)).filter(d => !!d),
         trailer_url: local.trailerUrl,
         notes: local.notes,
         source_links: local.sourceLinks,
@@ -121,7 +120,6 @@ export class AnimeSyncService {
             releaseYear: remote.release_year,
             startDate: parseRemoteDate(remote.start_date),
             endDate: parseRemoteDate(remote.end_date),
-            activityDates: remote.activity_dates?.map((d: any) => new Date(d)) || [],
             trailerUrl: remote.trailer_url,
             notes: remote.notes,
             sourceLinks: remote.source_links || [],
@@ -147,7 +145,6 @@ export class AnimeSyncService {
             releaseYear: remote.release_year,
             startDate: parseRemoteDate(remote.start_date),
             endDate: parseRemoteDate(remote.end_date),
-            activityDates: remote.activity_dates?.map((d: any) => new Date(d)) || [],
             trailerUrl: remote.trailer_url,
             notes: remote.notes,
             sourceLinks: remote.source_links || [],
@@ -164,7 +161,7 @@ export class AnimeSyncService {
 
     // Pull new remote anime
     for (const remote of remoteMediaItems || []) {
-      const local = localMediaItems.find(l => l.supabaseId === remote.id);
+      const local = localMediaItems.find(l => l.supabaseId === remote.id || (l.externalId === remote.external_id && l.mediaTypeId === 1));
       if (!local) {
         const localId = await db.mediaItems.add({
           supabaseId: remote.id,
@@ -195,13 +192,14 @@ export class AnimeSyncService {
 
   private async syncAnimeMetadata(localMediaId: number, remoteMediaId: number, direction: 'push' | 'pull' = 'push') {
     const localMeta = await db.animeMetadata.get(localMediaId);
-    const { data: remoteMeta, error } = await this.supabase
+    const { data: remoteMetas, error } = await this.supabase
       .from('anime_metadata')
       .select('*')
       .eq('media_item_id', remoteMediaId)
-      .single();
+      .limit(1);
 
-    if (error && error.code !== 'PGRST116') throw error;
+    const remoteMeta = remoteMetas?.[0];
+    if (error) throw error;
 
     if (direction === 'push' && localMeta) {
       const supabaseData = {

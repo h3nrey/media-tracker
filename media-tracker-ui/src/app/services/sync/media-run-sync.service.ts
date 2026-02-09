@@ -19,7 +19,6 @@ export class MediaRunSyncService {
     const localRuns = await db.mediaRuns.toArray();
     
     // Safety: Deduplicate local runs before syncing
-    // If we have two active local runs with same number/mediaItem, keep only the most recent one
     for (const local of localRuns.filter(r => !r.isDeleted)) {
       const duplicates = localRuns.filter(r => 
         !r.isDeleted && 
@@ -52,11 +51,10 @@ export class MediaRunSyncService {
 
     for (const local of localRuns) {
       const supabaseMediaId = mapLocalToSupabaseMediaId(local.mediaItemId);
-      if (!supabaseMediaId) continue; // Media item not synced yet
+      if (!supabaseMediaId) continue;
 
       let remote = remoteRuns?.find(r => r.id === local.supabaseId);
       
-      // Try natural key match if no supabaseId
       if (!remote && !local.supabaseId) {
         remote = remoteRuns?.find(r => 
           r.media_item_id === supabaseMediaId && 
@@ -82,7 +80,6 @@ export class MediaRunSyncService {
 
       if (!remote) {
         if (local.supabaseId) {
-          // Deleted on remote
           await db.mediaRuns.delete(local.id!);
           continue;
         }
@@ -92,6 +89,7 @@ export class MediaRunSyncService {
             .from('media_runs')
             .insert([{ ...supabaseData, created_at: local.createdAt.toISOString() }])
             .select()
+            .limit(1)
             .single();
 
           if (insertError) console.error('Error inserting media run:', insertError);
@@ -127,9 +125,8 @@ export class MediaRunSyncService {
       }
     }
 
-    // Pull new remote runs
     for (const remote of remoteRuns || []) {
-      const local = localRuns.find(l => l.supabaseId === remote.id);
+      const local = localRuns.find(l => l.supabaseId === remote.id || (mapLocalToSupabaseMediaId(l.mediaItemId) === remote.media_item_id && l.runNumber === remote.run_number));
       if (!local) {
         const localMediaId = mapSupabaseToLocalMediaId(remote.media_item_id);
         if (localMediaId) {

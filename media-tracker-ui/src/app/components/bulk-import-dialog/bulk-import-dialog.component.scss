@@ -107,8 +107,8 @@
   }
 
   .info-banner {
-    background: linear-gradient(135deg, rgba(var(--app-primary-rgb), 0.1) 0%, rgba(var(--app-primary-rgb), 0.05) 100%);
-    border: 1px solid rgba(var(--app-primary-rgb), 0.2);
+    background: transparent;
+    border: 1px solid var(--app-primary);
     border-radius: 16px;
     padding: 16px 20px;
     display: flex;
@@ -273,12 +273,25 @@
     &:focus {
       outline: none;
       border-color: var(--app-primary);
-      box-shadow: 0 0 0 4px rgba(var(--app-primary-rgb), 0.15);
+      box-shadow: 0 0 0 4px rgba(var(--app-primary), 0.15);
       background: var(--app-surface);
     }
     
     &::placeholder {
         color: var(--app-text-disabled, #666);
+    }
+  }
+
+  .helper-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--app-text-muted);
+    margin-top: 8px;
+
+    lucide-icon {
+      color: var(--app-primary);
     }
   }
 }
@@ -314,22 +327,88 @@
     background: rgba(255,255,255,0.02);
     border: 1px solid transparent;
 
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+
     &.processing { 
-        color: var(--app-primary); 
-        background: rgba(var(--app-primary-rgb), 0.05);
-        border-color: rgba(var(--app-primary-rgb), 0.1);
+      color: var(--app-primary); 
+      background: rgba(var(--app-primary-rgb), 0.05);
+      border-color: rgba(var(--app-primary-rgb), 0.1);
     }
     &.success { 
-        color: var(--app-success, #22c55e);
-        background: rgba(var(--app-success-rgb, 34, 197, 94), 0.05);
-        border-color: rgba(var(--app-success-rgb, 34, 197, 94), 0.1);
+      color: var(--app-success, #22c55e);
+      background: rgba(var(--app-success-rgb, 34, 197, 94), 0.05);
+      border-color: rgba(var(--app-success-rgb, 34, 197, 94), 0.1);
     }
     &.error { 
-        color: var(--app-danger, #ef4444);
-        background: rgba(var(--app-danger-rgb, 239, 68, 68), 0.05);
-        border-color: rgba(var(--app-danger-rgb, 239, 68, 68), 0.1);
+      color: var(--app-danger, #ef4444);
+      background: rgba(var(--app-danger-rgb, 239, 68, 68), 0.05);
+      border-color: rgba(var(--app-danger-rgb, 239, 68, 68), 0.1);
     }
   }
+
+  .import-log {
+    background: var(--app-bg-darker, #0f0f11);
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 8px;
+
+    h4 {
+      margin: 0 0 12px 0;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--app-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .log-entries {
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: var(--app-border);
+        border-radius: 3px;
+        &:hover { background: var(--app-text-muted); }
+      }
+
+      .log-entry {
+        padding: 4px 8px;
+        border-radius: 4px;
+        margin-bottom: 2px;
+        color: var(--app-text-secondary);
+
+        &.info {
+          color: var(--app-text-secondary);
+        }
+
+        &.success {
+          color: var(--app-success, #22c55e);
+          background: rgba(var(--app-success-rgb, 34, 197, 94), 0.05);
+        }
+
+        &.error {
+          color: var(--app-danger, #ef4444);
+          background: rgba(var(--app-danger-rgb, 239, 68, 68), 0.05);
+        }
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .dialog-footer {

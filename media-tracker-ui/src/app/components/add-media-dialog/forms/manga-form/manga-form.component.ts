@@ -68,7 +68,7 @@ export class MangaFormComponent {
     effect(() => {
         const cats = this.categories();
         if (cats.length > 0 && this.selectedCategoryId() === undefined) {
-            this.selectedCategoryId.set(cats[0].supabaseId || cats[0].id);
+            this.selectedCategoryId.set(cats[0].id);
         }
     });
   }
@@ -147,7 +147,7 @@ export class MangaFormComponent {
       notes: this.notes(),
       activityDates: this.activityDates(),
       runs: this.runs(),
-      source_links: this.sourceLinks()
+      sourceLinks: this.sourceLinks()
     };
     this.save.emit(mediaData);
   }

@@ -5,6 +5,8 @@ import { LucideAngularModule, Plus, X, Search, CheckCircle, ExternalLink, Calend
 import { NumberInputComponent } from '../../../ui/number-input/number-input.component';
 import { TagInputComponent } from '../../../ui/tag-input/tag-input.component';
 import { DatePickerComponent } from '../../../ui/date-picker/date-picker.component';
+import { StarRatingInputComponent } from '../../../ui/star-rating-input/star-rating-input.component';
+import { SelectComponent } from '../../../ui/select/select';
 import { Category } from '../../../../models/status.model';
 import { WatchSource } from '../../../../models/watch-source.model';
 import { MediaType } from '../../../../models/media-type.model';
@@ -14,7 +16,7 @@ import { MediaJournalComponent } from '../shared/media-journal/media-journal';
 @Component({
   selector: 'app-movie-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, DatePickerComponent, MediaJournalComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, DatePickerComponent, MediaJournalComponent, StarRatingInputComponent, SelectComponent],
   templateUrl: './movie-form.component.html',
   styleUrl: './movie-form.component.scss'
 })
@@ -26,12 +28,18 @@ export class MovieFormComponent {
   
   save = output<any>();
   cancel = output<void>();
+  changeSource = output<void>();
 
   readonly PlusIcon = Plus;
   readonly XIcon = X;
   readonly ExternalLinkIcon = ExternalLink;
   readonly CalendarIcon = Calendar;
   readonly CheckCircleIcon = CheckCircle;
+  readonly SearchIcon = Search;
+
+  get categoryOptions() {
+    return this.categories().map(c => ({ value: c.id, label: c.name }));
+  }
 
   title = signal('');
   coverImage = signal('');
@@ -54,6 +62,8 @@ export class MovieFormComponent {
   tempDate = signal(new Date());
   newLinkSourceId = signal<number | null>(null);
   newLinkUrl = signal('');
+  
+  activeTab = signal<'main' | 'journal' | 'details'>('main');
 
   activeLogPicker = signal<{index: number, field: 'startDate' | 'endDate'} | null>(null);
   today = new Date();
@@ -67,7 +77,7 @@ export class MovieFormComponent {
     effect(() => {
         const cats = this.categories();
         if (cats.length > 0 && this.selectedCategoryId() === undefined) {
-            this.selectedCategoryId.set(cats[0].supabaseId || cats[0].id);
+            this.selectedCategoryId.set(cats[0].id);
         }
     });
   }
@@ -146,7 +156,7 @@ export class MovieFormComponent {
       notes: this.notes(),
       activityDates: this.activityDates(),
       runs: this.runs(),
-      source_links: this.sourceLinks()
+      sourceLinks: this.sourceLinks()
     };
     this.save.emit(mediaData);
   }

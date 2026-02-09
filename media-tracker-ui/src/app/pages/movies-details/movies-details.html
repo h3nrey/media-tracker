@@ -1,0 +1,52 @@
+@if(!isLoading()) {
+  <div class="details-page">
+    <div class="backdrop-container" [style.background-image]="'url(' + (movie()?.bannerImage || movie()?.coverImage) + ')'">
+      <div class="backdrop-gradient"></div>
+    </div>
+
+    <div class="page-content">
+      <div class="content-layout">
+        <app-movie-sidebar 
+          [movie]="movie()" 
+          [category]="category()" 
+          [categories]="categories()"
+          [lists]="lists()"
+          (edit)="onEdit()" 
+          (updateScore)="onUpdateScore($event)"
+          (updateCategory)="onUpdateCategory($event)"
+          (saveLinks)="onSaveLinks($event)"
+          (listUpdated)="onListUpdated()">
+        </app-movie-sidebar>
+
+        <div class="main-column-wrapper">
+          <app-movie-info 
+            [movie]="movie()" 
+            [tagline]="getTagline()">
+          </app-movie-info>
+
+          <div class="divider"></div>
+
+          <div class="details-sections">
+            <div class="section-group full-width">
+              <app-media-runs-list 
+                [mediaItemId]="$any(movie()!.id)" 
+                [mediaType]="'movie'"
+                [totalCount]="movie()?.progressTotal || 0">
+              </app-media-runs-list>
+            </div>
+          </div>
+
+          <div class="reviews-wrapper">
+            <app-media-reviews [supabaseId]="movie()?.supabaseId"></app-media-reviews>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+@else {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading details...</p>
+  </div>
+}
