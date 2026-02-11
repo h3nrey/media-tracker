@@ -1,74 +1,231 @@
 .list-card {
-  display: block;
-  cursor: pointer;
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  padding: 1.25rem;
   text-decoration: none !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  gap: 1rem;
 
   &:hover {
-    transform: translateY(-8px);
+    transform: translateY(-6px);
+    border-color: var(--app-primary);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
 
-    .cover-stack .cover-item {
-      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
-      border-color: var(--app-primary);
+    .menu-trigger {
+      opacity: 1;
     }
   }
 
-  .cover-stack {
-    position: relative;
-    height: 180px;
-    margin-bottom: 20px;
+  .menu-trigger {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
     display: flex;
-    align-items: flex-end;
-    width: 320px; // Increased width for better spacing
-
-    .cover-item {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 120px;
-      height: 170px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 2px solid var(--app-border);
-      transition: all 0.3s ease;
-      background-color: var(--app-surface-light);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 20;
+    opacity: 0;
+    transition: all 0.2s ease;
+    
+    &:hover, &.active {
+      background: var(--app-primary);
+      border-color: var(--app-primary);
+      transform: scale(1.1);
     }
+  }
 
-    .empty-stack {
-      width: 120px;
-      height: 170px;
-      background-color: var(--app-surface-light);
-      border-radius: 12px;
+  .menu-dropdown {
+    position: absolute;
+    top: 3.5rem;
+    right: 1rem;
+    background: #1a1a1a;
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    padding: 0.4rem;
+    z-index: 30;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    min-width: 130px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    animation: fadeInScale 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    .menu-item {
       display: flex;
       align-items: center;
-      justify-content: center;
-      color: var(--app-text-muted);
-      border: 2px dashed var(--app-border);
+      gap: 0.75rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: white;
+      }
+
+      &.delete-btn {
+        color: #ff3b30;
+        &:hover {
+          background: rgba(255, 59, 48, 0.15);
+        }
+      }
+
+      span {
+        flex: 1;
+      }
+    }
+  }
+
+  .list-visual {
+    width: 100%;
+    height: 180px;
+    background: transparent;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+
+    .cover-stack {
+      position: relative;
+      width: 100%;
+      height: 160px;
+      display: flex;
+      align-items: center;
+
+      .cover-item {
+        position: absolute;
+        width: 105px;
+        height: 155px;
+        // Distribute 5 cards perfectly from 0% left to 100% right
+        left: calc(var(--i) * (100% - 105px) / 4);
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid var(--app-surface);
+        // Clean right-facing shadow as requested
+        box-shadow: 8px 0 15px rgba(0, 0, 0, 0.5);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: #1a1a1a;
+
+        &.is-placeholder {
+          background: #121212; // Solid color as requested
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          box-shadow: 8px 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .placeholder-content {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--app-text-muted);
+          opacity: 0.2;
+        }
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
     }
   }
 
   .list-info {
+    margin-top: 0.5rem;
+    
     .list-name {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin: 0 0 6px 0;
+      font-size: 1.25rem;
+      font-weight: 800;
       color: var(--app-text-primary);
-      text-decoration: none;
+      margin: 0;
+      letter-spacing: -0.4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: 'Outfit', 'Inter', sans-serif;
+    }
+  }
+
+  .list-progress-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+
+    .progress-bar-container {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+
+      .progress-fill {
+        height: 100%;
+        background: #ff2d55;
+        border-radius: 100px;
+        transition: width 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+        box-shadow: 0 0 10px rgba(255, 45, 85, 0.4);
+      }
     }
 
-    .item-count {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--app-text-muted);
-      text-decoration: none !important;
-      display: inline-block;
+    .progress-stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      .count-text, .percent-text {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--app-text-muted);
+        opacity: 0.8;
+      }
     }
+  }
+
+  .list-footer {
+    border-top: 1px solid var(--app-border);
+    padding-top: 0.75rem;
+    margin-top: 0.5rem;
+    
+    .item-count {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--app-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      opacity: 0.5;
+    }
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }

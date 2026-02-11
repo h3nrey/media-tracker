@@ -4,6 +4,7 @@ import { LucideAngularModule, Plus, Folder as FolderIcon, Layers, List as ListIc
 import { ListService } from '../../services/list.service';
 import { MediaService } from '../../services/media.service';
 import { FilterService } from '../../services/filter.service';
+import { AlertService } from '../../services/alert.service';
 import { db } from '../../services/database.service';
 import { List, Folder } from '../../models/list.model';
 import { MediaItem, MediaType } from '../../models/media-type.model';
@@ -36,6 +37,7 @@ export class Lists implements OnInit {
   private mediaService = inject(MediaService);
   private mediaTypeState = inject(MediaTypeStateService);
   private filterService = inject(FilterService);
+  private alertService = inject(AlertService);
 
   @ViewChild(ListFormComponent) listForm!: ListFormComponent;
 
@@ -93,5 +95,22 @@ export class Lists implements OnInit {
 
   onListSaved() {
     this.mediaService.triggerFilterUpdate();
+  }
+  
+  openEditListDialog(list: List) {
+    this.listForm.open(list.id, list.folderId);
+  }
+
+  async deleteList(list: List) {
+    const confirmed = await this.alertService.showConfirm(
+      `Deseja realmente excluir a lista "${list.name}"?`,
+      'Excluir Lista',
+      'error'
+    );
+
+    if (confirmed) {
+      await this.listService.deleteList(list.id!);
+      this.onListSaved();
+    }
   }
 }

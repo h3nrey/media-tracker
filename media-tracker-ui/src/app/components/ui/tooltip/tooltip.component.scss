@@ -1,0 +1,53 @@
+.tooltip-wrapper {
+  background: rgba(11, 14, 20, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--app-border-light);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  max-width: 250px;
+  max-height: 300px;
+  overflow-y: auto;
+  animation: tooltip-fade 0.2s cubic-bezier(0, 0, 0.2, 1);
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--app-border-light);
+    border-radius: 10px;
+  }
+}
+
+.tooltip-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--app-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.tooltip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tooltip-item {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--app-text-primary);
+  line-height: 1.4;
+  
+  &:not(:last-child) {
+    margin-bottom: 0.125rem;
+  }
+}

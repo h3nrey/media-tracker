@@ -29,6 +29,28 @@
   &.cdk-drag-animating {
     transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  &.selected {
+    border-color: var(--app-primary);
+    border-width: 4px;
+    box-shadow: 0 0 15px var(--app-primary);
+  }
+
+  &.long-pressing {
+    transform: scale(0.98);
+    border-color: var(--app-primary);
+    box-shadow: 0 0 20px var(--app-primary);
+    animation: pulse 0.5s ease-in-out;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px var(--app-primary);
+  }
+  50% { 
+    box-shadow: 0 0 30px var(--app-primary);
+  }
 }
 
 .card-actions {
@@ -196,10 +218,7 @@
   border-width: 0;
   overflow: hidden;
   
-  background: rgba(var(--app-primary), 0.15);
-  border: 0 solid rgba(var(--app-primary), 0.2);
   border-radius: 6px;
-  color: var(--app-text-primary);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -210,14 +229,45 @@
   
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-  &:hover {
-    background: rgba(var(--app-primary), 0.25);
-    color: var(--app-text-primary);
-    border-color: rgba(var(--app-primary), 0.4);
+  &.plus {
+    background: rgba(var(--app-primary), 0.1);
+    border: 1px solid var(--app-primary);
+    color: var(--app-primary);
+    
+    &:hover {
+      background: rgba(var(--app-primary), 0.2);
+      border-color: var(--app-primary);
+    }
+  }
+
+  &.run {
+    background: rgba(227, 179, 65, 0.1); // Using var(--app-accent-yellow) color
+    border: 1px solid rgba(227, 179, 65, 0.2);
+    color: var(--app-accent-yellow);
+    
+    &:hover {
+      background: rgba(227, 179, 65, 0.2);
+      border-color: var(--app-accent-yellow);
+    }
+  }
+
+  &.log {
+    background: rgba(139, 92, 246, 0.1); // Using var(--app-accent) color
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    color: var(--app-accent);
+    
+    &:hover {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: var(--app-accent);
+    }
   }
   
   &:active {
     transform: scale(0.98);
+  }
+
+  span {
+    white-space: nowrap;
   }
 }
 
@@ -226,5 +276,4 @@
   opacity: 1;
   margin: 0 0.75rem 0.75rem 0.75rem;
   padding: 0.5rem;
-  border-width: 1px;
 }

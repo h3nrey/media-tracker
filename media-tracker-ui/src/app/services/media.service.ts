@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { liveQuery } from 'dexie';
 import { Observable, from, BehaviorSubject, combineLatest, map } from 'rxjs';
-import { MediaItem, MediaFilterParams, MediaType } from '../models/media-type.model';
+import { MediaItem, MediaFilterParams, MediaType, MediaGalleryImage } from '../models/media-type.model';
 import { Category } from '../models/status.model';
 import { db } from './database.service';
 import { SyncService } from './sync.service';
@@ -11,9 +11,13 @@ import { GameMetadata } from '../models/game-metadata.model';
 import { MovieMetadata } from '../models/movie-metadata.model';
 import { MalService } from './mal.service';
 import { IgdbService, IGDBGame } from './igdb.service';
+import { TmdbService } from './tmdb.service';
+import { Router } from '@angular/router';
 import { CategoryService } from './status.service';
 import { JikanAnime } from '../models/mal-anime.model';
-import { of, catchError, combineLatest as combineLatestRxjs } from 'rxjs';
+import { ReviewService } from './review.service';
+import { of, catchError, combineLatest as combineLatestRxjs, switchMap, firstValueFrom } from 'rxjs';
+import { SupabaseService } from './supabase.service';
 
 export interface MediaByCategory {
   category: Category;
@@ -27,7 +31,11 @@ export class MediaService {
   private syncService = inject(SyncService);
   private malService = inject(MalService);
   private igdbService = inject(IgdbService);
+  private tmdbService = inject(TmdbService);
+  private router = inject(Router);
   private categoryService = inject(CategoryService);
+  private reviewService = inject(ReviewService);
+  private supabaseService = inject(SupabaseService);
 
   public filterUpdate$ = new BehaviorSubject<number>(0);
   public metadataSyncRequested = signal(false);
@@ -39,13 +47,38 @@ export class MediaService {
   }
 
   getAllMedia$(mediaTypeId?: number | null): Observable<MediaItem[]> {
-    return from(liveQuery(() => {
+    return from(liveQuery(async () => {
+      let items;
       if (mediaTypeId) {
-        return db.mediaItems.where('mediaTypeId').equals(mediaTypeId).toArray();
+        items = await db.mediaItems.where('mediaTypeId').equals(mediaTypeId).toArray();
+      } else {
+        items = await db.mediaItems.toArray();
       }
-      return db.mediaItems.toArray();
+      
+      const filtered = items.filter(m => !m.isDeleted);
+      
+      return Promise.all(filtered.map(async item => {
+        const runs = await db.mediaRuns.where('mediaItemId').equals(item.id!).toArray();
+        const screenshots = await db.mediaImages.where('mediaItemId').equals(item.id!).toArray();
+        return { 
+          ...item, 
+          runs: runs.filter(r => !r.isDeleted),
+          screenshots: screenshots.filter(s => !s.isDeleted)
+        };
+      }));
     })).pipe(
-      map(list => list.filter(m => !m.isDeleted))
+      switchMap(items => {
+        const supabaseIds = items.map(m => m.supabaseId).filter((id): id is number => !!id);
+        if (supabaseIds.length === 0) return of(items);
+        
+        return this.reviewService.getReviewsForMediaList$(supabaseIds).pipe(
+          map(reviews => items.map(item => ({
+            ...item,
+            reviews: reviews.filter(r => r.media_item_id === item.supabaseId)
+          }))),
+          catchError(() => of(items))
+        );
+      })
     );
   }
 
@@ -56,7 +89,31 @@ export class MediaService {
     } else {
       items = await db.mediaItems.toArray();
     }
-    return items.filter(m => !m.isDeleted);
+    
+    const filtered = items.filter(m => !m.isDeleted);
+    
+    const mediaItems = await Promise.all(filtered.map(async item => {
+      const runs = await db.mediaRuns.where('mediaItemId').equals(item.id!).toArray();
+      const screenshots = await db.mediaImages.where('mediaItemId').equals(item.id!).toArray();
+      return {
+        ...item,
+        runs: runs.filter(r => !r.isDeleted),
+        screenshots: screenshots.filter(s => !s.isDeleted)
+      };
+    }));
+
+    const supabaseIds = mediaItems.map(m => m.supabaseId).filter((id): id is number => !!id);
+    if (supabaseIds.length === 0) return mediaItems;
+
+    try {
+      const reviews = await firstValueFrom(this.reviewService.getReviewsForMediaList$(supabaseIds));
+      return mediaItems.map(item => ({
+        ...item,
+        reviews: reviews.filter(r => r.media_item_id === item.supabaseId)
+      }));
+    } catch {
+      return mediaItems;
+    }
   }
 
   getMediaByStatus$(statusId: number, mediaTypeId?: number | null): Observable<MediaItem[]> {
@@ -66,10 +123,19 @@ export class MediaService {
       if (mediaTypeId) {
         items = items.filter(m => m.mediaTypeId === mediaTypeId);
       }
-      return items;
-    })).pipe(
-      map(list => list.filter(m => !m.isDeleted))
-    );
+      
+      const filtered = items.filter(m => !m.isDeleted);
+      
+      return Promise.all(filtered.map(async item => {
+        const runs = await db.mediaRuns.where('mediaItemId').equals(item.id!).toArray();
+        const screenshots = await db.mediaImages.where('mediaItemId').equals(item.id!).toArray();
+        return {
+          ...item,
+          runs: runs.filter(r => !r.isDeleted),
+          screenshots: screenshots.filter(s => !s.isDeleted)
+        };
+      }));
+    }));
   }
 
   getMediaGroupedByCategory$(categories: Category[], mediaTypeId?: number | null): Observable<MediaByCategory[]> {
@@ -77,7 +143,7 @@ export class MediaService {
       map(allMedia => 
         categories.map(category => ({
           category,
-          media: allMedia.filter(m => m.statusId === category.supabaseId)
+          media: allMedia.filter(m => m.statusId === category.id)
         }))
       )
     );
@@ -96,7 +162,7 @@ export class MediaService {
         const filteredMedia = filterFn(allMedia);
         return categories.map(category => ({
           category,
-          media: filteredMedia.filter(m => m.statusId === category.supabaseId)
+          media: filteredMedia.filter(m => m.statusId === category.id)
         }));
       })
     );
@@ -106,8 +172,13 @@ export class MediaService {
     const item = await db.mediaItems.get(id);
     if (!item) return undefined;
     
-    const logs = await db.mediaLogs.where('mediaItemId').equals(id).toArray();
-    return { ...item, logs: logs.filter(l => !l.isDeleted) };
+    const runs = await db.mediaRuns.where('mediaItemId').equals(id).toArray();
+    const screenshots = await db.mediaImages.where('mediaItemId').equals(id).toArray();
+    return { 
+      ...item, 
+      runs: runs.filter(r => !r.isDeleted),
+      screenshots: screenshots.filter(s => !s.isDeleted)
+    };
   }
 
   getMediaById$(id: number): Observable<MediaItem | undefined> {
@@ -115,37 +186,62 @@ export class MediaService {
   }
 
   async getMediaBySupabaseId(supabaseId: number): Promise<MediaItem | undefined> {
-    return await db.mediaItems.where('supabaseId').equals(supabaseId).first();
+    const item = await db.mediaItems.where('supabaseId').equals(supabaseId).first();
+    if (!item) return undefined;
+    return this.getMediaById(item.id!);
   }
 
   async getMediaByExternalId(externalId: number, externalApi: string): Promise<MediaItem | undefined> {
-    return await db.mediaItems
+    const item = await db.mediaItems
       .where('externalId')
       .equals(externalId)
       .and(item => item.externalApi === externalApi && !item.isDeleted)
       .first();
+    if (!item) return undefined;
+    return this.getMediaById(item.id!);
   }
 
 
   async addMedia(media: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();
-    const { logs, ...mediaData } = media;
+    const { runs, screenshots, ...rest } = media;
+
+    // Safety check: prevent duplicates by externalId
+    if (rest.externalId && rest.externalApi) {
+      const existing = await db.mediaItems
+        .where('externalId').equals(rest.externalId)
+        .and(m => m.externalApi === rest.externalApi && !m.isDeleted)
+        .first();
+      if (existing) return existing.id!;
+    }
     
     const id = await db.mediaItems.add({
-      ...mediaData,
+      ...rest,
       createdAt: now,
       updatedAt: now,
       isDeleted: false
     } as MediaItem);
     
-    if (logs && logs.length > 0) {
-      const logsToAdd = logs.map(log => ({
-        ...log,
+    if (runs && runs.length > 0) {
+      const runsToAdd = runs.map(run => ({
+        ...run,
         mediaItemId: id as number,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        isDeleted: false
       }));
-      await db.mediaLogs.bulkAdd(logsToAdd);
+      await db.mediaRuns.bulkAdd(runsToAdd);
+    }
+
+    if (screenshots && screenshots.length > 0) {
+      const imagesToAdd = screenshots.map((img: MediaGalleryImage) => ({
+        ...img,
+        mediaItemId: id as number,
+        createdAt: now,
+        updatedAt: now,
+        isDeleted: false
+      }));
+      await db.mediaImages.bulkAdd(imagesToAdd);
     }
     
     console.log("generated id: ", id);
@@ -156,39 +252,96 @@ export class MediaService {
 
   async updateMedia(id: number, updates: Partial<MediaItem>): Promise<number> {
     const now = new Date();
-    const { logs, ...itemUpdates } = updates;
+    const { runs, screenshots, ...rest } = updates;
 
     const result = await db.mediaItems.update(id, {
-      ...itemUpdates,
+      ...rest,
       updatedAt: now
     });
 
-    if (logs) {
-      // For simplicity, we'll replace or update logs. 
-      // If log has ID, put it (update). If not, add it.
-      for (const log of logs) {
-        if (log.id) {
-          await db.mediaLogs.update(log.id, { ...log, updatedAt: now });
-        } else {
-          await db.mediaLogs.add({ ...log, mediaItemId: id, createdAt: now, updatedAt: now });
-        }
+    if (runs) {
+      await db.mediaRuns.where('mediaItemId').equals(id).delete();
+      if (runs.length > 0) {
+        const runsToAdd = runs.map(run => ({
+          ...run,
+          mediaItemId: id,
+          createdAt: run.createdAt || now,
+          updatedAt: now,
+          isDeleted: false
+        }));
+        await db.mediaRuns.bulkAdd(runsToAdd);
       }
-      
-      // Handle deletions if necessary - but for now let's just keep it simple as the user might just want to sync the array.
-      // Actually, standard behavior for this kind of implementation is often "clear and replace" if it's an array input.
-      // But Dexie logs table is separate.
     }
 
+    if (screenshots) {
+      // For screenshots, we can do clear and replace within the same mediaItemId
+      // This is simpler for local state management in forms
+      await db.mediaImages.where('mediaItemId').equals(id).delete();
+      if (screenshots.length > 0) {
+        const imagesToAdd = screenshots.map((img: MediaGalleryImage) => ({
+          ...img,
+          mediaItemId: id,
+          createdAt: img.createdAt || now,
+          updatedAt: now,
+          isDeleted: false
+        }));
+        await db.mediaImages.bulkAdd(imagesToAdd);
+      }
+    }
+
+    this.triggerFilterUpdate();
     this.syncService.sync();
     return result;
   }
 
   async updateMediaStatus(id: number, statusId: number): Promise<number> {
+    console.log("updateMediaStatus", id, statusId);
     const result = await db.mediaItems.update(id, {
       statusId,
       updatedAt: new Date()
     });
+    this.triggerFilterUpdate();
     this.syncService.sync();
+    return result;
+  }
+
+  async updateMediaStatusWithSync(id: number, localCategoryId: number): Promise<number> {
+    const now = new Date();
+    
+    const result = await db.mediaItems.update(id, {
+      statusId: localCategoryId,
+      updatedAt: now
+    });
+
+    const mediaItem = await db.mediaItems.get(id);
+    if (!mediaItem?.supabaseId) {
+      console.warn('Media item has no supabaseId, skipping remote update');
+      return result;
+    }
+
+    const category = await db.categories.get(localCategoryId);
+    if (!category?.supabaseId) {
+      console.warn(`Category ${localCategoryId} has no supabaseId, skipping remote update`);
+      return result;
+    }
+
+    try {
+      await this.supabaseService.client
+        .from('media_items')
+        .update({
+          status_id: category.supabaseId,
+          updated_at: now.toISOString()
+        })
+        .eq('id', mediaItem.supabaseId);
+      
+      console.log(`✅ Updated media ${mediaItem.title} category to ${category.name} on Supabase`);
+      
+      await db.mediaItems.update(id, { lastSyncedAt: now });
+    } catch (error) {
+      console.error('Failed to update Supabase:', error);
+      this.syncService.sync();
+    }
+
     return result;
   }
 
@@ -264,16 +417,24 @@ export class MediaService {
         const addedInYear = createdDate && createdDate.getFullYear() === targetYear;
         
         const hasActivityDates = m.activityDates && m.activityDates.length > 0;
-        if (!hasActivityDates) {
+        const hasRuns = m.runs && m.runs.length > 0;
+
+        if (!hasActivityDates && !hasRuns) {
           return !!addedInYear;
         }
 
-        const activeInYear = m.activityDates!.some(d => {
+        const activeInYearByDate = m.activityDates?.some(d => {
           const dDate = new Date(d);
           return dDate.getFullYear() === targetYear;
-        });
+        }) || false;
+
+        const activeInYearByRun = m.runs?.some(run => {
+          const startYear = run.startDate ? new Date(run.startDate).getFullYear() : null;
+          const endYear = run.endDate ? new Date(run.endDate).getFullYear() : null;
+          return startYear === targetYear || endYear === targetYear;
+        }) || false;
         
-        return activeInYear;
+        return activeInYearByDate || activeInYearByRun;
       });
     }
 
@@ -297,6 +458,38 @@ export class MediaService {
     }
 
     return result;
+  }
+
+  getCompletedMedia(list: MediaItem[], year?: number): MediaItem[] {
+    const getEffectiveCompletionDate = (item: MediaItem): Date | null => {
+      if (item.endDate) {
+        const d = new Date(item.endDate);
+        return isNaN(d.getTime()) ? null : d;
+      }
+      if (item.runs && item.runs.length > 0) {
+        const lastRun = item.runs.sort((a: any, b: any) => 
+          new Date(b.endDate || 0).getTime() - new Date(a.endDate || 0).getTime()
+        )[0];
+        if (lastRun?.endDate) {
+          const d = new Date(lastRun.endDate);
+          return isNaN(d.getTime()) ? null : d;
+        }
+      }
+      return null;
+    };
+
+    const completedWithDates = (list || [])
+      .map(item => ({ item, date: getEffectiveCompletionDate(item) }))
+      .filter(({ date }) => {
+        if (!date) return false;
+        if (!year) return true;
+        return date.getFullYear() === year;
+      });
+
+    // Sort descending by completion date
+    completedWithDates.sort((a, b) => b.date!.getTime() - a.date!.getTime());
+
+    return completedWithDates.map(c => c.item);
   }
 
   async importMediaFromApi(apiItem: any): Promise<number> {
@@ -378,10 +571,47 @@ export class MediaService {
       ));
     }
 
+    if (!type || type === MediaType.MOVIE) {
+      searches.push(this.tmdbService.searchMovies(query).pipe(
+        map(results => results.map((m: any) => ({ ...m, _type: 'movie' }))),
+        catchError(() => of([]))
+      ));
+    }
+
     if (searches.length === 0) return of([]);
 
     return combineLatestRxjs(searches).pipe(
       map(results => results.flat())
     );
+  }
+
+  getMediaImages$(mediaItemId?: number): Observable<MediaGalleryImage[]> {
+    return from(liveQuery(async () => {
+      let items;
+      if (mediaItemId) {
+        items = await db.mediaImages.where('mediaItemId').equals(mediaItemId).toArray();
+      } else {
+        items = await db.mediaImages.toArray();
+      }
+      return items.filter(img => !img.isDeleted);
+    }));
+  }
+
+  getMediaImagesByYear$(year: number, mediaTypeId?: number | null): Observable<MediaGalleryImage[]> {
+    return from(liveQuery(async () => {
+      // First get media items active in that year
+      const allMedia = await this.getAllMedia(mediaTypeId);
+      const activeMedia = this.filterMediaList(allMedia, { activityYear: year });
+      const activeIds = activeMedia.map(m => m.id).filter(id => !!id) as number[];
+      
+      if (activeIds.length === 0) return [];
+      
+      const images = await db.mediaImages
+        .where('mediaItemId')
+        .anyOf(activeIds)
+        .toArray();
+        
+      return images.filter(img => !img.isDeleted);
+    }));
   }
 }

@@ -24,7 +24,16 @@ export class ListSyncService {
     if (error) throw error;
 
     for (const local of localFolders) {
-      const remote = remoteFolders?.find(r => r.id === local.supabaseId);
+      // 1. Try to find remote by supabaseId or Natural Key (name)
+      let remote = remoteFolders?.find(r => r.id === local.supabaseId);
+      
+      if (!remote && !local.supabaseId) {
+        remote = remoteFolders?.find(r => r.name === local.name && !r.is_deleted);
+        if (remote) {
+          await db.folders.update(local.id!, { supabaseId: remote.id });
+          local.supabaseId = remote.id;
+        }
+      }
       
       const supabaseData = {
         name: local.name,
@@ -58,10 +67,19 @@ export class ListSyncService {
         }
       } else {
         const remoteUpdatedAt = new Date(remote.updated_at);
-        if (local.updatedAt > remoteUpdatedAt && (!local.lastSyncedAt || local.updatedAt > local.lastSyncedAt)) {
+        
+        // Conflict Resolution: Most recent wins
+        const localIsNewer = local.updatedAt > remoteUpdatedAt;
+        const remoteIsNewer = remoteUpdatedAt > local.updatedAt;
+        const localHasChanges = !local.lastSyncedAt || local.updatedAt > local.lastSyncedAt;
+        const remoteHasChanges = !local.lastSyncedAt || remoteUpdatedAt > local.lastSyncedAt;
+
+        if (localIsNewer && localHasChanges) {
+          // Local wins and pushes
           await this.supabase.from('folders').update(supabaseData).eq('id', local.supabaseId);
           await db.folders.update(local.id!, { lastSyncedAt: new Date() });
-        } else if (remoteUpdatedAt > (local.lastSyncedAt || local.updatedAt)) {
+        } else if (remoteIsNewer && remoteHasChanges) {
+          // Remote wins and pulls
           await db.folders.update(local.id!, {
             name: remote.name,
             icon: remote.icon,
@@ -70,6 +88,16 @@ export class ListSyncService {
             updatedAt: remoteUpdatedAt,
             lastSyncedAt: new Date()
           });
+        } else if (!localHasChanges && remoteHasChanges) {
+            // Local hasn't changed but remote has
+            await db.folders.update(local.id!, {
+                name: remote.name,
+                icon: remote.icon,
+                order: remote.order,
+                isDeleted: remote.is_deleted,
+                updatedAt: remoteUpdatedAt,
+                lastSyncedAt: new Date()
+            });
         }
       }
     }
@@ -113,7 +141,16 @@ export class ListSyncService {
       supabaseIds.map(id => mediaItems.find(m => m.supabaseId === id)?.id).filter(id => !!id) as number[];
 
     for (const local of localLists) {
-      const remote = remoteLists?.find(r => r.id === local.supabaseId);
+      // 1. Try to find remote by supabaseId or Natural Key (name + mediaTypeId)
+      let remote = remoteLists?.find(r => r.id === local.supabaseId);
+
+      if (!remote && !local.supabaseId) {
+        remote = remoteLists?.find(r => r.name === local.name && r.media_type_id === local.mediaTypeId && !r.is_deleted);
+        if (remote) {
+          await db.lists.update(local.id!, { supabaseId: remote.id });
+          local.supabaseId = remote.id;
+        }
+      }
       
       const supabaseData = {
         name: local.name,
@@ -149,10 +186,19 @@ export class ListSyncService {
         }
       } else {
         const remoteUpdatedAt = new Date(remote.updated_at);
-        if (local.updatedAt > remoteUpdatedAt && (!local.lastSyncedAt || local.updatedAt > local.lastSyncedAt)) {
+
+        // Conflict Resolution: Most recent wins
+        const localIsNewer = local.updatedAt > remoteUpdatedAt;
+        const remoteIsNewer = remoteUpdatedAt > local.updatedAt;
+        const localHasChanges = !local.lastSyncedAt || local.updatedAt > local.lastSyncedAt;
+        const remoteHasChanges = !local.lastSyncedAt || remoteUpdatedAt > local.lastSyncedAt;
+
+        if (localIsNewer && localHasChanges) {
+          // Local wins and pushes
           await this.supabase.from('lists').update(supabaseData).eq('id', local.supabaseId);
           await db.lists.update(local.id!, { lastSyncedAt: new Date() });
-        } else if (remoteUpdatedAt > (local.lastSyncedAt || local.updatedAt)) {
+        } else if (remoteIsNewer && remoteHasChanges) {
+          // Remote wins and pulls
           await db.lists.update(local.id!, {
             name: remote.name,
             description: remote.description,
@@ -163,6 +209,18 @@ export class ListSyncService {
             updatedAt: remoteUpdatedAt,
             lastSyncedAt: new Date()
           });
+        } else if (!localHasChanges && remoteHasChanges) {
+            // Local hasn't changed but remote has
+            await db.lists.update(local.id!, {
+                name: remote.name,
+                description: remote.description,
+                folderId: mapSupabaseToLocalFolder(remote.folder_id),
+                mediaItemIds: mapSupabaseToLocalMediaIds(remote.media_item_ids || []),
+                mediaTypeId: remote.media_type_id,
+                isDeleted: remote.is_deleted,
+                updatedAt: remoteUpdatedAt,
+                lastSyncedAt: new Date()
+            });
         }
       }
     }

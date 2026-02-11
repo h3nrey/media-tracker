@@ -1,0 +1,41 @@
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon eye">
+      <lucide-icon [img]="EyeIcon" [size]="24"></lucide-icon>
+    </div>
+    <div class="stat-info">
+      <h3>{{ totalStarted() }}</h3>
+      <p>Iniciados</p>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon trending">
+      <lucide-icon [img]="TrendingUpIcon" [size]="24"></lucide-icon>
+    </div>
+    <div class="stat-info">
+      <h3>{{ totalCompleted() }}</h3>
+      <p>Completos</p>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon clock">
+      <lucide-icon [img]="ClockIcon" [size]="24"></lucide-icon>
+    </div>
+    <div class="stat-info">
+      <h3>{{ totalEpisodes() }}</h3>
+      <p>Episódios</p>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon star">
+      <lucide-icon [img]="StarIcon" [size]="24"></lucide-icon>
+    </div>
+    <div class="stat-info">
+      <h3>{{ totalTime() }}</h3>
+      <p>Horas</p>
+    </div>
+  </div>
+</div>

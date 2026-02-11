@@ -235,11 +235,25 @@ export class IgdbService {
     );
   }
 
-  getRecommendations(params: { genres?: number[], platforms?: number[], startDate?: string, endDate?: string, limit?: number }): Observable<IGDBGame[]> {
+  getRecommendations(params: { 
+    genres?: number[], 
+    platforms?: number[], 
+    collections?: number[],
+    excludeCollections?: number[],
+    gameModes?: number[],
+    excludeGameModes?: number[],
+    startDate?: string, 
+    endDate?: string, 
+    sort?: string,
+    offset?: number,
+    limit?: number 
+  }): Observable<IGDBGame[]> {
     return this.getValidToken().pipe(
       switchMap(token => {
         const headers = this.getHeaders(token);
         const limit = params.limit || 20;
+        const offset = params.offset || 0;
+        const sort = params.sort || 'rating desc';
         let whereClauses: string[] = ['rating > 70', 'rating_count > 5'];
         
         if (params.genres && params.genres.length > 0) {
@@ -248,6 +262,22 @@ export class IgdbService {
 
         if (params.platforms && params.platforms.length > 0) {
           whereClauses.push(`platforms = (${params.platforms.join(',')})`);
+        }
+
+        if (params.collections && params.collections.length > 0) {
+          whereClauses.push(`collections = (${params.collections.join(',')})`);
+        }
+
+        if (params.excludeCollections && params.excludeCollections.length > 0) {
+          whereClauses.push(`collections != (${params.excludeCollections.join(',')})`);
+        }
+
+        if (params.gameModes && params.gameModes.length > 0) {
+          whereClauses.push(`game_modes = (${params.gameModes.join(',')})`);
+        }
+
+        if (params.excludeGameModes && params.excludeGameModes.length > 0) {
+          whereClauses.push(`game_modes != (${params.excludeGameModes.join(',')})`);
         }
         
         if (params.startDate) {
@@ -262,8 +292,9 @@ export class IgdbService {
 
         const body = `fields name, summary, cover.url, genres.name, involved_companies.company.name, involved_companies.developer, first_release_date, platforms.name, screenshots.url, videos.video_id, rating; 
                       where ${whereClauses.join(' & ')}; 
-                      sort rating desc; 
-                      limit ${limit};`;
+                      sort ${sort}; 
+                      limit ${limit};
+                      offset ${offset};`;
 
         return this.http.post<IGDBGame[]>(`${this.API_URL}/games`, body, { headers });
       }),

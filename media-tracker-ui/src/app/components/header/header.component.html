@@ -1,10 +1,12 @@
 <header class="app-header" [class.scrolled]="isScrolled()">
-  <app-media-type-selector></app-media-type-selector>
-  <div class="header-actions">
-    <a class="nav-btn" routerLink="/timeline" title="Yearly Timeline">
-      <lucide-icon [name]="HistoryIcon" [size]="18"></lucide-icon>
-      <span>Timeline</span>
+  <div class="header-logo-wrapper">
+    <a class="header-logo" routerLink="/">
+      <!-- <img src="assets/logo.png" alt="Logo" class="logo-img"> -->
+      <span class="logo-text">Tracker</span>
     </a>
+    <app-media-type-selector></app-media-type-selector>
+  </div>
+  <div class="header-actions">
     <a class="nav-btn" routerLink="/lists" title="Anime Lists">
       <lucide-icon [name]="LayersIcon" [size]="18"></lucide-icon>
       <span>Lists</span>
@@ -63,5 +65,11 @@
         </div>
       }
     </div>
+
+    @if (authService.currentUser()) {
+      <app-user-menu />
+    } @else {
+      <app-login-button />
+    }
   </div>
 </header>

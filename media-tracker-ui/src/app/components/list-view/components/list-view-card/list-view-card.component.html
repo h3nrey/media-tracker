@@ -1,0 +1,46 @@
+<div class="media-card" [class.selected]="isSelected()" (click)="onCardClick($event)">
+  <div class="cover-wrapper">
+    <img [src]="media().coverImage" [alt]="media().title" class="media-cover">
+  </div>
+
+  <div class="media-info">
+    <h3 class="media-title">{{ media().title }}</h3>
+    <div class="media-meta">
+      @if (showProgress()) {
+        <span class="progress">
+          {{ media().progressCurrent || 0 }}/{{ media().progressTotal || '?' }} 
+          <small>{{ media().mediaTypeId === 1 ? 'eps' : 'hrs' }}</small>
+        </span>
+      }
+      
+      @if (media().score > 0) {
+        <span class="score">
+          <lucide-icon [img]="StarIcon" [size]="12"></lucide-icon>
+          {{ media().score }}
+        </span>
+      }
+      
+      @if (media().releaseYear) {
+        <span class="year">{{ media().releaseYear }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="card-actions">
+    <div class="status-selector" (click)="onSelectClick($event)">
+      <ui-select
+        [options]="categoryOptions"
+        [value]="media().statusId"
+        [placeholder]="'Status'"
+        (valueChange)="onStatusChange($event)">
+      </ui-select>
+    </div>
+
+    <button class="action-btn edit" (click)="onEdit($event)" title="Editar">
+      <lucide-icon [img]="EditIcon" [size]="18"></lucide-icon>
+    </button>
+    <button class="action-btn delete" (click)="onDelete($event)" title="Excluir">
+      <lucide-icon [img]="DeleteIcon" [size]="18"></lucide-icon>
+    </button>
+  </div>
+</div>

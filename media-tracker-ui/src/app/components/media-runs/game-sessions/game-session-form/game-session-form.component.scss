@@ -1,0 +1,138 @@
+.add-form {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--app-primary-text);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.9;
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--app-border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      color: var(--app-text-primary);
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--app-primary);
+      }
+
+      lucide-icon {
+        color: var(--app-primary);
+      }
+    }
+
+    .input-with-icon {
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      .field-icon {
+        position: absolute;
+        left: 1rem;
+        color: var(--app-primary);
+        pointer-events: none;
+      }
+
+      input {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--app-border);
+        border-radius: 10px;
+        padding: 0.75rem 1rem 0.75rem 2.75rem;
+        color: var(--app-text-primary);
+        font-size: 0.95rem;
+        transition: all 0.2s;
+
+        &:focus {
+          outline: none;
+          background: rgba(255, 255, 255, 0.05);
+          border-color: var(--app-primary);
+        }
+      }
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 0.5rem;
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      transition: all 0.2s;
+
+      &.cancel-btn {
+        background: transparent;
+        border: 1px solid var(--app-border);
+        color: var(--app-text-secondary);
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: var(--app-text-muted);
+        }
+      }
+
+      &.save-btn {
+        background: transparent;
+        border: 1px solid var(--app-primary);
+        color: var(--app-primary);
+
+        &:hover {
+          background: var(--app-primary);
+          color: var(--app-text-primary);
+          transform: translateY(-2px);
+        }
+      }
+    }
+  }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-15px); }
+  to { opacity: 1; transform: translateY(0); }
+}

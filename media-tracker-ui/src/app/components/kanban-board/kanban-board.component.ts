@@ -8,14 +8,20 @@ import { CategoryService } from '../../services/status.service';
 import { FilterService } from '../../services/filter.service';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { AlertService } from '../../services/alert.service';
+import { MediaRunService } from '../../services/media-run.service';
+import { EpisodeProgressService } from '../../services/episode-progress.service';
+import { DialogService } from '../../services/dialog.service';
 import { KanbanAnimeCard } from '../../pages/home/components/kanban-anime-card/kanban-anime-card';
+import { KanbanMangaCard } from '../../pages/home/components/kanban-manga-card/kanban-manga-card';
 import { KanbanGameCard } from '../../pages/home/components/kanban-game-card/kanban-game-card.component';
+import { KanbanMovieCard } from '../../pages/home/components/kanban-movie-card/kanban-movie-card.component';
 import { LucideAngularModule } from 'lucide-angular';
+import { ListViewSelectionBarComponent } from '../list-view/components/list-view-selection-bar/list-view-selection-bar.component';
 
 @Component({
   selector: 'app-kanban-board',
   standalone: true,
-  imports: [CommonModule, DragDropModule, KanbanAnimeCard, KanbanGameCard, LucideAngularModule],
+  imports: [CommonModule, DragDropModule, KanbanAnimeCard, KanbanMangaCard, KanbanGameCard, KanbanMovieCard, LucideAngularModule, ListViewSelectionBarComponent],
   templateUrl: './kanban-board.component.html',
   styleUrl: './kanban-board.component.scss'
 })
@@ -26,6 +32,8 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
   
   columns = signal<MediaByCategory[]>([]);
   loading = signal(true);
+  selectedIds = signal<Set<number>>(new Set());
+  private lastClickedId = signal<number | null>(null);
   private subscription?: Subscription;
 
   constructor(
@@ -33,7 +41,10 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
     private categoryService: CategoryService,
     private filterService: FilterService,
     private mediaTypeState: MediaTypeStateService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private runService: MediaRunService,
+    private episodeProgressService: EpisodeProgressService,
+    private dialogService: DialogService
   ) {}
 
   // ...
@@ -43,26 +54,188 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
   }
 
   async onDelete(media: MediaItem) {
+    const selected = this.selectedIds();
+    let itemsToDelete: MediaItem[] = [];
+
+    if (selected.has(media.id!)) {
+      itemsToDelete = this.columns().flatMap(c => c.media).filter(m => selected.has(m.id!));
+    } else {
+      itemsToDelete = [media];
+    }
+
     const confirmed = await this.alertService.showConfirm(
-      `Are you sure you want to delete "${media.title}"?`,
+      itemsToDelete.length === 1
+        ? `Are you sure you want to delete "${media.title}"?`
+        : `Are you sure you want to delete ${itemsToDelete.length} selected items?`,
       'Delete Media',
       'error'
     );
+
     if (confirmed) {
-      await this.mediaService.deleteMedia(media.id!);
+      for (const item of itemsToDelete) {
+        if (item.id) {
+          await this.mediaService.deleteMedia(item.id);
+        }
+      }
+      this.selectedIds.set(new Set());
     }
+  }
+
+  onMediaClick({ media, event }: { media: MediaItem, event: MouseEvent }) {
+    const isShift = event.shiftKey;
+    const isCtrl = event.ctrlKey || event.metaKey;
+    const currentId = media.id!;
+    const categoryId = media.statusId;
+
+    if (isShift || isCtrl) {
+      if (isShift && this.lastClickedId()) {
+        const column = this.columns().find(c => c.category.id === categoryId);
+        if (column) {
+          const lastId = this.lastClickedId();
+          const currentIndex = column.media.findIndex(m => m.id === currentId);
+          const lastIndex = column.media.findIndex(m => m.id === lastId);
+
+          if (currentIndex !== -1 && lastIndex !== -1) {
+            const start = Math.min(currentIndex, lastIndex);
+            const end = Math.max(currentIndex, lastIndex);
+            const rangeIds = column.media.slice(start, end + 1).map(m => m.id!);
+            
+            const isCurrentlySelected = this.selectedIds().has(currentId);
+
+            this.selectedIds.update(set => {
+              const newSet = new Set(set);
+              if (isCurrentlySelected) {
+                rangeIds.forEach(id => newSet.delete(id));
+              } else {
+                rangeIds.forEach(id => newSet.add(id));
+              }
+              return newSet;
+            });
+            this.lastClickedId.set(currentId);
+            return;
+          }
+        }
+      }
+      
+      // Fallback for Shift without lastClickedId or for Ctrl
+      this.toggleSelection(currentId);
+      return;
+    }
+
+    // Standard click (no modifiers): Select only this one and navigate
+    this.selectedIds.set(new Set([currentId]));
+    this.lastClickedId.set(currentId);
+    this.animeClick.emit(media);
+  }
+
+  private toggleSelection(id: number) {
+    this.selectedIds.update(set => {
+      const newSet = new Set(set);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+    this.lastClickedId.set(id);
+  }
+
+  clearAllSelection() {
+    this.selectedIds.set(new Set());
+    this.lastClickedId.set(null);
   }
 
   async onIncrement(media: MediaItem) {
     if (!media.id) return;
-    const current = media.progressCurrent || 0;
-    const total = media.progressTotal || 0;
     
-    if (total > 0 && current >= total) return; 
+    // Get the active/last run for this media
+    const runs = await this.runService.getRunsForMedia(media.id);
+    const lastRun = runs.length > 0 ? runs[runs.length - 1] : null;
+    
+    if (!lastRun?.id) {
+      console.warn('No run found for media:', media.title);
+      return;
+    }
 
-    await this.mediaService.updateMedia(media.id, { 
-      progressCurrent: current + 1 
-    });
+    // Mark the next episode as watched
+    try {
+      await this.episodeProgressService.markNextEpisodeWatched(lastRun.id);
+      this.mediaService.triggerFilterUpdate();
+    } catch (error) {
+      console.error('Error marking next episode:', error);
+    }
+  }
+
+  async onComplete(media: MediaItem) {
+    if (!media.id) return;
+    
+    // Find the "Completed" category
+    const completedCategory = this.columns().find(c => 
+      c.category.name.toLowerCase() === 'completed' || 
+      c.category.name.toLowerCase() === 'completado'
+    );
+    
+    if (!completedCategory?.category.id) {
+      console.warn('No completed category found');
+      return;
+    }
+
+    // Update progress to total (mark as completed)
+    const updates: Partial<MediaItem> = {
+      progressCurrent: media.progressTotal || 0,
+      statusId: completedCategory.category.id
+    };
+
+    await this.mediaService.updateMedia(media.id, updates);
+    this.mediaService.triggerFilterUpdate();
+    
+    // Show feedback
+    this.alertService.showAlert(`"${media.title}" marked as completed!`, 'Completed', 'success');
+  }
+
+  async onAddNewRun(media: MediaItem) {
+    if (!media.id) return;
+    
+    try {
+      // Start new run
+      await this.runService.startNewRun(media.id);
+      
+      // Find "Ativo" category
+      const activeCategory = this.columns().find(c => 
+        c.category.name.toLowerCase() === 'ativo' || 
+        c.category.name.toLowerCase() === 'active' ||
+        c.category.name.toLowerCase() === 'watching' ||
+        c.category.name.toLowerCase() === 'playing'
+      );
+      
+      if (activeCategory?.category.id) {
+        await this.mediaService.updateMedia(media.id, { 
+          statusId: activeCategory.category.id,
+          progressCurrent: 0
+        });
+      }
+
+      this.mediaService.triggerFilterUpdate();
+      
+      this.alertService.showAlert(`New run started for "${media.title}"!`, 'Success', 'success');
+    } catch (error: any) {
+      console.error('Error starting new run:', error);
+      this.alertService.showAlert(error.message || 'Error starting new run', 'Error', 'error');
+    }
+  }
+
+  async onAddLog(media: MediaItem) {
+    if (!media.id) return;
+    
+    // Get the active run for this game
+    const activeRun = await this.runService.getActiveRun(media.id);
+    if (activeRun) {
+      this.dialogService.openRunDetails(activeRun, 'game', media.progressTotal || 0);
+    } else {
+      // If no active run, navigate to details to let user start one or manage logs
+      this.onMediaClick({ media, event: new MouseEvent('click') });
+    }
   }
 
   async ngOnInit() {
@@ -89,7 +262,7 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
               console.log("filteredMedia", filteredMedia);
               const columns: MediaByCategory[] = categories.filter(category => !category.isDeleted).map(category => ({
                 category,
-                media: filteredMedia.filter(m => m.statusId === category.supabaseId)
+                media: filteredMedia.filter(m => m.statusId === category.id)
               }));
               console.log("columns", columns);
               return columns;
@@ -132,30 +305,53 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
   }
 
   private async handleCategoryChange(event: CdkDragDrop<MediaItem[]>, targetCategoryId: number) {
-    const media = event.previousContainer.data[event.previousIndex];
-    console.log("media", media)
+    const movedMedia = event.previousContainer.data[event.previousIndex];
+    const selectedIds = this.selectedIds();
     
-    transferArrayItem(
-      event.previousContainer.data,
-      event.container.data,
-      event.previousIndex,
-      event.currentIndex
-    );
-    
-    console.log('status atual', media.statusId)
-    console.log('status novo', targetCategoryId)
-    if (media.id) {
-      try {
-        await this.mediaService.updateMediaStatus(media.id, targetCategoryId);
-      } catch (error) {
-        console.error('Error updating media status:', error);
-        transferArrayItem(
-          event.container.data,
-          event.previousContainer.data,
-          event.currentIndex,
-          event.previousIndex
-        );
+    let itemsToMove: MediaItem[] = [];
+    if (selectedIds.has(movedMedia.id!)) {
+      itemsToMove = event.previousContainer.data.filter(m => selectedIds.has(m.id!));
+    } else {
+      itemsToMove = [movedMedia];
+    }
+
+    const originalPositions = itemsToMove.map(item => ({
+      item,
+      index: event.previousContainer.data.indexOf(item)
+    })).sort((a, b) => b.index - a.index); 
+
+    originalPositions.forEach(pos => {
+      const currentIndex = event.previousContainer.data.indexOf(pos.item);
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        currentIndex,
+        event.container.data.length
+      );
+    });
+
+    try {
+      const updatePromises = itemsToMove.map(item => 
+        this.mediaService.updateMediaStatusWithSync(item.id!, targetCategoryId)
+      );
+      await Promise.all(updatePromises);
+      
+      if (itemsToMove.length > 1) {
+        this.clearAllSelection();
       }
+    } catch (error) {
+      console.error('Error updating media status:', error);
+      originalPositions.sort((a, b) => a.index - b.index).forEach(pos => {
+        const currentIndex = event.container.data.indexOf(pos.item);
+        if (currentIndex !== -1) {
+          transferArrayItem(
+            event.container.data,
+            event.previousContainer.data,
+            currentIndex,
+            pos.index
+          );
+        }
+      });
     }
   }
 
@@ -163,8 +359,8 @@ export class KanbanBoardComponent implements OnInit, OnDestroy {
     return this.columns().map((_, index) => `column-${index}`);
   }
 
-  openAddDialog(supabaseId: number) {
-    this.addAnimeToCategory.emit(supabaseId);
+  openAddDialog(categoryId: number) {
+    this.addAnimeToCategory.emit(categoryId);
   }
 
   trackByCategoryId(index: number, column: MediaByCategory): number {

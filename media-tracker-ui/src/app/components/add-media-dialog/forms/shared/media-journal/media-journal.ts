@@ -2,7 +2,7 @@ import { Component, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Calendar, X, Plus, ArrowRight } from 'lucide-angular';
-import { MediaLog } from '../../../../../models/media-log.model';
+import { MediaRun } from '../../../../../models/media-run.model';
 import { DatePickerComponent } from '../../../../ui/date-picker/date-picker.component';
 import { OverlayModule, ConnectionPositionPair } from '@angular/cdk/overlay';
 
@@ -15,10 +15,10 @@ import { OverlayModule, ConnectionPositionPair } from '@angular/cdk/overlay';
 })
 export class MediaJournalComponent {
   readonly DatePickerComponent = DatePickerComponent;
-  logs = input<MediaLog[]>([]);
+  runs = input<MediaRun[]>([]);
   emptyMessage = input<string>('Track your progress here.');
   
-  logsChange = output<MediaLog[]>();
+  runsChange = output<MediaRun[]>();
 
   readonly CalendarIcon = Calendar;
   readonly XIcon = X;
@@ -38,21 +38,29 @@ export class MediaJournalComponent {
     }
   }
 
-  addLog() {
-    const currentLogs = [...this.logs()];
-    currentLogs.push({ mediaItemId: 0, startDate: new Date() });
-    this.logsChange.emit(currentLogs);
+  addRun() {
+    const currentRuns = [...this.runs()];
+    const newRun: any = { 
+      mediaItemId: 0, 
+      startDate: new Date(),
+      runNumber: (this.runs()?.length || 0) + 1,
+      isDeleted: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    currentRuns.push(newRun as MediaRun);
+    this.runsChange.emit(currentRuns);
   }
 
-  removeLog(index: number) {
-    const currentLogs = this.logs().filter((_, i) => i !== index);
-    this.logsChange.emit(currentLogs);
+  removeRun(index: number) {
+    const currentRuns = this.runs().filter((_, i) => i !== index);
+    this.runsChange.emit(currentRuns);
   }
 
-  updateLogDate(index: number, field: 'startDate' | 'endDate', date: Date | string) {
-    const currentLogs = [...this.logs()];
-    currentLogs[index] = { ...currentLogs[index], [field]: date };
-    this.logsChange.emit(currentLogs);
+  updateRunDate(index: number, field: 'startDate' | 'endDate', date: Date | string) {
+    const currentRuns = [...this.runs()];
+    currentRuns[index] = { ...currentRuns[index], [field]: date };
+    this.runsChange.emit(currentRuns);
     this.activeLogPicker.set(null);
   }
 }

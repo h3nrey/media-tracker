@@ -1,67 +1,60 @@
 .media-dropdown-wrapper {
   position: relative;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  height: 100%;
+  display: inline-block;
 
   &:hover {
     .dropdown-menu {
       opacity: 1;
       visibility: visible;
-      transform: translateY(0);
-    }
-    
-    .logo-text {
-      text-shadow: 0 0 15px var(--app-primary-glow);
+      transform: translateY(0) scale(1);
     }
   }
 }
 
-.logo-container {
-  padding: 0.5rem 0;
-}
-
-.logo-text {
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: var(--app-primary);
-  text-decoration: none;
-  cursor: pointer;
-  letter-spacing: -0.04em;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 4px 8px;
+.selector-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.8rem;
+  background: var(--app-surface-light);
+  border: 1px solid var(--app-border);
   border-radius: 8px;
+  color: var(--app-text-primary);
+  font-family: var(--app-font-emphasis);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .chevron {
+    color: var(--app-text-muted);
+    transition: transform 0.2s;
+  }
 
   &:hover {
-    background: rgba(100, 246, 92, 0.05);
+    background: var(--app-surface-hover);
+    border-color: var(--app-primary);
+    
+    .chevron {
+      transform: rotate(180deg);
+      color: var(--app-primary);
+    }
   }
 }
 
 .dropdown-menu {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   left: 0;
-  padding-top: 12px;
+  padding-top: 4px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-8px);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top left;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: auto;
-  min-width: 160px;
-}
-
-.dropdown-arrow {
-  position: absolute;
-  top: 4px;
-  left: 20px;
-  width: 12px;
-  height: 12px;
-  background: var(--app-surface);
-  border-left: 1px solid var(--app-border);
-  border-top: 1px solid var(--app-border);
-  transform: rotate(45deg);
-  z-index: 1;
+  min-width: 180px;
+  z-index: 1001;
 }
 
 .dropdown-content {

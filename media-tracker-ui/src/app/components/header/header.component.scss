@@ -14,6 +14,19 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: auto;
 
+  .header-logo-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    a {
+      text-decoration: none;
+      color: var(--app-text-primary);
+      font-weight: 700;
+      font-size: 1.5rem;
+    }
+  }
+
   &.scrolled {
     top: 1rem;
     left: 1rem;
@@ -22,6 +35,34 @@
     border-radius: 20px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     padding: 0.6rem 1.5rem;
+  }
+}
+
+.header-branding {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+
+  .divider {
+    width: 1px;
+    height: 24px;
+    background: var(--app-border);
+  }
+}
+
+.logo-link {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--app-primary);
+  text-decoration: none;
+  cursor: pointer;
+  letter-spacing: -0.04em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 4px 0;
+
+  &:hover {
+    text-shadow: 0 0 15px var(--app-primary-glow);
+    transform: scale(1.02);
   }
 }
 
@@ -115,6 +156,121 @@
   }
 }
 
+.login-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1.25rem;
+  background: linear-gradient(135deg, var(--app-primary), var(--app-accent));
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(var(--app-primary-rgb), 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(var(--app-primary-rgb), 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  lucide-icon {
+    color: white;
+  }
+}
+
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 1rem 0.4rem 0.4rem;
+  background: var(--app-surface-light);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text-secondary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 200px;
+
+  &.active {
+    background: var(--app-surface-hover);
+    border-color: var(--app-primary);
+    color: var(--app-text-primary);
+  }
+
+  &:hover {
+    background: var(--app-surface-hover);
+    color: var(--app-text-primary);
+    border-color: var(--app-primary);
+    transform: translateY(-1px);
+  }
+
+  .user-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+
+  lucide-icon {
+    color: var(--app-primary);
+    flex-shrink: 0;
+  }
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--app-primary);
+  flex-shrink: 0;
+}
+
+.user-avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--app-primary), var(--app-accent));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.user-info {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--app-surface);
+
+  .user-info-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--app-text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .user-info-email {
+    font-size: 0.8rem;
+    color: var(--app-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 640px) {
   .app-header {
     padding: 0.75rem 1rem;
@@ -131,6 +287,29 @@
     
     lucide-icon {
        margin: 0;
+    }
+  }
+
+  .login-btn {
+    padding: 0.5rem;
+    font-size: 0;
+    gap: 0;
+
+    span {
+      display: none;
+    }
+  }
+
+  .user-btn {
+    padding: 0.4rem;
+    max-width: unset;
+
+    .user-name {
+      display: none;
+    }
+
+    lucide-icon:last-child {
+      display: none;
     }
   }
 }

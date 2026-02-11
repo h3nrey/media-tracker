@@ -1,16 +1,17 @@
 <div class="browse-page">
   <!-- Featured Hero Carousel -->
-  <section class="hero-section">
+  <!-- Featured Hero Carousel -->
+  <section class="hero-section" #heroOrigin>
     @if (currentFeatured; as featured) {
       <div class="hero-backdrop" 
            [class.transitioning]="isTransitioning()"
-           [style.background-image]="'url(' + (featured.bannerImage || featured.images.jpg.large_image_url) + ')'">
+           [style.background-image]="'url(' + (featured.bannerImage || featured.image) + ')'">
         <div class="hero-gradient"></div>
       </div>
       
       <div class="hero-content" [class.transitioning]="isTransitioning()">
         <div class="hero-info">
-          <h1 class="hero-title">{{ featured.title_english || featured.title }}</h1>
+          <h1 class="hero-title">{{ featured.title }}</h1>
           
           <div class="hero-meta">
             @if (featured.score) {
@@ -32,16 +33,34 @@
           }
 
           <div class="hero-genres">
-            @for (genre of (featured.genres || []).slice(0, 3); track genre.mal_id) {
-              <span class="genre-badge">{{ genre.name }}</span>
+            @for (genre of featured.genres.slice(0, 3); track $index) {
+              <span class="genre-badge">{{ genre }}</span>
             }
           </div>
 
           <div class="hero-actions">
-            <button class="hero-btn primary" (click)="viewAnimeDetails(featured)">
+            <button class="hero-btn primary" (click)="viewDetails(featured)">
               <lucide-icon [img]="SparklesIcon" [size]="18"></lucide-icon>
               <span>View Details</span>
             </button>
+            
+            <div class="hero-action-group">
+              <button class="action-btn" [class.added]="isItemAdded(featured.externalId)" 
+                (click)="toggleHeroListMenu($event, 'status')"
+                [title]="isItemAdded(featured.externalId) ? 'Mudar Status' : 'Adicionar aos Desejos'">
+                <lucide-icon [img]="isItemAdded(featured.externalId) ? CheckIcon : BookmarkIcon" [size]="20"></lucide-icon>
+              </button>
+
+              <button class="action-btn" (click)="toggleHeroListMenu($event)" title="Adicionar a uma lista">
+                <lucide-icon [img]="ListPlusIcon" [size]="20"></lucide-icon>
+              </button>
+
+              @if (featured.trailerUrl) {
+                <button class="action-btn" (click)="playTrailer(featured)" title="Ver Trailer">
+                  <lucide-icon [img]="PlayIcon" [size]="20"></lucide-icon>
+                </button>
+              }
+            </div>
           </div>
         </div>
 
@@ -52,7 +71,7 @@
           </button>
           
           <div class="carousel-dots">
-            @for (anime of featuredAnimeList(); track $index) {
+            @for (item of featuredList(); track $index) {
               <button 
                 class="dot" 
                 [class.active]="currentFeaturedIndex() === $index"
@@ -67,22 +86,102 @@
           </button>
         </div>
       </div>
+
+      <app-popover 
+        [origin]="heroOrigin" 
+        [isOpen]="showHeroListMenu()" 
+        (close)="showHeroListMenu.set(false)"
+        [customStyle]="{ width: '18rem', height: '24rem' }">
+        <app-browse-list-popover
+          [availableLists]="availableLists()"
+          [categories]="categories()"
+          [initialView]="heroPopoverInitialView()"
+          (close)="showHeroListMenu.set(false)"
+          (selectList)="addToListFromHero($event, featured)"
+          (selectCategory)="changeCategory(featured, $event)"
+          (createList)="createAndAddListFromHero($event)">
+        </app-browse-list-popover>
+      </app-popover>
+
     } @else if (isLoadingFeatured()) {
-      <div class="hero-loading">
-        <div class="spinner"></div>
+      <div class="hero-skeleton">
+        <div class="skeleton-content">
+          <div class="h-title"></div>
+          <div class="h-meta"></div>
+          <div class="h-desc"></div>
+          <div class="h-btns">
+            <div class="h-btn"></div>
+            <div class="h-btn"></div>
+          </div>
+        </div>
       </div>
     }
   </section>
 
   <!-- Scrollable Sections -->
   <div class="sections-container">
+    @if (searchQuery()) {
+      <section class="anime-section search-results-section">
+        <div class="section-header">
+          <div class="section-title-group">
+            <lucide-icon [img]="SearchIcon" [size]="20" class="section-icon search-icon"></lucide-icon>
+            <div>
+              <h2>Resultados para: "{{ searchQuery() }}"</h2>
+              <p class="section-subtitle">Encontrados na web</p>
+            </div>
+          </div>
+          <button class="clear-search-btn" (click)="searchQuery.set(''); searchResults.set([])">
+            <lucide-icon [img]="XIcon" [size]="18"></lucide-icon>
+            <span>Limpar Busca</span>
+          </button>
+        </div>
+
+        <div class="items-wrapper">
+          <div class="items-scroller">
+            @if (isSearching()) {
+              @for (i of [1,2,3,4,5]; track i) {
+                <div class="card-skeleton">
+                  <div class="skeleton-image"></div>
+                  <div class="skeleton-info">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-meta"></div>
+                  </div>
+                </div>
+              }
+            } @else {
+              @if (searchResults().length === 0) {
+                <div class="no-results">
+                  <p>Nenhum resultado encontrado para sua busca.</p>
+                </div>
+              } @else {
+                @for (item of searchResults(); track item.externalId) {
+                  <app-browse-card 
+                    [item]="item" 
+                    [isAdded]="isItemAdded(item.externalId)"
+                    [categories]="categories()"
+                    [showCategoryTooltip]="showCategoryTooltip() === item.externalId"
+                    (viewDetails)="viewDetails($event)"
+                    (quickAdd)="quickAddMedia($event)"
+                    (changeCategory)="changeCategory($event.item, $event.category)"
+                    (closeTooltip)="closeTooltip()"
+                    (playTrailer)="playTrailer($event)"
+                    (addToListEvent)="handleAddToList($event)">
+                  </app-browse-card>
+                }
+              }
+            }
+          </div>
+        </div>
+      </section>
+    }
+
     <!-- Refresh Button -->
-    <div class="refresh-section">
+    <div class="refresh-section" *ngIf="!searchQuery()">
       <button class="refresh-btn" (click)="refreshBrowse()" title="Clear cache and reload">
         <lucide-icon [img]="RefreshIcon" [size]="18"></lucide-icon>
-        <span>Refresh Content</span>
+        <span>Atualizar Conteúdo</span>
       </button>
-      <p class="cache-hint">Data is cached for 2 hours. Use this to force refresh.</p>
+      <p class="cache-hint">Os dados são armazenados em cache por 2 horas.</p>
     </div>
 
     @for (section of sections(); track $index) {
@@ -97,86 +196,67 @@
               }
             </div>
           </div>
+
+          @if (section.availableSorts) {
+            <div class="section-sort">
+              <ui-select 
+                [value]="section.currentSort" 
+                [options]="section.availableSorts || []"
+                (valueChange)="changeSectionSort($index, $event)"
+                align="right">
+              </ui-select>
+            </div>
+          }
         </div>
 
-        @if (section.isLoading) {
-          <div class="section-loading">
-            <div class="loading-cards">
-              @for (i of [1,2,3,4,5,6,7,8]; track i) {
-                <div class="skeleton-card"></div>
-              }
-            </div>
-          </div>
-        } @else {
-          <div class="items-wrapper">
-            <button class="scroll-btn left" (click)="scrollSection($index, 'left')">
-              <lucide-icon [img]="ChevronLeftIcon" [size]="24"></lucide-icon>
-            </button>
-            
-            <div class="items-scroller">
-              @for (anime of section.items; track anime.mal_id) {
-                <div class="anime-card">
-                  <div class="card-image-wrapper" (click)="viewAnimeDetails(anime)">
-                    <img 
-                      [src]="anime.images.webp.large_image_url || anime.images.jpg.large_image_url" 
-                      [alt]="anime.title"
-                      class="card-image">
-                    
-                    <!-- MAL Score Badge -->
-                    @if (anime.score) {
-                      <div class="score-badge">
-                        <lucide-icon [img]="StarIcon" [size]="12"></lucide-icon>
-                        {{ anime.score }}
-                      </div>
-                    }
-
-                    <!-- Quick Add Button -->
-                    <button 
-                      class="quick-add-btn" 
-                      [class.added]="isAnimeAdded(anime.mal_id)"
-                      (click)="quickAddAnime(anime, $event)"
-                      [title]="isAnimeAdded(anime.mal_id) ? 'Added to library' : 'Add to Plan to Watch'">
-                      <lucide-icon 
-                        [img]="isAnimeAdded(anime.mal_id) ? CheckIcon : BookmarkIcon" 
-                        [size]="16">
-                      </lucide-icon>
-                    </button>
-
-                    <!-- Category Selection Tooltip -->
-                    @if (showCategoryTooltip() === anime.mal_id) {
-                      <div class="category-tooltip" (click)="$event.stopPropagation()">
-                        <div class="tooltip-header">
-                          <span>Move to:</span>
-                          <button class="close-tooltip" (click)="closeTooltip()">
-                            <lucide-icon [img]="XIcon" [size]="12"></lucide-icon>
-                          </button>
-                        </div>
-                        <div class="category-list">
-                          @for (cat of categories(); track cat.id) {
-                            <button 
-                              class="category-option"
-                              (click)="changeAnimeCategory(anime, cat, $event)">
-                              {{ cat.name }}
-                            </button>
-                          }
-                        </div>
-                      </div>
-                    }
-                  </div>
-                  <div class="card-info">
-                    <h3 class="card-title">{{ anime.title_english || anime.title }}</h3>
-                    <p class="card-meta">{{ anime.year || 'N/A' }}</p>
+        <div class="items-wrapper">
+          <button class="scroll-btn left" (click)="scrollSection($index, 'left')" [style.display]="section.isLoading ? 'none' : 'flex'">
+            <lucide-icon [img]="ChevronLeftIcon" [size]="24"></lucide-icon>
+          </button>
+          
+          <div class="items-scroller">
+            @if (section.isLoading) {
+              @for (i of [1,2,3,4,5,6,7,8,9,10]; track i) {
+                <div class="card-skeleton">
+                  <div class="skeleton-image"></div>
+                  <div class="skeleton-info">
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-meta"></div>
                   </div>
                 </div>
               }
-            </div>
-
-            <button class="scroll-btn right" (click)="scrollSection($index, 'right')">
-              <lucide-icon [img]="ChevronRightIcon" [size]="24"></lucide-icon>
-            </button>
+            } @else {
+              @for (item of section.items; track item.externalId) {
+                <app-browse-card 
+                  [item]="item" 
+                  [isAdded]="isItemAdded(item.externalId)"
+                  [categories]="categories()"
+                  [showCategoryTooltip]="showCategoryTooltip() === item.externalId"
+                  (viewDetails)="viewDetails($event)"
+                  (quickAdd)="quickAddMedia($event)"
+                  (changeCategory)="changeCategory($event.item, $event.category)"
+                  (closeTooltip)="closeTooltip()"
+                  (playTrailer)="playTrailer($event)"
+                  (addToListEvent)="handleAddToList($event)">
+                </app-browse-card>
+              }
+            }
           </div>
-        }
+
+          <button class="scroll-btn right" (click)="scrollSection($index, 'right')" [style.display]="section.isLoading ? 'none' : 'flex'">
+            <lucide-icon [img]="ChevronRightIcon" [size]="24"></lucide-icon>
+          </button>
+        </div>
       </section>
     }
   </div>
+
+  <!-- Trailer Overlay -->
+  @if (selectedTrailer(); as trailer) {
+    <app-trailer-overlay
+      [trailerUrl]="trailer.url"
+      [title]="trailer.title"
+      (close)="selectedTrailer.set(null)">
+    </app-trailer-overlay>
+  }
 </div>

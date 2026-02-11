@@ -76,6 +76,16 @@ export class BoardFiltersComponent implements OnInit {
       item.activityDates?.forEach(d => {
         activityYears.add(new Date(d).getFullYear());
       });
+      item.runs?.forEach(run => {
+        if (run.startDate) {
+          const startYear = new Date(run.startDate).getFullYear();
+          if (!isNaN(startYear)) activityYears.add(startYear);
+        }
+        if (run.endDate) {
+          const endYear = new Date(run.endDate).getFullYear();
+          if (!isNaN(endYear)) activityYears.add(endYear);
+        }
+      });
     });
     return [...activityYears].sort((a, b) => b - a);
   }
@@ -191,7 +201,11 @@ export class BoardFiltersComponent implements OnInit {
   }
 
   getWatchedYearOptions() {
-    return this.availableActivityYears().map(y => ({ value: y, label: y.toString() }));
+    const years = this.availableActivityYears().map(y => ({ value: y, label: y.toString() }));
+    return [
+      { value: undefined, label: 'All Time' },
+      ...years
+    ];
   }
 
   getSortOptions() {

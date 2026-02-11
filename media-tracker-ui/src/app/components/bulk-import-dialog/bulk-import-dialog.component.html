@@ -3,7 +3,7 @@
     <div class="dialog-header">
       <div class="title-area">
         <lucide-icon [img]="UploadIcon" [size]="20" class="header-icon"></lucide-icon>
-        <h2>Import / Export Media</h2>
+        <h2>Importação em Massa</h2>
       </div>
       <button class="close-btn" (click)="close()">
         <lucide-icon [img]="XIcon" [size]="24"></lucide-icon>
@@ -13,56 +13,45 @@
     <div class="dialog-body">
       <div class="info-banner">
         <lucide-icon [img]="InfoIcon" [size]="18"></lucide-icon>
-        <p *ngIf="selectedMediaType() === MediaType.ANIME">Import Format: <strong>[Idx], [Img], Title, Genres, Studio, Date, Score</strong></p>
-        <p *ngIf="selectedMediaType() === MediaType.GAME">Import Format: <strong>[Idx], Name, Platform, Genre, Year, Time, Score, Note</strong></p>
+        <p>Cole os títulos separados por vírgula. Cada título será buscado automaticamente (TMDB para filmes/anime, MAL para mangá, IGDB para jogos).</p>
       </div>
 
       <div class="import-options">
         <div class="option">
-          <label>1. Media Type</label>
+          <label>Tipo de Mídia</label>
           <ui-select
             [options]="mediaTypeOptions"
             [value]="selectedMediaType()"
             (valueChange)="selectedMediaType.set($event)"
-            placeholder="Select Type"
+            placeholder="Selecione o tipo"
             [rounding]="'full'"
           ></ui-select>
         </div>
         <div class="option">
-          <label>2. Category (Import)</label>
+          <label>Categoria</label>
           <ui-select
             [options]="categoryOptions()"
             [value]="selectedCategoryId()"
             (valueChange)="selectedCategoryId.set($event)"
-            placeholder="Select Category"
+            placeholder="Selecione a categoria"
             [rounding]="'full'"
           ></ui-select>
         </div>
-        <div class="option">
-          <label>3. Skip rows</label>
-          <app-number-input [value]="skipFirstX()" [min]="0" (valueChange)="skipFirstX.set($event)"></app-number-input>
-        </div>
-      </div>
-
-      <div class="file-upload-area" *ngIf="status() === 'idle'">
-        <input type="file" #fileInput (change)="onFileSelected($event)" accept=".csv,.txt" hidden>
-        <button class="btn-outline" (click)="fileInput.click()">
-          <lucide-icon [img]="UploadIcon" [size]="18"></lucide-icon>
-          Upload .CSV File
-        </button>
-        <span class="or-divider">OR PASTE BELOW</span>
       </div>
 
       <div class="form-group" *ngIf="status() === 'idle'">
-        <label>Data to Import</label>
+        <label>Títulos (separados por vírgula)</label>
         <textarea 
           [(ngModel)]="importData" 
-          [placeholder]="selectedMediaType() === MediaType.ANIME 
-            ? '... Image, One Piece, Adventure, Toei, 2024, 10 ...' 
-            : '... Name, PC, RPG, 2024, 50:00, 9, Good game ...'"
+          placeholder="Cidade de Deus, Pulp Fiction, Forrest Gump, Parasita, ..."
           class="import-textarea"
           [disabled]="status() === 'processing'"
+          rows="8"
         ></textarea>
+        <div class="helper-text">
+          <lucide-icon [img]="InfoIcon" [size]="14"></lucide-icon>
+          <span>{{ getTitleCount() }} título(s) detectado(s)</span>
+        </div>
       </div>
 
       <div class="status-area" *ngIf="status() !== 'idle'">
@@ -73,7 +62,19 @@
         <div class="status-msg" [class]="status()">
           <lucide-icon *ngIf="status() === 'success'" [img]="CheckIcon" [size]="18"></lucide-icon>
           <lucide-icon *ngIf="status() === 'error'" [img]="AlertIcon" [size]="18"></lucide-icon>
+          <lucide-icon *ngIf="status() === 'processing'" [img]="LoaderIcon" [size]="18" class="spinner"></lucide-icon>
           {{ message() }}
+        </div>
+
+        <div class="import-log" *ngIf="logs().length > 0">
+          <h4>Log de Importação</h4>
+          <div class="log-entries">
+            @for (log of logs(); track $index) {
+              <div class="log-entry" [class]="log.type">
+                {{ log.message }}
+              </div>
+            }
+          </div>
         </div>
       </div>
     </div>
@@ -82,17 +83,17 @@
       <div class="left-actions">
         <button class="btn-outline" (click)="exportData()" [disabled]="status() === 'processing'">
           <lucide-icon [img]="DownloadIcon" [size]="18"></lucide-icon>
-          Export to Excel
+          Exportar para Excel
         </button>
       </div>
       <div class="right-actions">
-        <button class="btn-cancel" (click)="close()">Cancel</button>
+        <button class="btn-cancel" (click)="close()">Cancelar</button>
         <button 
           class="btn-import" 
           [disabled]="!importData.trim() || status() === 'processing'"
           (click)="processImport()"
         >
-          {{ status() === 'processing' ? 'Processing...' : 'Start Import' }}
+          {{ status() === 'processing' ? 'Importando...' : 'Iniciar Importação' }}
         </button>
       </div>
     </div>

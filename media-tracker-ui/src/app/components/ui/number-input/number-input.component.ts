@@ -12,9 +12,10 @@ import { LucideAngularModule, Minus, Plus } from 'lucide-angular';
 })
 export class NumberInputComponent {
   @Input() value: number = 0;
+  @Input() placeholder?: string;
   @Input() min?: number;
   @Input() max?: number;
-  @Input() placeholder: string = '';
+  @Input() step: number = 1;
   @Output() valueChange = new EventEmitter<number>();
 
   readonly MinusIcon = Minus;
@@ -29,11 +30,11 @@ export class NumberInputComponent {
   }
 
   increment() {
-    this.updateValue((this.value || 0) + 1);
+    this.updateValue((this.value || 0) + this.step);
   }
 
   decrement() {
-    this.updateValue((this.value || 0) - 1);
+    this.updateValue((this.value || 0) - this.step);
   }
 
   private updateValue(newValue: number) {

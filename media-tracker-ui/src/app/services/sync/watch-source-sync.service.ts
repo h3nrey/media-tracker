@@ -2,14 +2,17 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../supabase.service';
 import { db } from '../database.service';
 import { WatchSource } from '../../models/watch-source.model';
+import { AuthService } from '../auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WatchSourceSyncService {
   private supabase = inject(SupabaseService).client;
+  private authService = inject(AuthService);
 
   async sync() {
+    const user = this.authService.currentUser()!;
     const localSources = await db.watchSources.toArray();
     const { data: remoteSources, error } = await this.supabase
       .from('watch_sources')
@@ -24,6 +27,7 @@ export class WatchSourceSyncService {
           const { data, error: insertError } = await this.supabase
             .from('watch_sources')
             .insert([{
+              user_id: user.id,
               name: local.name,
               base_url: local.baseUrl,
               is_deleted: false,
@@ -47,6 +51,7 @@ export class WatchSourceSyncService {
           await this.supabase
             .from('watch_sources')
             .update({
+              user_id: user.id,
               name: local.name,
               base_url: local.baseUrl,
               is_deleted: !!local.isDeleted,

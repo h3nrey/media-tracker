@@ -2,67 +2,54 @@
 
   <!-- Category Sections -->
   @for (category of categories(); track category.id) {
-    <section class="category-section" [class.collapsed]="isSectionCollapsed(category.supabaseId!)">
-      <div class="section-header" (click)="toggleSection(category.supabaseId!)">
+    <section class="category-section" [class.collapsed]="isSectionCollapsed(category.id!)">
+      <div class="section-header" (click)="toggleSection(category.id!)">
         <div class="header-left">
           <button class="collapse-btn">
             <lucide-icon 
-              [img]="isSectionCollapsed(category.supabaseId!) ? ChevronDownIcon : ChevronUpIcon" 
+              [img]="isSectionCollapsed(category.id!) ? ChevronDownIcon : ChevronUpIcon" 
               [size]="20">
             </lucide-icon>
           </button>
           <h2>{{ category.name }}</h2>
-          <span class="count-badge">{{ getMediaForCategory(category.supabaseId!).length }}</span>
+          <span class="count-badge">{{ getMediaForCategory(category.id!).length }}</span>
         </div>
         
         <button 
           class="add-btn" 
-          (click)="onAddMedia(category.supabaseId!); $event.stopPropagation()" 
+          (click)="onAddMedia(category.id!); $event.stopPropagation()" 
           title="Add media">
           <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon>
         </button>
       </div>
 
-      @if (!isSectionCollapsed(category.supabaseId!)) {
+      @if (!isSectionCollapsed(category.id!)) {
         <div class="anime-list">
-          @if (getMediaForCategory(category.supabaseId!).length === 0) {
+          @if (getMediaForCategory(category.id!).length === 0) {
             <div class="empty-state">
               <p>No media in this category for the selected year</p>
             </div>
           } @else {
-            @for (media of getMediaForCategory(category.supabaseId!); track media.id) {
-              <div class="anime-item" (click)="onMediaClick(media)">
-                <img 
-                  [src]="media.coverImage" 
-                  [alt]="media.title"
-                  class="anime-cover">
-                
-                <div class="anime-info">
-                  <h3 class="anime-title">{{ media.title }}</h3>
-                  <div class="anime-meta">
-                    <span class="progress">
-                      {{ media.progressCurrent }}/{{ media.progressTotal || '?' }}
-                    </span>
-                    @if (media.score > 0) {
-                      <span class="score">⭐ {{ media.score }}</span>
-                    }
-                    @if (media.releaseYear) {
-                      <span class="year">{{ media.releaseYear }}</span>
-                    }
-                  </div>
-                </div>
-
-                <button 
-                  class="edit-btn" 
-                  (click)="onEditMedia(media, $event)"
-                  title="Edit media">
-                  Edit
-                </button>
-              </div>
+            @for (media of getMediaForCategory(category.id!); track media.id) {
+              <app-list-view-card
+                [media]="media"
+                [categories]="categories()"
+                [showProgress]="media.mediaTypeId !== MediaType.GAME"
+                [isSelected]="selectedIds().has(media.id!)"
+                (cardClick)="onMediaClick($event.media, $event.event)"
+                (edit)="onEditMedia($event.media, $event.event)"
+                (delete)="onDeleteMedia($event.media, $event.event)"
+                (statusChange)="onStatusChangeMedia($event.media, $event.statusId)">
+              </app-list-view-card>
             }
           }
         </div>
       }
     </section>
   }
+
+  <app-list-view-selection-bar
+    [selectedCount]="selectedIds().size"
+    (deselectAll)="clearAllSelection()">
+  </app-list-view-selection-bar>
 </div>

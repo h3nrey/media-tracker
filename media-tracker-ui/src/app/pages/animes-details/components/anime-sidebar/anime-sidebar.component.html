@@ -19,16 +19,16 @@
       @for (star of [1, 2, 3, 4, 5]; track star) {
         <button 
           class="star-btn" 
-          [class.filled]="(hoveredStar() !== null ? hoveredStar()! : (anime()?.score || 0)) >= star"
+          [class.filled]="(hoveredStar() !== null ? hoveredStar()! : activeRunRating) >= star"
           (mouseenter)="onHover(star)"
           (click)="setScore(star)">
           <lucide-icon [img]="StarIcon" [size]="20" fill="currentColor"></lucide-icon>
         </button>
       }
-      @if (hoveredStar() === 5 || hoveredStar() === 6 || (anime()?.score || 0) === 6) {
+      @if (hoveredStar() === 5 || hoveredStar() === 6 || activeRunRating === 6) {
         <button 
           class="star-btn special-star" 
-          [class.filled]="(hoveredStar() !== null ? hoveredStar()! : (anime()?.score || 0)) >= 6"
+          [class.filled]="(hoveredStar() !== null ? hoveredStar()! : activeRunRating) >= 6"
           (mouseenter)="onHover(6)"
           (click)="setScore(6)">
           <lucide-icon [img]="StarIcon" [size]="20" fill="currentColor"></lucide-icon>
@@ -45,7 +45,7 @@
       <div class="episode-progress">
         <div class="progress-info">
           <span>Progress</span>
-          <span class="count">{{ anime()?.progressCurrent }} / {{ anime()?.progressTotal }}</span>
+          <span class="count">{{ activeRunEpisodeCount() }} / {{ anime()?.progressTotal }}</span>
         </div>
         <div class="progress-bar-container">
           <div class="progress-bar" [style.width.%]="progress"></div>
@@ -80,6 +80,12 @@
       <span>Edit Anime</span>
     </button>
   </div>
+
+  <app-media-list-section
+    [mediaId]="anime()!.id!"
+    [lists]="lists()"
+    (updated)="listUpdated.emit()">
+  </app-media-list-section>
 
   <div class="side-links">
     <app-anime-links [sourceLinks]="anime()?.sourceLinks" (saveLinks)="onSaveLinks($event)"></app-anime-links>

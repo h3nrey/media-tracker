@@ -1,21 +1,35 @@
-import { Component, input, output, signal, effect } from '@angular/core';
+import { Component, input, output, signal, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Plus, X, CheckCircle, ExternalLink, Calendar } from 'lucide-angular';
+import { LucideAngularModule, Plus, X, CheckCircle, ExternalLink, Calendar, Search } from 'lucide-angular';
 import { NumberInputComponent } from '../../../ui/number-input/number-input.component';
 import { TagInputComponent } from '../../../ui/tag-input/tag-input.component';
-import { DatePickerComponent } from '../../../ui/date-picker/date-picker.component';
 import { Category } from '../../../../models/status.model';
 import { WatchSource } from '../../../../models/watch-source.model';
 import { MediaType } from '../../../../models/media-type.model';
-import { MediaLog } from '../../../../models/media-log.model';
+import { MediaRun } from '../../../../models/media-run.model';
+import { SelectComponent } from '../../../ui/select/select';
+import { StarRatingInputComponent } from '../../../ui/star-rating-input/star-rating-input.component';
+
+import { MediaJournalComponent } from '../shared/media-journal/media-journal';
+import { DatePickerComponent } from '../../../ui/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-manga-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, DatePickerComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    LucideAngularModule, 
+    NumberInputComponent, 
+    TagInputComponent, 
+    DatePickerComponent, 
+    MediaJournalComponent,
+    SelectComponent,
+    StarRatingInputComponent
+  ],
   templateUrl: './manga-form.component.html',
-  styleUrl: './manga-form.component.scss' // Reusing style from Anime if possible or separate
+  styleUrl: './manga-form.component.scss'
 })
 export class MangaFormComponent {
   initialData = input<any>(null);
@@ -25,12 +39,23 @@ export class MangaFormComponent {
   
   save = output<any>();
   cancel = output<void>();
+  changeSource = output<void>();
 
   readonly PlusIcon = Plus;
   readonly XIcon = X;
   readonly CheckCircleIcon = CheckCircle;
   readonly ExternalLinkIcon = ExternalLink;
   readonly CalendarIcon = Calendar;
+  readonly SearchIcon = Search;
+
+  activeTab = signal<'main' | 'journal' | 'details' | 'screenshots'>('main');
+
+  categoryOptions = computed(() => {
+    return this.categories().map(c => ({
+      value: c.id!,
+      label: c.name
+    }));
+  });
 
   title = signal('');
   coverImage = signal('');
@@ -46,7 +71,7 @@ export class MangaFormComponent {
   releaseYear = signal<number | undefined>(undefined);
   notes = signal('');
   activityDates = signal<Date[]>([]);
-  logs = signal<MediaLog[]>([]);
+  runs = signal<MediaRun[]>([]);
   sourceLinks = signal<any[]>([]);
 
   showDatePicker = signal(false);
@@ -66,7 +91,7 @@ export class MangaFormComponent {
     effect(() => {
         const cats = this.categories();
         if (cats.length > 0 && this.selectedCategoryId() === undefined) {
-            this.selectedCategoryId.set(cats[0].supabaseId || cats[0].id);
+            this.selectedCategoryId.set(cats[0].id);
         }
     });
   }
@@ -87,7 +112,7 @@ export class MangaFormComponent {
     this.releaseYear.set(data.releaseYear);
     this.notes.set(data.notes || '');
     this.activityDates.set(data.activityDates || []);
-    this.logs.set(data.logs || []);
+    this.runs.set(data.runs || data.logs || []);
     this.sourceLinks.set(data.source_links || data.sourceLinks || []);
   }
 
@@ -104,21 +129,8 @@ export class MangaFormComponent {
     this.activityDates.update(dates => dates.filter((_, i) => i !== index));
   }
 
-  addLog() {
-    this.logs.update(logs => [...logs, { mediaItemId: 0, startDate: new Date() }]);
-  }
+  // Methods handled by MediaJournalComponent now or renamed to runs
 
-  removeLog(index: number) {
-    this.logs.update(logs => logs.filter((_, i) => i !== index));
-  }
-
-  updateLogDate(index: number, field: 'startDate' | 'endDate', date: Date | string) {
-    this.logs.update(logs => {
-      const newLogs = [...logs];
-      newLogs[index] = { ...newLogs[index], [field]: date };
-      return newLogs;
-    });
-  }
 
   addLink() {
     if (this.newLinkSourceId() && this.newLinkUrl().trim()) {
@@ -157,8 +169,8 @@ export class MangaFormComponent {
       releaseYear: this.releaseYear(),
       notes: this.notes(),
       activityDates: this.activityDates(),
-      logs: this.logs(),
-      source_links: this.sourceLinks()
+      runs: this.runs(),
+      sourceLinks: this.sourceLinks()
     };
     this.save.emit(mediaData);
   }

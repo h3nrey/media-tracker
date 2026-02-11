@@ -1,0 +1,13 @@
+<div class="selection-bar" [class.visible]="selectedCount() > 0">
+  <div class="selection-info">
+    <span class="count-badge">{{ selectedCount() }}</span>
+    <span>{{ selectedCount() === 1 ? 'item selecionado' : 'itens selecionados' }}</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <button class="deselect-btn" (click)="onDeselectAll()">
+    <lucide-icon [img]="CloseIcon" [size]="16"></lucide-icon>
+    Desmarcar Tudo
+  </button>
+</div>

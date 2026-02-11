@@ -49,6 +49,5 @@ export class MediaTypeSelectorComponent {
   selectType(id: number | null) {
     this.mediaTypeState.setSelectedMediaType(id);
     this.isOpen.set(false);
-    this.router.navigate(['/']);
   }
 }

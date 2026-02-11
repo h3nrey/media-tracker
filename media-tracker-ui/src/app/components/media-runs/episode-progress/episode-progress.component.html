@@ -1,0 +1,48 @@
+<div class="progress-wrapper">
+  <div class="progress-stats">
+    <div class="label">
+      Watched: <span>{{ watchedEpisodes().length }}</span> / {{ totalEpisodes || '?' }}
+    </div>
+    @if (totalEpisodes) {
+      <div class="percentage">{{ getProgressPercentage() | number:'1.0-0' }}%</div>
+    }
+  </div>
+
+  @if (totalEpisodes) {
+    <div class="progress-bar-bg">
+      <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+    </div>
+  }
+
+  <div class="action-buttons">
+    <button class="action-btn clear-btn" (click)="clearAll()" title="Desmarcar todos">
+      <lucide-icon [img]="ClearIcon" [size]="16"></lucide-icon>
+      Limpar
+    </button>
+    <button class="action-btn watch-all-btn" (click)="watchAll()" title="Marcar todos como assistidos">
+      <lucide-icon [img]="CheckAllIcon" [size]="16"></lucide-icon>
+      Marcar Todos
+    </button>
+  </div>
+
+  <div class="episode-grid">
+    @for (ep of getVisibleEpisodes(); track ep) {
+      <button 
+        type="button"
+        class="episode-item"
+        [class.watched]="watchedEpisodes().includes(ep)"
+        (click)="toggleEpisode(ep, $event)"
+        [title]="'Episódio ' + ep + ' (Shift+Click para marcar até aqui)'">
+        {{ ep }}
+      </button>
+    }
+  </div>
+
+  @if (getEpisodeList().length > 24) {
+    <button 
+      class="show-more-btn" 
+      (click)="showAll.set(!showAll())">
+      {{ showAll() ? 'Mostrar Menos' : 'Mostrar Todos os Episódios' }}
+    </button>
+  }
+</div>

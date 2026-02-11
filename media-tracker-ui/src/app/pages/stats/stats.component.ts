@@ -1,74 +1,230 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, effect, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AnimeService } from '../../services/anime.service';
+import { MediaService } from '../../services/media.service';
+import { ReviewService } from '../../services/review.service';
+import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { CategoryService } from '../../services/status.service';
-import { Anime } from '../../models/anime.model';
+import { MediaItem, MediaType } from '../../models/media-type.model';
+import { MediaReview } from '../../models/review.model';
 import { Category } from '../../models/status.model';
-import { LucideAngularModule, TrendingUp, Clock, Star, Calendar, BarChart3, Eye } from 'lucide-angular';
-import { SelectComponent } from '../../components/ui/select/select';
+import { Subscription } from 'rxjs';
+import { LucideAngularModule, TrendingUp, Clock, Star, Calendar, BarChart3, Eye, Image, History, SearchX } from 'lucide-angular';
+import { ScrollToTopComponent } from '../../components/ui/scroll-to-top/scroll-to-top.component';
+import { StatsHeaderComponent } from './components/stats-header/stats-header.component';
+import { StatsSummaryCardsComponent } from './components/stats-summary-cards/stats-summary-cards.component';
+import { StatsDistributionComponent, CategoryStat } from './components/stats-distribution/stats-distribution.component';
+import { StatsBarListComponent } from './components/stats-bar-list/stats-bar-list.component';
+import { StatsDiaryComponent } from './components/stats-diary/stats-diary.component';
+import { StatsGalleryComponent } from './components/stats-gallery/stats-gallery.component';
+import { StatsReviewsComponent } from './components/stats-reviews/stats-reviews.component';
+import { StatsListsComponent } from './components/stats-lists/stats-lists.component';
+import { StatsMediaCardComponent } from './components/stats-media-card/stats-media-card.component';
+import { StatsPodiumComponent } from './components/stats-podium/stats-podium.component';
+import { StatsEmptyStateComponent } from './components/stats-empty-state/stats-empty-state.component';
 
 interface YearStats {
-  totalAnime: number;
-  totalEpisodes: number;
-  avgScore: number;
+  totalStarted: number;
   totalCompleted: number;
+  totalEpisodes: number;
+  totalTime: number;
+  totalAnime: number;
+  avgScore: number;
   favoriteGenres: { name: string; count: number }[];
   monthlyActivity: { month: string; count: number }[];
-  topRated: Anime[];
-  recentlyCompleted: Anime[];
+  topRated: MediaItem[];
+  recentlyCompleted: MediaItem[];
 }
 
 @Component({
   selector: 'app-stats',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, SelectComponent],
+  imports: [
+    CommonModule, 
+    LucideAngularModule, 
+    ScrollToTopComponent, 
+    StatsHeaderComponent,
+    StatsSummaryCardsComponent,
+    StatsDistributionComponent,
+    StatsBarListComponent,
+    StatsDiaryComponent,
+    StatsGalleryComponent,
+    StatsReviewsComponent,
+    StatsListsComponent,
+    StatsMediaCardComponent,
+    StatsPodiumComponent,
+    StatsEmptyStateComponent
+  ],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss'
 })
-export class StatsComponent {
-  private animeService = inject(AnimeService);
+export class StatsComponent implements OnInit, OnDestroy {
+  private mediaService = inject(MediaService);
+  private mediaTypeState = inject(MediaTypeStateService);
   private categoryService = inject(CategoryService);
+  private reviewSub?: Subscription;
 
   // Icons
   readonly TrendingUpIcon = TrendingUp;
   readonly ClockIcon = Clock;
   readonly StarIcon = Star;
+  readonly HistoryIcon = History;
+  readonly SearchXIcon = SearchX;
   readonly CalendarIcon = Calendar;
   readonly BarChartIcon = BarChart3;
   readonly EyeIcon = Eye;
+  readonly ImageIcon = Image;
+  protected readonly MediaType = MediaType;
 
   selectedYear = signal<string>('all');
   yearOptions = signal<{value: string, label: string}[]>([]);
-  allAnime = signal<Anime[]>([]);
+  allMedia = signal<MediaItem[]>([]);
   categories = signal<Category[]>([]);
+  currentMediaType = signal<number | null>(null);
 
   stats = computed(() => this.calculateStats());
 
-  ngOnInit() {
+  producerStats = computed(() => {
+    const year = this.selectedYear();
+    let filteredMedia = this.allMedia();
+
+    if (year !== 'all') {
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
+    }
+
+    const producerCount = new Map<string, number>();
+    filteredMedia.forEach(item => {
+      item.studios?.forEach(studio => {
+        producerCount.set(studio, (producerCount.get(studio) || 0) + 1);
+      });
+    });
+
+    return Array.from(producerCount.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+  });
+
+  platformStats = computed(() => {
+    const year = this.selectedYear();
+    let filteredMedia = this.allMedia();
+
+    if (year !== 'all') {
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
+    }
+
+    const platformCount = new Map<string, number>();
+    filteredMedia.forEach(item => {
+      item.platforms?.forEach(platform => {
+        platformCount.set(platform, (platformCount.get(platform) || 0) + 1);
+      });
+    });
+
+    return Array.from(platformCount.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+  });
+
+  releaseYearStats = computed(() => {
+    const year = this.selectedYear();
+    let filteredMedia = this.allMedia();
+
+    if (year !== 'all') {
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
+    }
+
+    const releaseYearCount = new Map<number, number>();
+    filteredMedia.forEach(item => {
+      if (item.releaseYear) {
+        releaseYearCount.set(item.releaseYear, (releaseYearCount.get(item.releaseYear) || 0) + 1);
+      }
+    });
+
+    return Array.from(releaseYearCount.entries())
+      .map(([name, count]) => ({ name: name.toString(), count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+  });
+
+  completedMediaList = computed(() => {
+    const year = this.selectedYear();
+    const yearNum = year === 'all' ? undefined : parseInt(year);
+    return this.mediaService.getCompletedMedia(this.allMedia(), yearNum);
+  });
+
+  categoryStats = computed(() => {
+    const year = this.selectedYear();
+    let filteredMedia = this.allMedia();
+
+    if (year !== 'all') {
+      filteredMedia = this.mediaService.filterMediaList(this.allMedia(), { activityYear: parseInt(year) });
+    }
+
+    const totalCount = filteredMedia.length;
+
+    return this.categories().map(cat => {
+      const categoryMedia = filteredMedia.filter(a => a.statusId === cat.id);
+      const count = categoryMedia.length;
+      return {
+        name: cat.name,
+        count,
+        percentage: totalCount > 0 ? (count / totalCount) * 100 : 0,
+        color: cat.color || this.getCategoryColor(cat.name),
+        items: categoryMedia.map(m => m.title)
+      };
+    });
+  });
+
+  completionPercentage = computed(() => {
+    const completed = this.stats().totalCompleted;
+    const total = this.stats().totalAnime;
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  });
+
+  maxMonthlyCount = computed(() => {
+    const counts = this.stats().monthlyActivity.map(m => m.count);
+    return Math.max(...counts, 1);
+  });
+
+  constructor() {
     this.initializeYearOptions();
-    this.loadData();
+  }
+
+  ngOnDestroy() {
+    this.reviewSub?.unsubscribe();
+  }
+
+  ngOnInit() {
+    // this.initializeYearOptions(); // Moved to constructor
+    
+    // Subscribe to media type changes
+    this.mediaTypeState.getSelectedMediaType$().subscribe(typeId => {
+      this.currentMediaType.set(typeId);
+      this.loadData(typeId);
+    });
+
+    this.categoryService.getAllCategories$().subscribe(cats => {
+      this.categories.set(cats);
+    });
   }
 
   initializeYearOptions() {
     const currentYear = new Date().getFullYear();
     const years: {value: string, label: string}[] = [
-      { value: 'all', label: 'All-Time Stats' }
+      { value: 'all', label: 'All-Time' }
     ];
     
-    for (let year = currentYear; year >= 2000; year--) {
-      years.push({ value: year.toString(), label: `${year} Recap` });
+    for (let year = currentYear; year >= 2014; year--) {
+      years.push({ value: year.toString(), label: `${year}` });
     }
     
     this.yearOptions.set(years);
   }
 
-  loadData() {
-    this.animeService.getAllAnime$().subscribe(anime => {
-      this.allAnime.set(anime);
-    });
-
-    this.categoryService.getAllCategories$().subscribe(cats => {
-      this.categories.set(cats);
+  loadData(mediaTypeId: number | null) {
+    this.mediaService.getAllMedia$(mediaTypeId).subscribe(media => {
+      console.log(media);
+      this.allMedia.set(media);
     });
   }
 
@@ -78,38 +234,45 @@ export class StatsComponent {
 
   calculateStats(): YearStats {
     const year = this.selectedYear();
-    let filteredAnime = this.allAnime();
+    const mediaType = this.currentMediaType();
+    const filteredMedia = this.completedMediaList();
 
-    // Filter by year if not "all"
-    if (year !== 'all') {
-      const yearNum = parseInt(year);
-      filteredAnime = filteredAnime.filter(anime => {
-        // Filter by release year or year added to library
-        return anime.releaseYear === yearNum;
-      });
-    }
-
-    // Calculate total episodes watched
-    const totalEpisodes = filteredAnime.reduce((sum, anime) => 
-      sum + (anime.progressCurrent || 0), 0
+    // Calculate total episodes/progress watched
+    const totalProgress = filteredMedia.reduce((sum: any, item: any) => 
+      sum + (item.progressCurrent || 0), 0
     );
 
+    // Calculate total time
+    let totalTime = 0;
+    if (mediaType === MediaType.ANIME) {
+      // Assuming 24 mins per episode average for Anime
+      totalTime = Math.round((totalProgress * 24) / 60);
+    } else if (mediaType === MediaType.GAME) {
+      // For games, progressCurrent is usually hours
+      totalTime = Math.round(totalProgress);
+    } else {
+      // Default fallback
+      totalTime = Math.round(totalProgress);
+    }
+
+    // Calculate total started (at least 1 unit of progress)
+    const totalStarted = filteredMedia.filter(a => (a.progressCurrent || 0) > 0).length;
+
     // Calculate average score
-    const scoredAnime = filteredAnime.filter(a => a.score > 0);
-    const avgScore = scoredAnime.length > 0
-      ? scoredAnime.reduce((sum, a) => sum + a.score, 0) / scoredAnime.length
+    const scoredMedia = filteredMedia.filter(a => a.score > 0);
+    const avgScore = scoredMedia.length > 0
+      ? scoredMedia.reduce((sum, a) => sum + a.score, 0) / scoredMedia.length
       : 0;
 
-    // Get completed category
-    const completedCategory = this.categories().find(c => c.name === 'Completed');
-    const totalCompleted = completedCategory 
-      ? filteredAnime.filter(a => a.statusId === completedCategory.id).length
-      : 0;
+    // Get completed media specifically finished in this year
+    const yearNum = year === 'all' ? undefined : parseInt(year);
+    const completedMedia = this.mediaService.getCompletedMedia(this.allMedia(), yearNum);
+    const totalCompleted = completedMedia.length;
 
     // Calculate favorite genres
     const genreCount = new Map<string, number>();
-    filteredAnime.forEach(anime => {
-      anime.genres?.forEach(genre => {
+    filteredMedia.forEach(item => {
+      item.genres?.forEach(genre => {
         genreCount.set(genre, (genreCount.get(genre) || 0) + 1);
       });
     });
@@ -117,22 +280,24 @@ export class StatsComponent {
     const favoriteGenres = Array.from(genreCount.entries())
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
+      .slice(0, 6);
 
     // Top rated
-    const topRated = [...filteredAnime]
+    const topRated = [...filteredMedia]
       .filter(a => a.score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, 6);
 
     // Recently completed
-    const recentlyCompleted = completedCategory
-      ? [...filteredAnime]
-          .filter(a => a.statusId === completedCategory.id)
-          .slice(0, 6)
-      : [];
+    const recentlyCompleted = [...completedMedia]
+      .sort((a, b) => {
+        const dateA = new Date(a.endDate || 0).getTime();
+        const dateB = new Date(b.endDate || 0).getTime();
+        return dateB - dateA;
+      })
+      .slice(0, 6);
 
-    // Monthly activity (placeholder - would need dates in anime model)
+    // Monthly activity (placeholder)
     const monthlyActivity = [
       { month: 'Jan', count: Math.floor(Math.random() * 20) },
       { month: 'Feb', count: Math.floor(Math.random() * 20) },
@@ -149,10 +314,12 @@ export class StatsComponent {
     ];
 
     return {
-      totalAnime: filteredAnime.length,
-      totalEpisodes,
-      avgScore: Math.round(avgScore * 10) / 10,
+      totalStarted,
       totalCompleted,
+      totalEpisodes: totalProgress,
+      totalTime,
+      totalAnime: filteredMedia.length,
+      avgScore: Math.round(avgScore * 10) / 10,
       favoriteGenres,
       monthlyActivity,
       topRated,
@@ -160,79 +327,21 @@ export class StatsComponent {
     };
   }
 
-  getStudioStats() {
-    const year = this.selectedYear();
-    let filteredAnime = this.allAnime();
-
-    if (year !== 'all') {
-      const yearNum = parseInt(year);
-      filteredAnime = filteredAnime.filter(a => a.releaseYear === yearNum);
-    }
-
-    // Count anime by studio
-    const studioCount = new Map<string, number>();
-    filteredAnime.forEach(anime => {
-      anime.studios?.forEach(studio => {
-        studioCount.set(studio, (studioCount.get(studio) || 0) + 1);
-      });
-    });
-
-    return Array.from(studioCount.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 15);
-  }
-
-  getAllWatchedAnime(): Anime[] {
-    const year = this.selectedYear();
-    let filteredAnime = this.allAnime();
-
-    if (year !== 'all') {
-      const yearNum = parseInt(year);
-      filteredAnime = filteredAnime.filter(a => a.releaseYear === yearNum);
-    }
-
-    // Return all anime with at least 1 episode watched, sorted by episodes watched
-    return filteredAnime
-      .filter(a => (a.progressCurrent || 0) > 0)
-      .sort((a, b) => (b.progressCurrent || 0) - (a.progressTotal || 0));
-  }
-
-  getCompletionPercentage(): number {
-    const completed = this.stats().totalCompleted;
-    const total = this.stats().totalAnime;
-    return total > 0 ? Math.round((completed / total) * 100) : 0;
-  }
-
-  getMaxMonthlyCount(): number {
-    const counts = this.stats().monthlyActivity.map(m => m.count);
-    return Math.max(...counts, 1);
-  }
-
-  getCategoryStats() {
-    const year = this.selectedYear();
-    let filteredAnime = this.allAnime();
-
-    if (year !== 'all') {
-      const yearNum = parseInt(year);
-      filteredAnime = filteredAnime.filter(a => a.releaseYear === yearNum);
-    }
-
-    return this.categories().map(cat => ({
-      name: cat.name,
-      count: filteredAnime.filter(a => a.statusId === cat.id).length,
-      color: this.getCategoryColor(cat.name)
-    }));
-  }
-
   getCategoryColor(name: string): string {
     const colors: {[key: string]: string} = {
-      'Completed': '#64f65c',
-      'Watching': '#3b82f6',
-      'Plan to Watch': '#a855f7',
-      'On Hold': '#f59e0b',
-      'Dropped': '#ef4444'
+      'Completed': '#22c55e',
+      'Concluído': '#22c55e',
+      'Watching': '#6366f1',
+      'Assistindo': '#6366f1',
+      'Jogando': '#6366f1',
+      'Plan to Watch': '#ec4899',
+      'Planejado': '#ec4899',
+      'Backlog': '#ec4899',
+      'On Hold': '#eab308',
+      'Em Pausa': '#eab308',
+      'Dropped': '#94a3b8',
+      'Dropado': '#94a3b8'
     };
-    return colors[name] || '#8b949e';
+    return colors[name] || '#64748b';
   }
 }

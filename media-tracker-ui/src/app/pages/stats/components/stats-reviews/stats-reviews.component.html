@@ -1,0 +1,93 @@
+<section class="stats-reviews-section">
+  <div class="section-header">
+    <div class="header-text">
+      <h2>
+        <lucide-icon [img]="MessageIcon" [size]="24"></lucide-icon>
+        Minhas Reviews e Notas
+      </h2>
+      <span class="subtitle">O que você achou das suas experiências</span>
+    </div>
+    
+    @if (mergedReviews().length > 1) {
+      <div class="carousel-controls">
+        <button class="control-btn" (click)="prev()">
+          <lucide-icon [img]="ChevronLeftIcon" [size]="20"></lucide-icon>
+        </button>
+        <span class="counter">
+          {{ currentIndex() === 0 ? mergedReviews().length : (currentIndex() === displayReviews().length - 1 ? 1 : currentIndex()) }} 
+          / {{ mergedReviews().length }}
+        </span>
+        <button class="control-btn" (click)="next()">
+          <lucide-icon [img]="ChevronRightIcon" [size]="20"></lucide-icon>
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (mergedReviews().length > 0) {
+    <div class="carousel-container">
+      <div 
+        class="carousel-track" 
+        [style.transform]="'translateX(-' + (currentIndex() * 100) + '%)'"
+        [style.transition]="isTransitionEnabled() ? 'transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)' : 'none'">
+        @for (item of displayReviews(); track $index) {
+          <div class="review-slide">
+            <div class="review-card">
+              <div class="card-content">
+                <div class="media-preview">
+                  <a [routerLink]="getDetailUrl(item.media)" class="media-link">
+                    <div class="media-thumb">
+                      @if (item.media.coverImage) {
+                        <img [src]="item.media.coverImage" [alt]="item.media.title">
+                      } @else {
+                        <div class="thumb-placeholder"></div>
+                      }
+                      <div class="rating-badge" [ngClass]="getScoreClass(item.media.score)">
+                        <lucide-icon [img]="StarIcon" [size]="14"></lucide-icon>
+                        <span>{{ item.media.score }}</span>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+                
+                <div class="review-details">
+                  <div class="details-header">
+                    <h3>{{ item.media.title }}</h3>
+                    <div class="review-date" *ngIf="item.review.updated_at">
+                      <lucide-icon [img]="CalendarIcon" [size]="14"></lucide-icon>
+                      <span>{{ item.review.updated_at | date:'dd MMM, yyyy' }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="quote-container">
+                    <lucide-icon [img]="QuoteIcon" [size]="24" class="quote-icon"></lucide-icon>
+                    <p class="review-text" [title]="item.review.review_text">{{ item.review.review_text }}</p>
+                  </div>
+                  
+                  <div class="media-meta" *ngIf="item.media.releaseYear">
+                    <span class="meta-tag">{{ item.media.releaseYear }}</span>
+                    <span class="meta-tag" *ngFor="let genre of item.media.genres?.slice(0, 2)">{{ genre }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="empty-state-card">
+      <div class="empty-content">
+        <div class="icon-stack">
+          <div class="circle-glow"></div>
+          <lucide-icon [img]="MessageIcon" [size]="48" class="main-icon"></lucide-icon>
+          <lucide-icon [img]="QuoteIcon" [size]="20" class="sub-icon"></lucide-icon>
+        </div>
+        <div class="empty-text">
+          <h3>Nenhuma review encontrada</h3>
+          <p>Compartilhe suas opiniões sobre o que você assistiu ou jogou este ano!</p>
+        </div>
+      </div>
+    </div>
+  }
+</section>

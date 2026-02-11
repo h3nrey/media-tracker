@@ -1,0 +1,92 @@
+.main-column {
+    .movie-header {
+        margin-bottom: 2.5rem;
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: transparent;
+            border: none;
+            color: var(--app-text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 1.5rem;
+            transition: color 0.2s;
+
+            &:hover {
+                color: var(--app-primary);
+            }
+        }
+
+        .title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--app-text-primary);
+            margin: 0 0 1rem 0;
+            line-height: 1.1;
+        }
+
+        .meta-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--app-text-secondary);
+            font-size: 1.1rem;
+
+            .year { font-weight: 700; color: var(--app-text-primary); }
+            .separator { opacity: 0.3; }
+        }
+    }
+
+    .overview {
+        margin-bottom: 2rem;
+
+        .tagline {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--app-primary);
+            letter-spacing: 2px;
+            margin: 0 0 1rem 0;
+            text-transform: uppercase;
+        }
+
+        .synopsis {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            color: var(--app-text-secondary);
+            max-width: 800px;
+        }
+    }
+
+    .genres-section {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+
+        .genre-tag {
+            padding: 0.4rem 1.2rem;
+            background: var(--app-surface-light);
+            border: 1px solid var(--app-border);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--app-text-secondary);
+            transition: all 0.2s;
+
+            &:hover {
+                color: var(--app-primary);
+                border-color: var(--app-primary);
+                background: var(--app-surface-hover);
+            }
+        }
+    }
+}
+
+@media (max-width: 1000px) {
+    .main-column .movie-header .title {
+        font-size: 2.5rem;
+    }
+}

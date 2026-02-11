@@ -50,7 +50,27 @@ export class ListService {
 
       const itemIds = list.mediaItemIds || list.animeIds || [];
       const items = await Promise.all(
-        itemIds.map(itemId => db.mediaItems.get(itemId))
+        itemIds.map(async itemId => {
+          const item = await db.mediaItems.get(itemId);
+          if (!item) return null;
+          const runs = await db.mediaRuns.where('mediaItemId').equals(itemId).toArray();
+          const screenshots = await db.mediaImages.where('mediaItemId').equals(itemId).toArray();
+          
+          const activeRuns = runs.filter(r => !r.isDeleted);
+          let progressCurrent = item.progressCurrent;
+
+          if (item.mediaTypeId === 1 && activeRuns.length > 0) {
+            const lastRun = activeRuns[activeRuns.length - 1];
+            progressCurrent = await db.episodeProgress.where('runId').equals(lastRun.id!).count();
+          }
+
+          return {
+            ...item,
+            progressCurrent,
+            runs: activeRuns,
+            screenshots: screenshots.filter(s => !s.isDeleted)
+          };
+        })
       );
 
       return {
@@ -194,10 +214,19 @@ export class ListService {
       const itemIds = list.mediaItemIds || list.animeIds || [];
       const items = itemIds.map(id => allMedia.find(m => m.id === id)).filter(m => !!m) as MediaItem[];
       
+      const completedCount = items.filter(m => {
+        const hasFinishedRun = m.runs?.some(r => !!r.endDate);
+        if (m.endDate || hasFinishedRun) return true;
+        if (m.progressTotal && m.progressTotal > 0 && m.progressCurrent === m.progressTotal) return true;
+        return false;
+      }).length;
+
       return {
         ...list,
         covers: items.map(item => item.coverImage).filter(img => !!img).slice(0, 5),
-        itemCount: items.length
+        itemCount: items.length,
+        completedCount,
+        progress: items.length > 0 ? (completedCount / items.length) * 100 : 0
       };
     });
 

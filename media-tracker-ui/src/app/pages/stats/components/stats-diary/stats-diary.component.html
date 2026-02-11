@@ -1,0 +1,104 @@
+@if (diaryData(); as data) {
+  <section class="diary-section">
+    <!-- Contribution Grid (Old but preserved at the bottom) -->
+    <!-- <div class="grid-section">
+      <div class="activity-grid-container">
+        <div class="activity-grid">
+          @for (day of data.days; track day.date) {
+            <div 
+              class="grid-day" 
+              [class]="'level-' + day.level"
+              [title]="day.date.toLocaleDateString() + ': ' + day.count + ' atividades' + (day.media.length > 0 ? '\n' + day.media.join(', ') : '')">
+            </div>
+          }
+        </div>
+        <div class="grid-header">
+          @for (month of data.monthHeaders; track $index) {
+            <span [style.grid-column]="'span ' + month.span">{{ month.label }}</span>
+          }
+        </div>
+        
+      </div>
+    </div> -->
+
+    <!-- Monthly Stats Section -->
+    <div class="monthly-stats-container">
+      <div class="section-title">
+        <h2>{{ mediaLabels().plural }} por Mês</h2>
+        <span class="subtitle">Sua atividade {{ mediaLabels().action }} ao longo do ano</span>
+      </div>
+
+      <div class="chart-and-covers">
+        <div class="covers-overlay">
+          @for (cover of data.monthCovers; track $index) {
+            <div class="month-cover-wrapper" [class.has-cover]="!!cover">
+              @if (cover) {
+                <img [src]="cover" class="bar-cover">
+              }
+            </div>
+          }
+        </div>
+        
+        <div class="chart-wrapper">
+          @if (chartOptions()) {
+            <apx-chart
+              [series]="chartOptions()!.series"
+              [chart]="chartOptions()!.chart"
+              [plotOptions]="chartOptions()!.plotOptions"
+              [xaxis]="chartOptions()!.xaxis"
+              [yaxis]="chartOptions()!.yaxis"
+              [grid]="chartOptions()!.grid"
+              [dataLabels]="chartOptions()!.dataLabels"
+              [colors]="chartOptions()!.colors"
+              [tooltip]="chartOptions()!.tooltip"
+              [legend]="chartOptions()!.legend">
+            </apx-chart>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Highlights Group -->
+    <div class="highlights">
+      <div class="highlight-card" 
+        [style.background-image]="'url(' + (data.firstPlayed?.bannerImage || data.firstPlayed?.coverImage) + ')'"
+        [routerLink]="getMediaRoute(data.firstPlayed)">
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-info">
+            <span class="label">Primeiro {{ mediaLabels().single }}</span>
+            <span class="value">{{ data.firstPlayed?.title || 'Nenhum' }}</span>
+            <span class="date">em {{ data.firstPlayedDate | date:'dd MMM, yyyy' }}</span>
+          </div>
+          @if (data.firstPlayed?.coverImage) {
+            <div class="card-mini-cover">
+              <img [src]="data.firstPlayed?.coverImage" [alt]="data.firstPlayed?.title">
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="highlight-card" 
+        [style.background-image]="'url(' + (data.lastPlayed?.bannerImage || data.lastPlayed?.coverImage) + ')'"
+        [routerLink]="getMediaRoute(data.lastPlayed)">
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-info">
+            <span class="label">Último {{ mediaLabels().single }}</span>
+            <span class="value">{{ data.lastPlayed?.title || 'Nenhum' }}</span>
+            <span class="date">em {{ data.lastPlayedDate | date:'dd MMM, yyyy' }}</span>
+          </div>
+          @if (data.lastPlayed?.coverImage) {
+            <div class="card-mini-cover">
+              <img [src]="data.lastPlayed?.coverImage" [alt]="data.lastPlayed?.title">
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    
+
+  
+  </section>
+}

@@ -1,9 +1,15 @@
 @if (anime) {
   <app-kanban-card 
     [media]="anime" 
+    [isSelected]="isSelected"
     (edit)="edit.emit($event)" 
     (delete)="delete.emit($event)" 
     (increment)="increment.emit($event)"
+    (complete)="complete.emit($event)"
+    (addNewRun)="addNewRun.emit($event)"
+    (addLog)="addLog.emit($event)"
+    (mediaClick)="mediaClick.emit($event)"
+    [isCompleted]="isCompleted"
   >
     <div class="anime-info">
       <h3>{{ anime.title }}</h3>
@@ -11,7 +17,7 @@
         <div class="studio-name">{{ anime.studios[0] }}</div>
       }
       <div class="meta">
-        <span>{{ anime.progressCurrent }} / {{ anime.progressTotal || '?' }}</span>
+        <span>{{ episodeCount() }} / {{ anime.progressTotal || '?' }}</span>
         
         @if (anime.score > 0) {
           <span class="score" [ngClass]="getScoreColorClass(anime.score)">

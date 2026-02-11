@@ -5,6 +5,14 @@ import { WatchSourceSyncService } from './sync/watch-source-sync.service';
 import { AnimeSyncService } from './sync/anime-sync.service';
 import { GameSyncService } from './sync/game-sync.service';
 import { ListSyncService } from './sync/list-sync.service';
+import { MediaRunSyncService } from './sync/media-run-sync.service';
+import { GameSessionSyncService } from './sync/game-session-sync.service';
+import { EpisodeProgressSyncService } from './sync/episode-progress-sync.service';
+import { ChapterProgressSyncService } from './sync/chapter-progress-sync.service';
+import { MovieSyncService } from './sync/movie-sync.service';
+import { MangaSyncService } from './sync/manga-sync.service';
+import { AuthService } from './auth.service';
+import { SupabaseService } from './supabase.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,22 +23,39 @@ export class SyncService {
   private animeSync = inject(AnimeSyncService);
   private gameSync = inject(GameSyncService);
   private listSync = inject(ListSyncService);
+  private runSync = inject(MediaRunSyncService);
+  private sessionSync = inject(GameSessionSyncService);
+  private episodeSync = inject(EpisodeProgressSyncService);
+  private chapterSync = inject(ChapterProgressSyncService);
+  private movieSync = inject(MovieSyncService);
+  private mangaSync = inject(MangaSyncService);
+  private authService = inject(AuthService);
+  private supabase = inject(SupabaseService).client;
 
   private isSyncingSubject = new BehaviorSubject<boolean>(false);
   isSyncing$ = this.isSyncingSubject.asObservable();
 
   async sync() {
+    const user = this.authService.currentUser();
+    if (!user) return
+
     if (this.isSyncingSubject.value) return;
     
-    console.log('Starting coordinated sync...');
     this.isSyncingSubject.next(true);
     
     try {
-      // Order matters due to foreign keys
       await this.categorySync.sync();
       await this.watchSourceSync.sync();
       await this.animeSync.sync();
+      await this.mangaSync.sync();
       await this.gameSync.sync();
+      await this.movieSync.sync();
+      // Media Runs system sync
+      await this.runSync.sync();
+      await this.sessionSync.sync();
+      await this.episodeSync.sync();
+      await this.chapterSync.sync();
+      
       await this.listSync.sync();
       
       console.log('Sync completed successfully');

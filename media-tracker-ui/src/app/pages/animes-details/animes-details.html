@@ -10,6 +10,7 @@
           [anime]="anime()" 
           [category]="category()" 
           [categories]="categories()"
+          [lists]="lists()"
           (edit)="onEdit()" 
           (incrementEpisode)="incrementEpisode()"
           (decrementEpisode)="decrementEpisode()"
@@ -17,7 +18,8 @@
           (completeEpisodes)="completeEpisodes()"
           (updateScore)="onUpdateScore($event)"
           (updateCategory)="onUpdateCategory($event)"
-          (saveLinks)="onSaveLinks($event)">
+          (saveLinks)="onSaveLinks($event)"
+          (listUpdated)="onListUpdated()">
         </app-anime-sidebar>
 
         <div class="main-column-wrapper">
@@ -29,21 +31,17 @@
           <div class="divider"></div>
 
           <div class="details-sections">
-            <div class="section-group">
-              <app-anime-lists [lists]="lists()"></app-anime-lists>
-            </div>
-            <div class="section-group">
-              <app-anime-history 
-                [logs]="anime()?.logs"
-                (addLog)="onAddLog()"
-                (removeLog)="onRemoveLog($event)"
-                (updateLog)="onUpdateLog($event)">
-              </app-anime-history>
+            <div class="section-group full-width">
+              <app-media-runs-list 
+                [mediaItemId]="$any(anime()!.id)" 
+                [mediaType]="'anime'"
+                [totalCount]="anime()?.progressTotal || 0">
+              </app-media-runs-list>
             </div>
           </div>
 
           <div class="reviews-wrapper">
-            <app-anime-reviews [supabaseId]="anime()?.supabaseId"></app-anime-reviews>
+            <app-media-reviews [supabaseId]="anime()?.supabaseId"></app-media-reviews>
           </div>
         </div>
       </div>

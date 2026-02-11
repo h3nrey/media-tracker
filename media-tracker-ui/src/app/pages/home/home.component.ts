@@ -12,6 +12,8 @@ import { MediaTypeStateService } from '../../services/media-type-state.service';
 import { LucideAngularModule, LayoutGrid, List } from 'lucide-angular';
 import { ViewModeService, ViewMode } from '../../services/view-mode.service';
 import { BoardFiltersComponent } from '../../components/board-filters/board-filters.component';
+import { AlertService } from '../../services/alert.service';
+import { MediaService } from '../../services/media.service';
 
 @Component({
   selector: 'app-home',
@@ -41,6 +43,8 @@ export class HomeComponent {
   private dialogService = inject(DialogService);
   private mediaTypeState = inject(MediaTypeStateService);
   private viewModeService = inject(ViewModeService);
+  private alertService = inject(AlertService);
+  private mediaService = inject(MediaService);
 
   viewMode = this.viewModeService.viewMode;
   selectedMediaType$ = this.mediaTypeState.getSelectedMediaType$();
@@ -56,19 +60,50 @@ export class HomeComponent {
     this.dialogService.openAddMedia(categoryId);
   }
 
-  openAnimeDetails(media: MediaItem | Anime) {
+  openAnimeDetails(media: MediaItem | Anime, event?: MouseEvent) {
     if (!media.id) return;
+    
+    // Don't navigate if clicking with modifier keys (handling Multi-selection)
+    if (event?.shiftKey || event?.ctrlKey || event?.metaKey) return;
+    
     const type = (media as MediaItem).mediaTypeId;
     if (type === 1) { // Anime
       this.router.navigate(['/anime', media.id]);
+    } else if (type === 2) { // Manga
+      this.router.navigate(['/manga', media.id]);
     } else if (type === 3) { // Game
       this.router.navigate(['/game', media.id]);
+    } else if (type === 4) { // Movie
+      this.router.navigate(['/movie', media.id]);
     } else {
       this.router.navigate(['/media', media.id]);
     }
   }
 
   openEditAnime(media: MediaItem | Anime) {
-    this.dialogService.openEditMedia(media);
+    this.dialogService.openEditAnime(media);
+  }
+
+  async onDeleteMedia(items: (MediaItem | Anime) | (MediaItem | Anime)[]) {
+    const mediaList = Array.isArray(items) ? items : [items];
+    if (mediaList.length === 0) return;
+
+    const message = mediaList.length === 1 
+      ? `Tem certeza que deseja excluir "${mediaList[0].title}"?`
+      : `Tem certeza que deseja excluir os ${mediaList.length} itens selecionados?`;
+
+    const confirmed = await this.alertService.showConfirm(
+      message,
+      'Confirmar Exclusão',
+      'error'
+    );
+
+    if (confirmed) {
+      for (const media of mediaList) {
+        if (media.id) {
+          await this.mediaService.deleteMedia(media.id);
+        }
+      }
+    }
   }
 }

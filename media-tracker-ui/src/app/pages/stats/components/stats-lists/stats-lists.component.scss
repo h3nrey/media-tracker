@@ -1,0 +1,84 @@
+.stats-lists-section {
+  margin-top: 1rem;
+  margin-bottom: 4rem;
+
+  .section-header {
+    margin-bottom: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+
+    .header-text {
+      h2 {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+        margin-bottom: 0.5rem;
+
+        lucide-icon {
+          color: var(--app-primary);
+        }
+      }
+      
+      .subtitle {
+        font-size: 1rem;
+        color: var(--app-text-muted);
+        font-weight: 500;
+        display: block;
+      }
+    }
+
+    .view-all {
+      position: absolute;
+      right: 0;
+      bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--app-primary);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0.5rem 1.25rem;
+      border-radius: 50px;
+      background: rgba(var(--app-primary-rgb), 0.1);
+      transition: all 0.3s;
+
+      &:hover {
+        background: rgba(var(--app-primary-rgb), 0.2);
+        transform: translateX(-4px);
+      }
+
+      @media (max-width: 900px) {
+        position: static;
+        margin-top: 1.5rem;
+      }
+    }
+  }
+
+  .lists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+    gap: 2rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  ::ng-deep app-list-card {
+    .list-card {
+      height: 100%;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: 24px;
+      padding: 1.5rem;
+    }
+  }
+}

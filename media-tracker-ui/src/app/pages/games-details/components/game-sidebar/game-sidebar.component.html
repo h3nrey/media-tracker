@@ -73,11 +73,22 @@
       </a>
     }
 
+    <button class="btn-primary full-width" (click)="quickLog.emit()">
+      <lucide-icon [img]="ClockIcon" [size]="18"></lucide-icon>
+      <span>Quick Log 1h</span>
+    </button>
+
     <button class="btn-outline full-width" (click)="onEdit()">
       <lucide-icon [img]="EditIcon" [size]="18"></lucide-icon>
       <span>Edit Game</span>
     </button>
   </div>
+
+  <app-media-list-section
+    [mediaId]="game()!.id!"
+    [lists]="lists()"
+    (updated)="listUpdated.emit()">
+  </app-media-list-section>
 
   <div class="side-links">
     <app-anime-links [sourceLinks]="game()?.sourceLinks" (saveLinks)="onSaveLinks($event)"></app-anime-links>

@@ -1,0 +1,31 @@
+<section class="stats-lists-section">
+  <div class="section-header">
+    <div class="header-text">
+      <h2>
+        <lucide-icon [img]="LayersIcon" [size]="24"></lucide-icon>
+        Minhas Coleções
+      </h2>
+      <span class="subtitle">Suas listas personalizadas e curadorias</span>
+    </div>
+    <a routerLink="/lists" class="view-all">
+      Ver Todas
+      <lucide-icon [img]="ChevronRightIcon" [size]="16"></lucide-icon>
+    </a>
+  </div>
+
+  @if (enrichedLists().length > 0) {
+    <div class="lists-grid">
+      @for (list of enrichedLists(); track list.id) {
+        <app-list-card [list]="list" [showActions]="false"></app-list-card>
+      }
+    </div>
+  } @else {
+    <app-stats-empty-state
+      [mainIcon]="LayersIcon"
+      [subIcon]="ListIcon"
+      title="Nenhuma coleção encontrada"
+      description="Organize suas obras favoritas em listas personalizadas para encontrá-las facilmente!">
+      <a routerLink="/lists" class="create-list-btn">Criar Minha Primeira Lista</a>
+    </app-stats-empty-state>
+  }
+</section>

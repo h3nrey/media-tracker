@@ -1,0 +1,53 @@
+<div class="add-form">
+  <div class="form-row">
+    <div class="field">
+      <label>Data</label>
+      <div class="date-picker-trigger" #dateTrigger="cdkOverlayOrigin" cdkOverlayOrigin>
+        <button type="button" class="form-control" (click)="isDatePickerOpen.set(!isDatePickerOpen())">
+          <lucide-icon [img]="CalendarIcon" [size]="16"></lucide-icon>
+          {{ formatDate(playedAt()) }}
+        </button>
+      </div>
+      <app-date-picker
+        [trigger]="dateTrigger"
+        [isOpen]="isDatePickerOpen()"
+        [selectedDate]="playedAt()"
+        (dateChange)="onDateChange($event)"
+        (close)="isDatePickerOpen.set(false)">
+      </app-date-picker>
+    </div>
+
+    <div class="field">
+      <label>Duração (minutos)</label>
+      <app-number-input 
+        [value]="duration()" 
+        (valueChange)="duration.set($event)"
+        [min]="1"
+        [step]="15">
+      </app-number-input>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Notas (Opcional)</label>
+    <div class="input-with-icon">
+      <lucide-icon [img]="NotesIcon" [size]="16" class="field-icon"></lucide-icon>
+      <input 
+        type="text" 
+        [ngModel]="notes()" 
+        (ngModelChange)="notes.set($event)"
+        placeholder="O que você fez nesta sessão?">
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="cancel-btn" (click)="onCancel()">
+      <lucide-icon [img]="XIcon" [size]="16"></lucide-icon>
+      Cancelar
+    </button>
+    <button class="save-btn" (click)="onSave()">
+      <lucide-icon [img]="CheckIcon" [size]="16"></lucide-icon>
+      Adicionar
+    </button>
+  </div>
+</div>

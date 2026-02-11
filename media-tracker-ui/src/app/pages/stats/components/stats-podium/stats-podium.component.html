@@ -1,0 +1,60 @@
+<section class="podium-section">
+  <div class="section-header">
+    <h2>
+      <lucide-icon [img]="TrophyIcon" [size]="24"></lucide-icon>
+      {{ title() }}
+    </h2>
+  </div>
+
+  @if (items().length > 0) {
+    <div class="podium-container">
+      <!-- 2nd Place -->
+      @if (podiumItems().second) {
+        <div class="podium-slot second">
+          <div class="rank-badge">2</div>
+          <app-stats-media-card [item]="podiumItems().second!"></app-stats-media-card>
+          <div class="podium-base"></div>
+        </div>
+      }
+
+      <!-- 1st Place -->
+      @if (podiumItems().first) {
+        <div class="podium-slot first">
+          <div class="rank-badge">
+            <lucide-icon [img]="CrownIcon" [size]="20"></lucide-icon>
+            1
+          </div>
+          <app-stats-media-card [item]="podiumItems().first!"></app-stats-media-card>
+          <div class="podium-base"></div>
+        </div>
+      }
+
+      <!-- 3rd Place -->
+      @if (podiumItems().third) {
+        <div class="podium-slot third">
+          <div class="rank-badge">3</div>
+          <app-stats-media-card [item]="podiumItems().third!"></app-stats-media-card>
+          <div class="podium-base"></div>
+        </div>
+      }
+    </div>
+
+    @if (podiumItems().others.length > 0) {
+      <div class="others-header">
+        <h3>Menções Honrosas</h3>
+      </div>
+      <div class="others-grid">
+        @for (item of podiumItems().others; track item.id) {
+          <app-stats-media-card [item]="item"></app-stats-media-card>
+        }
+      </div>
+    }
+  } @else {
+    <app-stats-empty-state
+      [mainIcon]="TrophyIcon"
+      [subIcon]="MedalIcon"
+      title="Ninguém no pódio ainda"
+      description="Avalie suas obras favoritas para vê-las brilhando aqui no topo!">
+    </app-stats-empty-state>
+  }
+</section>

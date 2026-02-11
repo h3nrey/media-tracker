@@ -9,15 +9,16 @@ import { StarRatingInputComponent } from '../../../ui/star-rating-input/star-rat
 import { SelectComponent } from '../../../ui/select/select';
 import { Category } from '../../../../models/status.model';
 import { WatchSource } from '../../../../models/watch-source.model';
-import { MediaType } from '../../../../models/media-type.model';
-import { MediaLog } from '../../../../models/media-log.model';
+import { MediaItem, MediaType, MediaGalleryImage } from '../../../../models/media-type.model';
+import { MediaRun } from '../../../../models/media-run.model';
 
 import { MediaJournalComponent } from '../shared/media-journal/media-journal';
+import { MediaGalleryFormComponent } from '../shared/media-gallery-form/media-gallery-form';
 
 @Component({
   selector: 'app-game-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, StarRatingInputComponent, SelectComponent, MediaJournalComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, NumberInputComponent, TagInputComponent, StarRatingInputComponent, SelectComponent, MediaJournalComponent, MediaGalleryFormComponent],
   templateUrl: './game-form.component.html',
   styleUrl: './game-form.component.scss'
 })
@@ -38,7 +39,7 @@ export class GameFormComponent {
   readonly SearchIcon = Search;
   
   get categoryOptions() {
-    return this.categories().map(c => ({ value: c.supabaseId || c.id, label: c.name }));
+    return this.categories().map(c => ({ value: c.id, label: c.name }));
   }
 
   title = signal('');
@@ -54,16 +55,17 @@ export class GameFormComponent {
   releaseYear = signal<number | undefined>(undefined);
   notes = signal('');
   activityDates = signal<Date[]>([]);
-  logs = signal<MediaLog[]>([]);
+  runs = signal<MediaRun[]>([]);
   sourceLinks = signal<any[]>([]);
   platforms = signal<string[]>([]);
+  screenshots = signal<MediaGalleryImage[]>([]);
 
   showDatePicker = signal(false);
   tempDate = signal(new Date());
   newLinkSourceId = signal<number | null>(null);
   newLinkUrl = signal('');
 
-  activeTab = signal<'main' | 'journal' | 'details'>('main');
+  activeTab = signal<'main' | 'journal' | 'details' | 'screenshots'>('main');
 
   constructor() {
     effect(() => {
@@ -75,7 +77,7 @@ export class GameFormComponent {
     effect(() => {
         const cats = this.categories();
         if (cats.length > 0 && this.selectedCategoryId() === undefined) {
-            this.selectedCategoryId.set(cats[0].supabaseId || cats[0].id);
+            this.selectedCategoryId.set(cats[0].id);
         }
     });
   }
@@ -96,8 +98,10 @@ export class GameFormComponent {
     this.releaseYear.set(data.releaseYear);
     this.notes.set(data.notes || '');
     this.activityDates.set(data.activityDates || []);
+    this.runs.set(data.runs || data.logs || []);
     this.sourceLinks.set(data.source_links || data.sourceLinks || []);
     this.platforms.set(data.platforms || []);
+    this.screenshots.set(data.screenshots || []);
   }
 
   onDateSelect(date: Date) {
@@ -145,9 +149,10 @@ export class GameFormComponent {
       statusId: this.selectedCategoryId(),
       notes: this.notes(),
       activityDates: this.activityDates(),
-      logs: this.logs(),
-      source_links: this.sourceLinks(),
-      platforms: this.platforms()
+      runs: this.runs(),
+      sourceLinks: this.sourceLinks(),
+      platforms: this.platforms(),
+      screenshots: this.screenshots()
     };
 
     console.log("selected category id", this.selectedCategoryId());

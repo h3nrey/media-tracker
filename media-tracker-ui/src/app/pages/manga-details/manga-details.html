@@ -1,0 +1,85 @@
+@if(!isLoading()) {
+  <div class="details-page">
+    <div class="backdrop-container" [style.background-image]="'url(' + (manga()?.bannerImage || manga()?.coverImage) + ')'">
+      <div class="backdrop-gradient"></div>
+    </div>
+
+    <div class="page-content">
+      <div class="content-layout">
+        <!-- Sidebar Placeholder for now, simple implementation -->
+        <aside class="details-sidebar">
+          <div class="poster-card">
+            <img [src]="manga()?.coverImage" [alt]="manga()?.title" class="poster-image" />
+          </div>
+
+          <div class="sidebar-actions">
+            <div class="action-group">
+              <label>Status</label>
+              <div class="status-badge" [style.border-color]="category()?.color">
+                <span class="dot" [style.background]="category()?.color"></span>
+                {{ category()?.name }}
+              </div>
+            </div>
+
+            <div class="action-group" *ngIf="manga()?.score > 0">
+              <label>Rating</label>
+              <div class="score-display">
+                <lucide-icon name="star" size="18" class="star-icon"></lucide-icon>
+                <span class="score-value">{{ manga()?.score }}/6</span>
+              </div>
+            </div>
+
+            <button class="btn-edit" (click)="onEdit()">
+              <lucide-icon name="edit-3" size="16"></lucide-icon>
+              Edit Details
+            </button>
+          </div>
+        </aside>
+
+        <div class="main-column-wrapper">
+          <div class="manga-header">
+            <h1 class="manga-title">{{ manga()?.title }}</h1>
+            <div class="manga-meta">
+              <span class="year" *ngIf="manga()?.releaseYear">{{ manga()?.releaseYear }}</span>
+              <span class="separator" *ngIf="manga()?.releaseYear">•</span>
+              <span class="type">Manga</span>
+              <span class="separator">•</span>
+              <span class="status">{{ manga()?.progressCurrent || 0 }} / {{ manga()?.progressTotal || '?' }} Chapters</span>
+            </div>
+            
+            <div class="manga-genres" *ngIf="manga()?.genres?.length">
+              <span class="genre-tag" *ngFor="let genre of manga()?.genres">{{ genre }}</span>
+            </div>
+          </div>
+
+          <div class="manga-description" *ngIf="manga()?.notes">
+            <h2>About</h2>
+            <p>{{ manga()?.notes }}</p>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="details-sections">
+            <div class="section-group full-width">
+              <app-media-runs-list 
+                [mediaItemId]="$any(manga()!.id)" 
+                [mediaType]="'manga'"
+                [totalCount]="manga()?.progressTotal || 0">
+              </app-media-runs-list>
+            </div>
+          </div>
+
+          <div class="reviews-wrapper">
+             <app-media-reviews [supabaseId]="manga()?.supabaseId"></app-media-reviews>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+@else {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading details...</p>
+  </div>
+}

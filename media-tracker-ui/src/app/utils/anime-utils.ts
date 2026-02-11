@@ -6,9 +6,10 @@ export function getScoreColorClass(score: number): string {
 }
 
 export function getScoreColor(score: number): string {
-  if (score >= 8) return 'var(--app-success)';
-  if (score >= 6) return 'var(--app-accent-yellow)';
-  return 'var(--app-danger)';
+  if (score >= 1 && score <= 3) return '#ef4444';
+  if (score >= 4 && score <= 5) return '#ec4899';
+  if (score == 6) return '#a855f7';
+  return 'var(--app-text-muted)';
 }
 
 export function formatDate(date: any): string {

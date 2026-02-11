@@ -1,0 +1,51 @@
+<section class="distribution-section">
+  <h2>
+    <lucide-icon [img]="CalendarIcon" [size]="20"></lucide-icon>
+    {{ title() }}
+  </h2>
+  
+  <div class="distribution-container">
+    <div class="segmented-bar">
+      @for (cat of stats(); track cat.name) {
+        @if (cat.count > 0) {
+          <div 
+            class="bar-segment" 
+            [style.width.%]="cat.percentage"
+            [style.background-color]="cat.color"
+            appTooltip
+            [appTooltip]="cat.name"
+            [items]="cat.items || []"
+            [color]="cat.color">
+          </div>
+        }
+      }
+    </div>
+
+    <div class="distribution-legend">
+      @for (cat of stats(); track cat.name) {
+        @if (cat.count > 0) {
+          <div 
+            class="legend-item"
+            appTooltip
+            [appTooltip]="cat.name"
+            [items]="cat.items || []"
+            [color]="cat.color">
+            <div class="legend-header">
+              <span class="dot" [style.background]="cat.color"></span>
+              <span class="name">{{ cat.name }}</span>
+            </div>
+            <div class="legend-values">
+              <span class="percentage" [style.color]="cat.color">
+                {{ cat.percentage | number:'1.0-0' }}%
+              </span>
+              <div class="main-value">
+                <span class="count">{{ cat.count }}</span>
+                <span class="unit">{{ unitLabel() }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</section>

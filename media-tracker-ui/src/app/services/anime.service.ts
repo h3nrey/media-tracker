@@ -97,14 +97,14 @@ export class AnimeService {
     const item = await db.mediaItems.get(id);
     if (!item || item.mediaTypeId !== MediaType.ANIME) return undefined;
     const meta = await db.animeMetadata.get(id);
-    const logs = await db.mediaLogs.where('mediaItemId').equals(id).toArray();
+    const runs = await db.mediaRuns.where('mediaItemId').equals(id).toArray();
     return {
       ...item,
       progressCurrent: item.progressCurrent,
       progressTotal: item.progressTotal,
       studios: meta?.studios || [],
       malId: meta?.malId,
-      logs: logs.filter(l => !l.isDeleted)
+      runs: runs.filter(r => !r.isDeleted)
     } as Anime;
   }
 
@@ -129,9 +129,20 @@ export class AnimeService {
     }));
   }
 
+
   async addAnime(anime: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date();
-    const { logs, ...animeData } = anime;
+    const { runs, ...animeData } = anime;
+
+    // Safety check: prevent duplicates
+    if (animeData.externalId && animeData.externalApi) {
+      const existing = await db.mediaItems
+        .where('externalId').equals(animeData.externalId)
+        .and(m => m.externalApi === animeData.externalApi && !m.isDeleted)
+        .first();
+      if (existing) return existing.id!;
+    }
+
     const id = await db.mediaItems.add({
       ...animeData,
       mediaTypeId: MediaType.ANIME,
@@ -140,14 +151,25 @@ export class AnimeService {
       isDeleted: false
     } as MediaItem);
     
-    if (logs && logs.length > 0) {
-      const logsToAdd = logs.map(log => ({
-        ...log,
+    // Save metadata if available
+    const animeTyped = anime as any;
+    if (animeTyped.studios || animeTyped.externalId) {
+      await db.animeMetadata.add({
+        mediaItemId: id as number,
+        studios: animeTyped.studios || [],
+        malId: animeTyped.externalId || animeTyped.malId
+      });
+    }
+
+    if (runs && runs.length > 0) {
+      const runsToAdd = runs.map(run => ({
+        ...run,
         mediaItemId: id as number,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        isDeleted: false
       }));
-      await db.mediaLogs.bulkAdd(logsToAdd);
+      await db.mediaRuns.bulkAdd(runsToAdd);
     }
 
     this.syncService.sync();
@@ -156,19 +178,23 @@ export class AnimeService {
 
   async updateAnime(id: number, updates: Partial<MediaItem>): Promise<number> {
     const now = new Date();
-    const { logs, ...itemUpdates } = updates;
+    const { runs, ...itemUpdates } = updates;
     const result = await db.mediaItems.update(id, {
       ...itemUpdates,
       updatedAt: now
     });
 
-    if (logs) {
-      for (const log of logs) {
-        if (log.id) {
-          await db.mediaLogs.update(log.id, { ...log, updatedAt: now });
-        } else {
-          await db.mediaLogs.add({ ...log, mediaItemId: id, createdAt: now, updatedAt: now });
-        }
+    if (runs) {
+      await db.mediaRuns.where('mediaItemId').equals(id).delete();
+      if (runs.length > 0) {
+        const runsToAdd = runs.map(run => ({
+          ...run,
+          mediaItemId: id,
+          createdAt: run.createdAt || now,
+          updatedAt: now,
+          isDeleted: false
+        }));
+        await db.mediaRuns.bulkAdd(runsToAdd);
       }
     }
 
@@ -243,16 +269,24 @@ export class AnimeService {
         const addedInYear = createdDate && createdDate.getFullYear() === targetYear;
         
         const hasActivityDates = a.activityDates && a.activityDates.length > 0;
-        if (!hasActivityDates) {
+        const hasRuns = a.runs && a.runs.length > 0;
+
+        if (!hasActivityDates && !hasRuns) {
           return !!addedInYear;
         }
 
-        const watchedInYear = a.activityDates!.some(d => {
+        const watchedInYearByDate = a.activityDates?.some(d => {
           const dDate = new Date(d);
           return dDate.getFullYear() === targetYear;
-        });
+        }) || false;
+
+        const watchedInYearByRun = a.runs?.some(run => {
+          const startYear = run.startDate ? new Date(run.startDate).getFullYear() : null;
+          const endYear = run.endDate ? new Date(run.endDate).getFullYear() : null;
+          return startYear === targetYear || endYear === targetYear;
+        }) || false;
         
-        return watchedInYear;
+        return watchedInYearByDate || watchedInYearByRun;
       });
     }
 

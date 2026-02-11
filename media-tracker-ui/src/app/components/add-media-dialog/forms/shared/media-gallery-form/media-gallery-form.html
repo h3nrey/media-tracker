@@ -1,0 +1,64 @@
+<div class="gallery-form-container">
+  <!-- New Image Entry -->
+  <div class="add-image-card">
+    <div class="image-preview-mini">
+      @if (newImageUrl()) {
+        <img [src]="newImageUrl()" alt="Preview">
+      } @else {
+        <div class="placeholder">
+          <lucide-icon [img]="ImageIcon" [size]="24"></lucide-icon>
+        </div>
+      }
+    </div>
+    <div class="image-inputs">
+      <input 
+        type="text" 
+        class="premium-input-small" 
+        placeholder="Image URL" 
+        [ngModel]="newImageUrl()" 
+        (ngModelChange)="newImageUrl.set($event)"
+      />
+      <input 
+        type="text" 
+        class="premium-input-small" 
+        placeholder="Short description (optional)" 
+        [ngModel]="newImageDescription()" 
+        (ngModelChange)="newImageDescription.set($event)"
+      />
+    </div>
+    <button 
+      class="btn-add-image" 
+      [disabled]="!newImageUrl().trim()" 
+      (click)="addImage()"
+    >
+      <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
+    </button>
+  </div>
+
+  <!-- Images List -->
+  <div class="images-list">
+    @for (img of images(); track $index; let i = $index) {
+      <div class="gallery-item-card fade-in">
+        <div class="image-thumb">
+          <img [src]="img.url" alt="Gallery item">
+        </div>
+        <div class="image-info">
+          <input 
+            type="text" 
+            class="premium-input-ghost" 
+            [ngModel]="img.description" 
+            (ngModelChange)="updateDescription(i, $event)"
+            placeholder="No description..."
+          />
+        </div>
+        <button class="btn-remove-image" (click)="removeImage(i)">
+          <lucide-icon [img]="TrashIcon" [size]="16"></lucide-icon>
+        </button>
+      </div>
+    } @empty {
+      <div class="empty-gallery">
+        <p>No screenshots added yet.</p>
+      </div>
+    }
+  </div>
+</div>

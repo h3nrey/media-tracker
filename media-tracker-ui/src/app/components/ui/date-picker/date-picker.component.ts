@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed } from '@angular/core';
+import { Component, input, output, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, ChevronLeft, ChevronRight, X } from 'lucide-angular';
 import { OverlayModule, ConnectionPositionPair, CdkOverlayOrigin } from '@angular/cdk/overlay';
@@ -29,6 +29,15 @@ export class DatePickerComponent {
   });
 
   viewDate = signal(new Date());
+
+  constructor() {
+    effect(() => {
+      if (this.isOpen()) {
+        const date = this.normalizedDate();
+        this.viewDate.set(new Date(date.getTime()));
+      }
+    });
+  }
 
   readonly ChevronLeftIcon = ChevronLeft;
   readonly ChevronRightIcon = ChevronRight;

@@ -1,0 +1,126 @@
+<div class="landing-page">
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <lucide-icon [name]="SparklesIcon" [size]="16"></lucide-icon>
+        <span>Your Personal Media Tracker</span>
+      </div>
+      
+      <h1 class="hero-title">
+        Track, Organize & Discover
+        <span class="gradient-text">Your Media Collection</span>
+      </h1>
+      
+      <p class="hero-subtitle">
+        The ultimate platform to track anime, games, movies, and more. 
+        Get insights, create lists, and never lose track of what you've watched or played.
+      </p>
+      
+      <div class="hero-actions">
+        <button class="cta-primary" (click)="openAuthDialog()">
+          Get Started Free
+          <lucide-icon [name]="ZapIcon" [size]="18"></lucide-icon>
+        </button>
+        <button class="cta-secondary" (click)="openAuthDialog()">
+          Sign In
+        </button>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-item">
+          <lucide-icon [name]="UsersIcon" [size]="20"></lucide-icon>
+          <div class="stat-content">
+            <div class="stat-value">1+</div>
+            <div class="stat-label">Active Users</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <lucide-icon [name]="FilmIcon" [size]="20"></lucide-icon>
+          <div class="stat-content">
+            <div class="stat-value">50+</div>
+            <div class="stat-label">Media Tracked</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <lucide-icon [name]="ListIcon" [size]="20"></lucide-icon>
+          <div class="stat-content">
+            <div class="stat-value">10+</div>
+            <div class="stat-label">Lists Created</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="visual-card card-1">
+        <lucide-icon [name]="FilmIcon" [size]="24"></lucide-icon>
+        <div class="card-text">
+          <div class="card-title">Anime Collection</div>
+          <div class="card-subtitle">245 titles tracked</div>
+        </div>
+      </div>
+      <div class="visual-card card-2">
+        <lucide-icon [name]="BarChartIcon" [size]="24"></lucide-icon>
+        <div class="card-text">
+          <div class="card-title">Your Stats</div>
+          <div class="card-subtitle">128 hours watched</div>
+        </div>
+      </div>
+      <div class="visual-card card-3">
+        <lucide-icon [name]="TrendingUpIcon" [size]="24"></lucide-icon>
+        <div class="card-text">
+          <div class="card-title">Trending Now</div>
+          <div class="card-subtitle">Top picks for you</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="section-header">
+      <h2 class="section-title">Everything You Need</h2>
+      <p class="section-subtitle">Powerful features to manage your media collection</p>
+    </div>
+
+    <div class="features-grid">
+      @for (feature of features; track feature.title) {
+        <div class="feature-card">
+          <div class="feature-icon">
+            <lucide-icon [name]="feature.icon" [size]="24"></lucide-icon>
+          </div>
+          <h3 class="feature-title">{{ feature.title }}</h3>
+          <p class="feature-description">{{ feature.description }}</p>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2 class="cta-title">Ready to Get Started?</h2>
+      <p class="cta-subtitle">Join thousands of users tracking their media collection</p>
+      <button class="cta-button" (click)="openAuthDialog()">
+        Create Your Free Account
+        <lucide-icon [name]="ZapIcon" [size]="18"></lucide-icon>
+      </button>
+    </div>
+  </section>
+
+  <footer class="landing-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="footer-logo">Tracker</div>
+        <p class="footer-tagline">Your personal media companion</p>
+      </div>
+      <div class="footer-links">
+        <a href="#" class="footer-link">Privacy</a>
+        <a href="#" class="footer-link">Terms</a>
+        <a href="#" class="footer-link">Support</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Media Tracker. All rights reserved.</p>
+    </div>
+  </footer>
+</div>

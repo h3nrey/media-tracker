@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReviewService } from '../../services/review.service';
-import { AnimeReview } from '../../models/review.model';
+import { MediaReview } from '../../models/review.model';
 import { LucideAngularModule, X, Calendar, User, MessageSquare } from 'lucide-angular';
 import { AnimeService } from '../../services/anime.service';
 import { Anime } from '../../models/anime.model';
@@ -20,7 +20,7 @@ export class ReviewDetailComponent implements OnInit {
   private reviewService = inject(ReviewService);
   private animeService = inject(AnimeService);
 
-  review = signal<AnimeReview | null>(null);
+  review = signal<MediaReview | null>(null);
   anime = signal<Anime | null>(null);
   
   readonly XIcon = X;
@@ -41,7 +41,7 @@ export class ReviewDetailComponent implements OnInit {
     this.reviewService.getReviewById$(id).subscribe(async r => {
       if (r) {
         this.review.set(r);
-        const animeData = await this.animeService.getAnimeBySupabaseId(r.anime_id);
+        const animeData = await this.animeService.getAnimeBySupabaseId(r.media_item_id);
         if (animeData) {
           this.anime.set(animeData);
         }

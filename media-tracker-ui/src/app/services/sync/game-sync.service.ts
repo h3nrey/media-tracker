@@ -24,8 +24,24 @@ export class GameSyncService {
     const mapSupabaseToLocalCategory = (supabaseId: number) => categories.find(c => c.supabaseId === supabaseId)?.id;
 
     for (const local of localMediaItems) {
-      const remote = remoteMediaItems?.find(r => r.id === local.supabaseId);
+      // 1. Try to find remote by supabaseId or Natural Key (externalId + mediaTypeId)
+      let remote = remoteMediaItems?.find(r => r.id === local.supabaseId);
       
+      if (!remote && !local.supabaseId && local.externalId) {
+        remote = remoteMediaItems?.find(r => r.external_id === local.externalId && r.media_type_id === 3 && !r.is_deleted);
+        if (remote) {
+          await db.mediaItems.update(local.id!, { supabaseId: remote.id });
+          local.supabaseId = remote.id;
+        }
+      }
+      
+      const normalizeDate = (d: any) => {
+        if (!d) return null;
+        const date = new Date(d);
+        if (isNaN(date.getTime())) return null;
+        return date.toISOString().split('T')[0]; // Store as YYYY-MM-DD
+      };
+
       const supabaseData = {
         media_type_id: 3,
         title: local.title,
@@ -37,6 +53,8 @@ export class GameSyncService {
         score: local.score,
         genres: local.genres,
         release_year: local.releaseYear,
+        start_date: normalizeDate(local.startDate),
+        end_date: normalizeDate(local.endDate),
         trailer_url: local.trailerUrl,
         notes: local.notes,
         source_links: local.sourceLinks,
@@ -73,11 +91,22 @@ export class GameSyncService {
         }
       } else {
         const remoteUpdatedAt = new Date(remote.updated_at);
-        if (local.updatedAt > remoteUpdatedAt && (!local.lastSyncedAt || local.updatedAt > local.lastSyncedAt)) {
+
+        // Conflict Resolution: Most recent wins
+        const localIsNewer = local.updatedAt > remoteUpdatedAt;
+        const remoteIsNewer = remoteUpdatedAt > local.updatedAt;
+        const localHasChanges = !local.lastSyncedAt || local.updatedAt > local.lastSyncedAt;
+        const remoteHasChanges = !local.lastSyncedAt || remoteUpdatedAt > local.lastSyncedAt;
+
+        const parseRemoteDate = (d: any) => d ? new Date(d) : undefined;
+
+        if (localIsNewer && localHasChanges) {
+          // Local wins and pushes
           await this.supabase.from('media_items').update(supabaseData).eq('id', local.supabaseId);
           await db.mediaItems.update(local.id!, { lastSyncedAt: new Date() });
           await this.syncGameMetadata(local.id!, local.supabaseId!, 'push');
-        } else if (remoteUpdatedAt > (local.lastSyncedAt || local.updatedAt)) {
+        } else if (remoteIsNewer && remoteHasChanges) {
+          // Remote wins and pulls
           await db.mediaItems.update(local.id!, {
             supabaseId: remote.id,
             title: remote.title,
@@ -89,6 +118,33 @@ export class GameSyncService {
             score: remote.score,
             genres: remote.genres || [],
             releaseYear: remote.release_year,
+            startDate: parseRemoteDate(remote.start_date),
+            endDate: parseRemoteDate(remote.end_date),
+            trailerUrl: remote.trailer_url,
+            notes: remote.notes,
+            sourceLinks: remote.source_links || [],
+            progressCurrent: remote.progress_current,
+            progressTotal: remote.progress_total,
+            isDeleted: remote.is_deleted,
+            updatedAt: remoteUpdatedAt,
+            lastSyncedAt: new Date(),
+          });
+          await this.syncGameMetadata(local.id!, remote.id, 'pull');
+        } else if (!localHasChanges && remoteHasChanges) {
+          // Local hasn't changed but remote has
+          await db.mediaItems.update(local.id!, {
+            supabaseId: remote.id,
+            title: remote.title,
+            coverImage: remote.cover_image,
+            bannerImage: remote.banner_image,
+            externalId: remote.external_id,
+            externalApi: remote.external_api,
+            statusId: mapSupabaseToLocalCategory(remote.status_id) || local.statusId,
+            score: remote.score,
+            genres: remote.genres || [],
+            releaseYear: remote.release_year,
+            startDate: parseRemoteDate(remote.start_date),
+            endDate: parseRemoteDate(remote.end_date),
             trailerUrl: remote.trailer_url,
             notes: remote.notes,
             sourceLinks: remote.source_links || [],
@@ -105,7 +161,7 @@ export class GameSyncService {
 
     // Pull new remote games
     for (const remote of remoteMediaItems || []) {
-      const local = localMediaItems.find(l => l.supabaseId === remote.id);
+      const local = localMediaItems.find(l => l.supabaseId === remote.id || (l.externalId === remote.external_id && l.mediaTypeId === 3));
       if (!local) {
         const localId = await db.mediaItems.add({
           supabaseId: remote.id,
@@ -136,13 +192,14 @@ export class GameSyncService {
 
   private async syncGameMetadata(localMediaId: number, remoteMediaId: number, direction: 'push' | 'pull' = 'push') {
     const localMeta = await db.gameMetadata.get(localMediaId);
-    const { data: remoteMeta, error } = await this.supabase
+    const { data: remoteMetas, error } = await this.supabase
       .from('game_metadata')
       .select('*')
       .eq('media_item_id', remoteMediaId)
-      .single();
+      .limit(1);
 
-    if (error && error.code !== 'PGRST116') throw error;
+    const remoteMeta = remoteMetas?.[0];
+    if (error) throw error;
 
     if (direction === 'push' && localMeta) {
       const localItem = await db.mediaItems.get(localMediaId);
@@ -152,8 +209,7 @@ export class GameSyncService {
         developers: localMeta.developers,
         publishers: localMeta.publishers,
         platforms: localMeta.platforms,
-        hours_played: localMeta.playtimeHours || 0,
-        progress_total: localMeta.progressTotal
+        hours_played: localMeta.playtimeHours || 0
       };
 
       if (!remoteMeta) {

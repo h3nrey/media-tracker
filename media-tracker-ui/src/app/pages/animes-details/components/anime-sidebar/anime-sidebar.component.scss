@@ -276,6 +276,78 @@
             }
         }
     }
+    .sidebar-lists {
+        background: var(--app-surface);
+        border: 1px solid var(--app-border);
+        border-radius: 12px;
+        padding: 1.25rem;
+
+        .sidebar-section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--app-border);
+            
+            lucide-icon {
+                color: var(--app-primary);
+                opacity: 0.8;
+            }
+
+            h3 {
+                margin: 0;
+                font-size: 0.85rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--app-text-secondary);
+            }
+        }
+
+        .compact-lists {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+
+            .compact-list-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: var(--app-bg);
+                border: 1px solid var(--app-border);
+                border-radius: 8px;
+                padding: 0.6rem 0.8rem;
+                cursor: pointer;
+                transition: all 0.2s ease;
+
+                .list-name {
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    color: var(--app-text-primary);
+                }
+
+                .item-count {
+                    font-size: 0.75rem;
+                    font-weight: 800;
+                    color: var(--app-text-muted);
+                    background: var(--app-surface-hover);
+                    padding: 0.1rem 0.4rem;
+                    border-radius: 4px;
+                }
+
+                &:hover {
+                    border-color: var(--app-primary);
+                    background: var(--app-surface-hover);
+                    transform: translateX(4px);
+
+                    .list-name {
+                        color: var(--app-primary);
+                    }
+                }
+            }
+        }
+    }
 }
 
 @media (max-width: 1000px) {

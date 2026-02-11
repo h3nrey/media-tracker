@@ -1,20 +1,33 @@
 import { Component, Output, EventEmitter, signal, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterLink, RouterModule } from '@angular/router';
 import { LucideAngularModule, Plus, Monitor, Layers, FileUp, RefreshCw, History, Settings, ChevronDown, Package, Sparkles, Film, BarChart3, PlusCircle, Keyboard } from 'lucide-angular';
 import { MediaTypeSelectorComponent } from '../media-type-selector/media-type-selector.component';
+import { UserMenuComponent } from '../user-menu/user-menu.component';
+import { LoginButtonComponent } from '../login-button/login-button.component';
 
 import { ShortcutService } from '../../services/shortcut.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, RouterModule, MediaTypeSelectorComponent],
+  imports: [
+    CommonModule, 
+    LucideAngularModule, 
+    RouterModule, 
+    MediaTypeSelectorComponent, 
+    RouterLink,
+    UserMenuComponent,
+    LoginButtonComponent
+  ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent {
   shortcutService = inject(ShortcutService);
+  authService = inject(AuthService);
+  
   isScrolled = signal(false);
 
   @HostListener('window:scroll', [])

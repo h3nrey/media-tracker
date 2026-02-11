@@ -13,7 +13,7 @@
             <button 
               class="add-column-btn" 
               [style.background]="column.category.color"
-              (click)="openAddDialog(column.category.supabaseId || column.category.id!)"
+              (click)="openAddDialog(column.category.id!)"
               title="Add media to {{ column.category.name }}"
             >
               <span class="add-icon">+</span>
@@ -28,25 +28,57 @@
             [cdkDropListConnectedTo]="getConnectedLists()"
             [cdkDropListAutoScrollDisabled]="false"
             cdkDropListOrientation="vertical"
-            (cdkDropListDropped)="onDrop($event, column.category.supabaseId || column.category.id!)"
+            (cdkDropListDropped)="onDrop($event, column.category.id!)"
           >
             @for (media of column.media; track trackByMediaId($index, media)) {
               @if (media.mediaTypeId === 1) {
                 <app-kanban-anime-card 
                   [anime]="media"
-                  (click)="animeClick.emit(media)"
+                  [isSelected]="selectedIds().has(media.id!)"
+                  (mediaClick)="onMediaClick($event)"
                   (edit)="onEdit($event)"
                   (delete)="onDelete($event)"
                   (increment)="onIncrement($event)"
+                  (complete)="onComplete($event)"
+                  (addNewRun)="onAddNewRun($event)"
+                  (addLog)="onAddLog($event)"
                 ></app-kanban-anime-card>
+              } @else if (media.mediaTypeId === 2) {
+                 <app-kanban-manga-card 
+                  [manga]="media"
+                  [isSelected]="selectedIds().has(media.id!)"
+                  (mediaClick)="onMediaClick($event)"
+                  (edit)="onEdit($event)"
+                  (delete)="onDelete($event)"
+                  (increment)="onIncrement($event)"
+                  (complete)="onComplete($event)"
+                  (addNewRun)="onAddNewRun($event)"
+                  (addLog)="onAddLog($event)"
+                ></app-kanban-manga-card>
               } @else if (media.mediaTypeId === 3) {
                  <app-kanban-game-card 
                   [game]="media"
-                  (click)="animeClick.emit(media)"
+                  [isSelected]="selectedIds().has(media.id!)"
+                  (mediaClick)="onMediaClick($event)"
                   (edit)="onEdit($event)"
                   (delete)="onDelete($event)"
                   (increment)="onIncrement($event)"
+                  (complete)="onComplete($event)"
+                  (addNewRun)="onAddNewRun($event)"
+                  (addLog)="onAddLog($event)"
                 ></app-kanban-game-card>
+              } @else if (media.mediaTypeId === 4) {
+                 <app-kanban-movie-card 
+                  [movie]="media"
+                  [isSelected]="selectedIds().has(media.id!)"
+                  (mediaClick)="onMediaClick($event)"
+                  (edit)="onEdit($event)"
+                  (delete)="onDelete($event)"
+                  (increment)="onIncrement($event)"
+                  (complete)="onComplete($event)"
+                  (addNewRun)="onAddNewRun($event)"
+                  (addLog)="onAddLog($event)"
+                ></app-kanban-movie-card>
               }
             } @empty {
               <div class="empty-column">
@@ -58,4 +90,9 @@
       }
     </div>
   }
+
+  <app-list-view-selection-bar
+    [selectedCount]="selectedIds().size"
+    (deselectAll)="clearAllSelection()">
+  </app-list-view-selection-bar>
 </div>

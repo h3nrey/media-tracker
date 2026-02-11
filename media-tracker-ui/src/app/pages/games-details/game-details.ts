@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MediaService } from '../../services/media.service';
@@ -7,19 +7,18 @@ import { CategoryService } from '../../services/status.service';
 import { ListService } from '../../services/list.service';
 import { DialogService } from '../../services/dialog.service';
 import { ToastService } from '../../services/toast.service';
-import { MediaItem } from '../../models/media-type.model';
-import { GameMetadata } from '../../models/game-metadata.model';
 import { Category } from '../../models/status.model';
 import { List } from '../../models/list.model';
-import { MediaLog } from '../../models/media-log.model';
 import { take, Subscription } from 'rxjs';
 import { GameDetails } from './game-details.model';
+import { MediaRunService } from '../../services/media-run.service';
 
 import { LucideAngularModule } from 'lucide-angular';
 import { GameSidebarComponent } from './components/game-sidebar/game-sidebar.component';
 import { GameInfoComponent } from './components/game-info/game-info.component';
-import { GameListsComponent } from './components/game-lists/game-lists.component';
-import { GameHistoryComponent } from './components/game-history/game-history.component';
+import { MediaRunsListComponent } from '../../components/media-runs/media-runs-list.component';
+import { MediaReviewsComponent } from '../../components/media-reviews/media-reviews.component';
+import { MediaListSectionComponent } from '../../components/media-list-section/media-list-section.component';
 
 @Component({
   selector: 'app-games-details',
@@ -29,13 +28,16 @@ import { GameHistoryComponent } from './components/game-history/game-history.com
     LucideAngularModule,
     GameSidebarComponent,
     GameInfoComponent,
-    GameListsComponent,
-    GameHistoryComponent
+    MediaRunsListComponent,
+    MediaReviewsComponent,
+    MediaListSectionComponent
   ],
   templateUrl: './game-details.html',
   styleUrl: './game-details.scss'
 })
 export class GamesDetailsComponent implements OnInit, OnDestroy {
+  @ViewChild(MediaRunsListComponent) runsList!: MediaRunsListComponent;
+
   private route = inject(ActivatedRoute);
   private mediaService = inject(MediaService);
   private gameService = inject(GameService);
@@ -43,6 +45,7 @@ export class GamesDetailsComponent implements OnInit, OnDestroy {
   private listService = inject(ListService);
   private dialogService = inject(DialogService);
   private toastService = inject(ToastService);
+  private runService = inject(MediaRunService);
   private router = inject(Router);
 
   game = signal<GameDetails | null>(null);
@@ -67,6 +70,12 @@ export class GamesDetailsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.sub.unsubscribe();
+  }
+
+  onQuickLog() {
+    if (this.runsList) {
+      this.runsList.quickLogSession();
+    }
   }
 
   loadData(id: number) {
@@ -108,36 +117,6 @@ export class GamesDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async onAddLog() {
-    const currentGame = this.game();
-    if (!currentGame || !currentGame.id) return;
-
-    const logs = [...(currentGame.logs || []), { mediaItemId: currentGame.id, startDate: new Date(), endDate: new Date() }];
-    await this.gameService.updateGame(currentGame.id, { logs });
-    this.game.update(g => g ? { ...g, logs } : null);
-  }
-
-  async onRemoveLog(index: number) {
-    const currentGame = this.game();
-    if (!currentGame || !currentGame.id || !currentGame.logs) return;
-
-    const logs = [...currentGame.logs];
-    logs.splice(index, 1);
-    
-    await this.gameService.updateGame(currentGame.id, { logs });
-    this.game.update(g => g ? { ...g, logs } : null);
-  }
-
-  async onUpdateLog(event: { index: number, log: Partial<MediaLog> }) {
-    const currentGame = this.game();
-    if (!currentGame || !currentGame.id || !currentGame.logs) return;
-
-    const logs = [...currentGame.logs];
-    logs[event.index] = { ...logs[event.index], ...event.log };
-
-    await this.gameService.updateGame(currentGame.id, { logs });
-    this.game.update(g => g ? { ...g, logs } : null);
-  }
 
   async onUpdateScore(score: number) {
     const currentGame = this.game();
@@ -164,5 +143,14 @@ export class GamesDetailsComponent implements OnInit, OnDestroy {
     const cat = await this.categoryService.getCategoryById(statusId);
     this.category.set(cat || null);
     this.game.update(g => g ? { ...g, statusId } : null);
+  }
+
+  onListUpdated() {
+    const id = this.game()?.id;
+    if (id) {
+      this.listService.getListsContainingItem$(id).pipe(take(1)).subscribe((listsData: List[]) => {
+        this.lists.set(listsData);
+      });
+    }
   }
 }

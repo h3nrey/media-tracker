@@ -5,44 +5,66 @@
     border-bottom: 1px solid var(--app-border);
 }
 
+.board-filters-container {
+    display: flex;
+    flex-direction: column;
+    background: var(--app-bg);
+    border-bottom: 1px solid var(--app-border);
+}
+
 .board-toolbar {
-  padding: 1rem 2rem;
+  padding: 1.25rem 2rem;
   display: flex;
-  gap: 0.75rem;
+  gap: 2rem;
   align-items: center;
   flex-wrap: wrap;
+  justify-content: space-between;
+
+  @media (max-width: 1200px) {
+    justify-content: flex-start;
+    gap: 1.5rem;
+  }
 }
 
-.divider {
-    width: 1px;
-    height: 24px;
-    background: var(--app-border);
-    margin: 0 0.5rem;
-}
-
-.activity-year-selector {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0 0.5rem;
-
-    .selector-label {
-        color: var(--app-text-muted);
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        white-space: nowrap;
-        font-family: var(--app-font-emphasis);
-    }
-}
-
-.sort-selector {
+.toolbar-group {
     display: flex;
     align-items: center;
     gap: 1rem;
 
-    .selector-label {
+    &.primary {
+        gap: 1.5rem;
+        flex: 1 1 auto; // Allow this to shrink/grow properly
+        min-width: 300px;
+    }
+
+    &.filters {
+        gap: 0.75rem;
+        flex-wrap: wrap; // Allow filters to wrap on small screens
+    }
+
+    &.actions {
+        gap: 1rem;
+        margin-left: auto; // Push to right if space permits
+        
+        @media (max-width: 1200px) {
+            margin-left: 0;
+        }
+    }
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    
+    &.highlight {
+        background: var(--app-surface-light);
+        padding: 4px 4px 4px 12px;
+        border-radius: 50px;
+        border: 1px solid var(--app-border);
+    }
+
+    .label {
         color: var(--app-text-muted);
         font-size: 0.75rem;
         font-weight: 700;
@@ -51,37 +73,38 @@
         white-space: nowrap;
         font-family: var(--app-font-emphasis);
     }
+}
 
-    .sort-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+.sort-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.icon-btn {
+    background: var(--app-surface-light);
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    color: var(--app-text-secondary);
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    height: 38px;
+    width: 38px;
+
+    &:hover {
+        border-color: var(--app-primary);
+        background-color: var(--app-surface-hover);
+        color: var(--app-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px var(--app-primary-glow);
     }
 
-    .order-toggle-btn {
-        background: var(--app-surface-light);
-        border: 1px solid var(--app-border);
-        border-radius: 8px;
-        color: var(--app-primary);
-        padding: 0.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        height: 38px;
-        width: 38px;
-
-        &:hover {
-            border-color: var(--app-primary);
-            background-color: var(--app-surface-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px var(--app-primary-glow);
-        }
-
-        &:active {
-            transform: translateY(0);
-        }
+    &:active {
+        transform: translateY(0); // scale(0.95);
     }
 }
 
@@ -114,7 +137,7 @@
     &:hover {
       color: var(--app-text-primary);
       background: var(--app-surface-hover);
-
+      
       lucide-icon {
         transform: scale(1.1);
       }
@@ -128,26 +151,8 @@
   }
 }
 
-.clear-all-btn {
-  padding: 0 0.8rem;
-  background: transparent;
-  border: 1px solid var(--app-border);
-  border-radius: 8px;
-  color: var(--app-text-secondary);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background: var(--app-surface-light);
-    color: var(--app-text-primary);
-    border-color: var(--app-primary);
-  }
+.clear-btn {
+  @extend .icon-btn; // Reuse icon-btn styles
 }
 
 .active-filters-row {

@@ -2,14 +2,17 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../supabase.service';
 import { db } from '../database.service';
 import { Category } from '../../models/status.model';
+import { AuthService } from '../auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CategorySyncService {
   private supabase = inject(SupabaseService).client;
+  private authService = inject(AuthService);
 
   async sync() {
+    const user = this.authService.currentUser()!;
     const localCategories = await db.categories.toArray();
     const { data: remoteCategories, error } = await this.supabase
       .from('categories')
@@ -18,13 +21,23 @@ export class CategorySyncService {
     if (error) throw error;
 
     for (const local of localCategories) {
-      const remote = remoteCategories?.find(r => r.id === local.supabaseId);
+      let remote = remoteCategories?.find(r => r.id === local.supabaseId);
+      
+      if (!remote && !local.supabaseId) {
+        // Match by name for default/pre-existing categories
+        remote = remoteCategories?.find(r => r.name === local.name && !r.is_deleted);
+        if (remote) {
+          await db.categories.update(local.id!, { supabaseId: remote.id });
+          local.supabaseId = remote.id;
+        }
+      }
       
       if (!remote) {
         if (!local.isDeleted) {
           const { data, error: insertError } = await this.supabase
             .from('categories')
             .insert([{
+              user_id: user.id,
               name: local.name,
               color: local.color,
               order: local.order,
@@ -49,6 +62,7 @@ export class CategorySyncService {
           await this.supabase
             .from('categories')
             .update({
+              user_id: user.id,
               name: local.name,
               color: local.color,
               order: local.order,

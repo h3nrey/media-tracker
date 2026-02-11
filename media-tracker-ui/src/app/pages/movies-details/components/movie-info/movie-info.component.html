@@ -1,0 +1,33 @@
+<div class="main-column">
+  <header class="movie-header">
+    <button class="back-link" [routerLink]="['/']">
+      <lucide-icon [img]="ChevronLeftIcon" [size]="18"></lucide-icon>
+      <span>Back to Library</span>
+    </button>
+    
+    <h1 class="title">{{ movie()?.title }}</h1>
+    
+    <div class="meta-info">
+      <span class="year">{{ movie()?.releaseYear }}</span>
+      <span class="separator">•</span>
+      <span class="directors">
+        @for (director of movie()?.studios; track director; let last = $last) {
+          <span>{{ director }}{{ !last ? ', ' : '' }}</span>
+        }
+      </span>
+    </div>
+  </header>
+
+  <section class="overview">
+    @if (tagline()) {
+      <h3 class="tagline">{{ tagline() }}</h3>
+    }
+    <p class="synopsis">{{ movie()?.notes }}</p>
+  </section>
+
+  <div class="genres-section">
+    @for (genre of movie()?.genres; track genre) {
+      <span class="genre-tag">{{ genre }}</span>
+    }
+  </div>
+</div>

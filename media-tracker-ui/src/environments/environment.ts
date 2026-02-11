@@ -3,5 +3,6 @@ export const environment = {
   supabaseUrl: 'https://ewvkxirukfqkylbihfif.supabase.co',
   supabaseKey: 'sb_publishable_GOWJ_ZI5A2f1cD7zTK-jlw_I7i-Vs30',
   igdbClientId: '4vabysg9eovc1vgy8d1uxk89cw4cnu',
-  igdbClientSecret: 'i663xue21vd7meel2j9xw7bkhij5o0'
+  igdbClientSecret: 'i663xue21vd7meel2j9xw7bkhij5o0',
+  tmdbApiKey: 'e9e48b3e58ad19efac1f3ebd7c969d6e'
 };
