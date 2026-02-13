@@ -72,7 +72,8 @@ export class TmdbService {
       score: 0,
       genres: movie.genres?.map((g: any) => g.name) || [],
       releaseYear: movie.release_date ? new Date(movie.release_date).getFullYear() : undefined,
-      notes: movie.overview || ''
+      notes: movie.overview || '',
+      version: 1
     };
   }
 }

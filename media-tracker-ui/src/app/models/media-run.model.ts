@@ -15,7 +15,6 @@ export interface MediaRun {
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
-  lastSyncedAt?: Date;
 }
 
 /**
@@ -30,7 +29,6 @@ export interface GameSession {
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
-  lastSyncedAt?: Date;
 }
 
 /**
@@ -43,7 +41,7 @@ export interface EpisodeProgress {
   episodeNumber: number;
   watchedAt: Date;
   createdAt: Date;
-  lastSyncedAt?: Date;
+  updatedAt?: Date;
 }
 
 /**
@@ -56,7 +54,7 @@ export interface ChapterProgress {
   chapterNumber: number;
   readAt: Date;
   createdAt: Date;
-  lastSyncedAt?: Date;
+  updatedAt?: Date;
 }
 
 /**

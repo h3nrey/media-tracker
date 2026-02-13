@@ -19,8 +19,8 @@ export class ListService {
   async seedInitialData() {
     const listCount = await db.lists.count();
     if (listCount === 0) {
-      const folderId = await this.addFolder({ name: 'My Lists', order: 1 });
-      await this.addFolder({ name: 'Top Lists', order: 2 });
+      const folderId = await this.addFolder({ name: 'My Lists', order: 1, version: 1 });
+      await this.addFolder({ name: 'Top Lists', order: 2, version: 1 });
       
       const mediaItems = await db.mediaItems.limit(5).toArray();
       const mediaItemIds = mediaItems.map(m => m.id!);
@@ -30,7 +30,8 @@ export class ListService {
         description: 'A collection of my favorites',
         mediaItemIds: mediaItemIds,
         animeIds: mediaItemIds, // Legacy support
-        folderId: folderId
+        folderId: folderId,
+        version: 1
       });
     }
   }
@@ -103,7 +104,8 @@ export class ListService {
       ...list,
       createdAt: now,
       updatedAt: now,
-      isDeleted: false
+      isDeleted: false,
+      version: list.version || 1
     } as List);
     
     this.syncService.sync();
@@ -111,18 +113,22 @@ export class ListService {
   }
 
   async updateList(id: number, updates: Partial<List>): Promise<number> {
+    const existing = await db.lists.get(id);
     const result = await db.lists.update(id, {
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      version: (existing?.version || 1) + 1
     });
     this.syncService.sync();
     return result;
   }
 
   async deleteList(id: number): Promise<void> {
+    const existing = await db.lists.get(id);
     await db.lists.update(id, {
       isDeleted: true,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      version: (existing?.version || 1) + 1
     });
     this.syncService.sync();
   }
@@ -133,7 +139,8 @@ export class ListService {
       ...folder,
       createdAt: now,
       updatedAt: now,
-      isDeleted: false
+      isDeleted: false,
+      version: 1
     } as Folder);
     
     this.syncService.sync();
@@ -141,18 +148,22 @@ export class ListService {
   }
 
   async updateFolder(id: number, updates: Partial<Folder>): Promise<number> {
+    const existing = await db.folders.get(id);
     const result = await db.folders.update(id, {
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      version: (existing?.version || 1) + 1
     });
     this.syncService.sync();
     return result;
   }
 
   async deleteFolder(id: number): Promise<void> {
+    const existing = await db.folders.get(id);
     await db.folders.update(id, {
       isDeleted: true,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      version: (existing?.version || 1) + 1
     });
     this.syncService.sync();
   }
@@ -161,12 +172,14 @@ export class ListService {
     name: string, 
     folderId?: number, 
     mediaTypeId?: number | null, 
-    mediaItemIds: number[] 
+    mediaItemIds: number[],
+    version?: number
   }): Promise<number> {
     const listData = {
       ...data,
-      animeIds: data.mediaItemIds // Support legacy components that use animeIds
-    };
+      animeIds: data.mediaItemIds, // Support legacy components that use animeIds
+      version: data.version || 1
+    } as Omit<List, 'id' | 'createdAt' | 'updatedAt' | 'isDeleted'>;
 
     if (id) {
       return await this.updateList(id, listData);

@@ -246,7 +246,8 @@ export class MalService {
       genres: jikanAnime.genres?.map(g => g.name) || [],
       studios: jikanAnime.studios?.map(s => s.name) || [],
       releaseYear: jikanAnime.year || jikanAnime.aired?.prop?.from?.year,
-      notes: ''
+      notes: '',
+      version: 1
     };
   }
 
@@ -266,7 +267,8 @@ export class MalService {
       score: 0,
       genres: jikanManga.genres?.map(g => g.name) || [],
       releaseYear: jikanManga.published?.prop?.from?.year,
-      notes: ''
+      notes: '',
+      version: 1
     };
   }
 }

@@ -5,6 +5,6 @@ export interface WatchSource {
   baseUrl?: string;
   createdAt: Date;
   updatedAt: Date;
-  lastSyncedAt?: Date;
+  version: number;
   isDeleted?: boolean;
 }

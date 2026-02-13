@@ -9,6 +9,8 @@ import { MangaMetadata } from '../models/manga-metadata.model';
 import { GameMetadata } from '../models/game-metadata.model';
 import { MovieMetadata } from '../models/movie-metadata.model';
 import { MediaRun, GameSession, EpisodeProgress, ChapterProgress } from '../models/media-run.model';
+import { UserProfile } from '../models/user-profile.model';
+import { SyncConflict } from '../models/sync-conflict.model';
 
 export class AnimeTrackerDatabase extends Dexie {
   anime!: Table<Anime, number>;
@@ -16,8 +18,8 @@ export class AnimeTrackerDatabase extends Dexie {
   watchSources!: Table<WatchSource, number>;
   lists!: Table<List, number>;
   folders!: Table<Folder, number>;
+  syncConflicts!: Table<SyncConflict, number>;
   
-  // New media types tables
   mediaTypes!: Table<MediaTypeDefinition, number>;
   mediaItems!: Table<MediaItem, number>;
   animeMetadata!: Table<AnimeMetadata, number>;
@@ -25,12 +27,12 @@ export class AnimeTrackerDatabase extends Dexie {
   gameMetadata!: Table<GameMetadata, number>;
   movieMetadata!: Table<MovieMetadata, number>;
   mediaImages!: Table<MediaGalleryImage, number>;
-  
-  // New media runs tables
+
   mediaRuns!: Table<MediaRun, number>;
   gameSessions!: Table<GameSession, number>;
   episodeProgress!: Table<EpisodeProgress, number>;
   chapterProgress!: Table<ChapterProgress, number>;
+  profiles!: Table<UserProfile, string>;
 
   constructor() {
     super('AnimeTrackerDB');
@@ -198,6 +200,47 @@ export class AnimeTrackerDatabase extends Dexie {
       episodeProgress: '++id, supabaseId, runId, episodeNumber, [runId+episodeNumber], watchedAt, createdAt, lastSyncedAt',
       chapterProgress: '++id, supabaseId, runId, chapterNumber, [runId+chapterNumber], readAt, createdAt, lastSyncedAt'
     });
+
+    // Version 12: Add profiles table and move lastSyncedAt there
+    this.version(12).stores({
+      profiles: 'id, lastSyncedAt, updatedAt',
+      mediaItems: '++id, supabaseId, mediaTypeId, title, externalId, statusId, score, createdAt, updatedAt, isDeleted',
+      mediaImages: '++id, supabaseId, mediaItemId, createdAt, updatedAt, isDeleted',
+      lists: '++id, supabaseId, name, folderId, mediaTypeId, createdAt, updatedAt, isDeleted',
+      categories: '++id, supabaseId, name, order, createdAt, updatedAt, isDeleted',
+      watchSources: '++id, supabaseId, name, baseUrl, createdAt, updatedAt, isDeleted',
+      folders: '++id, supabaseId, name, order, createdAt, updatedAt, isDeleted',
+      mediaRuns: '++id, supabaseId, userId, mediaItemId, runNumber, createdAt, updatedAt, isDeleted',
+      gameSessions: '++id, supabaseId, runId, playedAt, createdAt, updatedAt',
+      episodeProgress: '++id, supabaseId, runId, episodeNumber, [runId+episodeNumber], watchedAt, createdAt, updatedAt',
+      chapterProgress: '++id, supabaseId, runId, chapterNumber, [runId+chapterNumber], readAt, createdAt, updatedAt'
+    });
+
+    // Version 13: Version-based Optimistic Concurrency
+    this.version(13).stores({
+      syncConflicts: '++id, entityType, createdAt',
+      profiles: 'id, updatedAt, version', // Profile also needs versioning
+      mediaItems: '++id, supabaseId, mediaTypeId, externalId, statusId, version, isDeleted',
+      lists: '++id, supabaseId, folderId, mediaTypeId, version, isDeleted',
+      categories: '++id, supabaseId, version, isDeleted',
+      watchSources: '++id, supabaseId, version, isDeleted',
+      folders: '++id, supabaseId, version, isDeleted',
+      // Append-only tables (no version needed for concurrency, synced by supabaseId)
+      mediaRuns: '++id, supabaseId, userId, mediaItemId, runNumber, isDeleted',
+      gameSessions: '++id, supabaseId, runId, playedAt',
+      episodeProgress: '++id, supabaseId, runId, episodeNumber, [runId+episodeNumber]',
+      chapterProgress: '++id, supabaseId, runId, chapterNumber, [runId+chapterNumber]'
+    }).upgrade(async trans => {
+      // Initialize version to 1 for all existing records to enable comparison logic
+      const tables = ['mediaItems', 'lists', 'categories', 'watchSources', 'folders', 'profiles'];
+      for (const tableName of tables) {
+        await trans.table(tableName).toCollection().modify(item => {
+          if (item.version === undefined || item.version === null) {
+            item.version = 1;
+          }
+        });
+      }
+    });
   }
 
   async seedDefaultCategories(): Promise<void> {
@@ -207,6 +250,7 @@ export class AnimeTrackerDatabase extends Dexie {
       const now = new Date();
       const categoriesToAdd = DEFAULT_CATEGORIES.map(category => ({
         ...category,
+        version: 1,
         createdAt: now,
         updatedAt: now
       }));

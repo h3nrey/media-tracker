@@ -70,7 +70,8 @@ export class MediaListSectionComponent {
       const newListId = await this.listService.addList({
         name,
         mediaItemIds: [this.mediaId()],
-        animeIds: [this.mediaId()]
+        animeIds: [this.mediaId()],
+        version: 1
       });
       this.toast.success(`Lista "${name}" criada e item adicionado!`);
       this.showAddPopover.set(false);

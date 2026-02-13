@@ -1,103 +1,104 @@
 import { Injectable, inject } from '@angular/core';
-import { SupabaseService } from '../supabase.service';
 import { db } from '../database.service';
 import { Category } from '../../models/status.model';
+import { SyncBaseService } from './sync-base.service';
 import { AuthService } from '../auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class CategorySyncService {
-  private supabase = inject(SupabaseService).client;
+export class CategorySyncService extends SyncBaseService<Category> {
+  protected override tableName = 'categories';
+  protected override entityType = 'Category';
   private authService = inject(AuthService);
 
-  async sync() {
-    const user = this.authService.currentUser()!;
+  async sync(lastSyncedAt?: Date) {
     const localCategories = await db.categories.toArray();
-    const { data: remoteCategories, error } = await this.supabase
-      .from('categories')
-      .select('*');
+    await this.syncEntity(localCategories, lastSyncedAt);
+  }
+
+  protected override async handleMissingLocal(remote: any) {
+    // Check for natural key match (name) before inserting
+    const existingByName = await db.categories.where('name').equals(remote.name).first();
     
-    if (error) throw error;
-
-    for (const local of localCategories) {
-      let remote = remoteCategories?.find(r => r.id === local.supabaseId);
-      
-      if (!remote && !local.supabaseId) {
-        // Match by name for default/pre-existing categories
-        remote = remoteCategories?.find(r => r.name === local.name && !r.is_deleted);
-        if (remote) {
-          await db.categories.update(local.id!, { supabaseId: remote.id });
-          local.supabaseId = remote.id;
-        }
-      }
-      
-      if (!remote) {
-        if (!local.isDeleted) {
-          const { data, error: insertError } = await this.supabase
-            .from('categories')
-            .insert([{
-              user_id: user.id,
-              name: local.name,
-              color: local.color,
-              order: local.order,
-              is_deleted: false,
-              created_at: local.createdAt.toISOString(),
-              updated_at: local.updatedAt.toISOString()
-            }])
-            .select()
-            .single();
-
-          if (insertError) console.error('Error inserting category:', insertError);
-          else {
-            await db.categories.update(local.id!, { 
-              supabaseId: data.id, 
-              lastSyncedAt: new Date() 
-            });
-          }
-        }
-      } else {
-        const remoteUpdatedAt = new Date(remote.updated_at);
-        if (local.updatedAt > remoteUpdatedAt && (!local.lastSyncedAt || local.updatedAt > local.lastSyncedAt)) {
-          await this.supabase
-            .from('categories')
-            .update({
-              user_id: user.id,
-              name: local.name,
-              color: local.color,
-              order: local.order,
-              is_deleted: !!local.isDeleted,
-              updated_at: local.updatedAt.toISOString()
-            })
-            .eq('id', local.supabaseId);
-          
-          await db.categories.update(local.id!, { lastSyncedAt: new Date() });
-        } else if (remoteUpdatedAt > (local.lastSyncedAt || local.updatedAt)) {
-          await db.categories.update(local.id!, {
-            name: remote.name,
-            color: remote.color,
-            order: remote.order,
-            isDeleted: remote.is_deleted,
-            updatedAt: remoteUpdatedAt,
-            lastSyncedAt: new Date()
-          });
-        }
-      }
-    }
-
-    for (const remote of remoteCategories || []) {
-      const local = localCategories.find(l => l.supabaseId === remote.id);
-      if (!local) {
-        await db.categories.add({
+    if (existingByName) {
+      if (!existingByName.supabaseId) {
+        await db.categories.update(existingByName.id!, { 
           supabaseId: remote.id,
-          name: remote.name,
-          color: remote.color,
-          order: remote.order,
-          isDeleted: remote.is_deleted,
-          createdAt: new Date(remote.created_at),
-          updatedAt: new Date(remote.updated_at),
-          lastSyncedAt: new Date()
-        } as Category);
+          version: remote.version 
+        });
+      } else {
+        console.warn('Category name collision with different supabaseId', remote.name);
+      }
+    } else {
+      await db.categories.add({
+        supabaseId: remote.id,
+        name: remote.name,
+        color: remote.color,
+        order: remote.order,
+        isDeleted: remote.is_deleted,
+        version: remote.version,
+        createdAt: new Date(remote.created_at),
+        updatedAt: new Date(remote.updated_at)
+      } as Category);
+    }
+  }
+
+  protected override async pullRemote(localId: number, remote: any) {
+    await db.categories.update(localId, {
+      name: remote.name,
+      color: remote.color,
+      order: remote.order,
+      isDeleted: remote.is_deleted,
+      version: remote.version,
+      updatedAt: new Date(remote.updated_at)
+    });
+  }
+
+  protected override mapToSupabase(local: Category) {
+    const user = this.authService.currentUser()!;
+    return {
+      user_id: user.id,
+      name: local.name,
+      color: local.color,
+      order: local.order,
+      is_deleted: !!local.isDeleted,
+      updated_at: local.updatedAt?.toISOString()
+    };
+  }
+
+  protected override async handleNewLocal(local: Category) {
+    const user = this.authService.currentUser()!;
+    const supabaseData = this.mapToSupabase(local);
+    
+    const { data: matchedRemote } = await this.supabase
+      .from('categories')
+      .select('*')
+      .eq('name', local.name)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (matchedRemote) {
+      await db.categories.update(local.id!, { supabaseId: matchedRemote.id });
+      await this.pullRemote(local.id!, matchedRemote);
+    } else {
+      const { data, error } = await this.supabase
+        .from('categories')
+        .insert([{
+          ...supabaseData,
+          version: 1,
+          created_at: local.createdAt.toISOString()
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error inserting category:', error);
+      } else {
+        await db.categories.update(local.id!, { 
+          supabaseId: data.id,
+          version: data.version
+        });
       }
     }
   }

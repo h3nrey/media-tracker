@@ -202,7 +202,8 @@ export class IgdbService {
       studios: game.involved_companies?.filter(c => c.developer).map(c => c.company.name) || [],
       releaseYear: game.first_release_date ? new Date(game.first_release_date * 1000).getFullYear() : undefined,
       notes: game.summary || '',
-      platforms: game.platforms?.map(p => p.name) || []
+      platforms: game.platforms?.map(p => p.name) || [],
+      version: 1
     };
   }
 

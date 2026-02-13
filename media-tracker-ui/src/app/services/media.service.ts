@@ -219,7 +219,8 @@ export class MediaService {
       ...rest,
       createdAt: now,
       updatedAt: now,
-      isDeleted: false
+      isDeleted: false,
+      version: media.version || 1
     } as MediaItem);
     
     if (runs && runs.length > 0) {
@@ -254,9 +255,11 @@ export class MediaService {
     const now = new Date();
     const { runs, screenshots, ...rest } = updates;
 
+    const existing = await db.mediaItems.get(id);
     const result = await db.mediaItems.update(id, {
       ...rest,
-      updatedAt: now
+      updatedAt: now,
+      version: (existing?.version || 1) + 1
     });
 
     if (runs) {
@@ -296,9 +299,11 @@ export class MediaService {
 
   async updateMediaStatus(id: number, statusId: number): Promise<number> {
     console.log("updateMediaStatus", id, statusId);
+    const existing = await db.mediaItems.get(id);
     const result = await db.mediaItems.update(id, {
       statusId,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      version: (existing?.version || 1) + 1
     });
     this.triggerFilterUpdate();
     this.syncService.sync();
@@ -308,9 +313,11 @@ export class MediaService {
   async updateMediaStatusWithSync(id: number, localCategoryId: number): Promise<number> {
     const now = new Date();
     
+    const existing = await db.mediaItems.get(id);
     const result = await db.mediaItems.update(id, {
       statusId: localCategoryId,
-      updatedAt: now
+      updatedAt: now,
+      version: (existing?.version || 1) + 1
     });
 
     const mediaItem = await db.mediaItems.get(id);
@@ -335,8 +342,7 @@ export class MediaService {
         .eq('id', mediaItem.supabaseId);
       
       console.log(`✅ Updated media ${mediaItem.title} category to ${category.name} on Supabase`);
-      
-      await db.mediaItems.update(id, { lastSyncedAt: now });
+
     } catch (error) {
       console.error('Failed to update Supabase:', error);
       this.syncService.sync();

@@ -34,7 +34,8 @@ export class CategoryService {
       ...category,
       createdAt: now,
       updatedAt: now,
-      isDeleted: false
+      isDeleted: false,
+      version: 1
     } as Category);
     
     this.syncService.sync(); // Trigger sync in background
@@ -42,28 +43,40 @@ export class CategoryService {
   }
 
   async updateCategory(id: number, updates: Partial<Category>): Promise<void> {
+    const existing = await db.categories.get(id);
     await db.categories.update(id, {
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      version: (existing?.version || 1) + 1
     });
     this.syncService.sync();
   }
 
   async deleteCategory(id: number): Promise<void> {
     // Soft delete for sync
+    const existing = await db.categories.get(id);
     await db.categories.update(id, {
       isDeleted: true,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      version: (existing?.version || 1) + 1
     });
     this.syncService.sync();
   }
 
   async reorderCategories(categoryIds: number[]): Promise<void> {
     const now = new Date();
-    const updates = categoryIds.map((id, index) => ({
-      key: id,
-      changes: { order: index, updatedAt: now }
-    }));
+    const existing = await db.categories.toArray();
+    const updates = categoryIds.map((id, index) => {
+      const current = existing.find(c => c.id === id);
+      return {
+        key: id,
+        changes: { 
+          order: index, 
+          updatedAt: now,
+          version: (current?.version || 1) + 1
+        }
+      };
+    });
 
     await db.categories.bulkUpdate(updates);
     this.syncService.sync();
@@ -78,7 +91,8 @@ export class CategoryService {
         ...category,
         createdAt: now,
         updatedAt: now,
-        isDeleted: false
+        isDeleted: false,
+        version: 1
       }));
       
       await db.categories.bulkAdd(categoriesToAdd as Category[]);

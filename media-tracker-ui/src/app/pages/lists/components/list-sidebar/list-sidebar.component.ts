@@ -79,7 +79,8 @@ export class ListSidebarComponent {
       await this.listService.addFolder({
         name: this.newFolderName(),
         icon: this.selectedIcon(),
-        order: (await db.folders.count()) + 1
+        order: (await db.folders.count()) + 1,
+        version: 1
       });
     }
 

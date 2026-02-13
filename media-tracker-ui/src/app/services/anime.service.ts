@@ -148,7 +148,8 @@ export class AnimeService {
       mediaTypeId: MediaType.ANIME,
       createdAt: now,
       updatedAt: now,
-      isDeleted: false
+      isDeleted: false,
+      version: anime.version || 1
     } as MediaItem);
     
     // Save metadata if available
@@ -179,9 +180,11 @@ export class AnimeService {
   async updateAnime(id: number, updates: Partial<MediaItem>): Promise<number> {
     const now = new Date();
     const { runs, ...itemUpdates } = updates;
+    const existing = await db.mediaItems.get(id);
     const result = await db.mediaItems.update(id, {
       ...itemUpdates,
-      updatedAt: now
+      updatedAt: now,
+      version: (existing?.version || 1) + 1
     });
 
     if (runs) {
@@ -203,9 +206,11 @@ export class AnimeService {
   }
 
   async updateAnimeStatus(id: number, statusId: number): Promise<number> {
+    const existing = await db.mediaItems.get(id);
     const result = await db.mediaItems.update(id, {
       statusId,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      version: (existing?.version || 1) + 1
     });
     this.syncService.sync();
     return result;
@@ -213,9 +218,11 @@ export class AnimeService {
 
   async deleteAnime(id: number): Promise<void> {
     // Soft delete for sync
+    const existing = await db.mediaItems.get(id);
     await db.mediaItems.update(id, {
         isDeleted: true,
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        version: (existing?.version || 1) + 1
     });
     this.syncService.sync();
   }

@@ -12,8 +12,8 @@ export interface List {
   folderId?: number;
   createdAt: Date;
   updatedAt: Date;
+  version: number;
   isDeleted: boolean;
-  lastSyncedAt?: Date;
 }
 
 export interface ListDetails extends List {
@@ -29,6 +29,6 @@ export interface Folder {
   order: number;
   createdAt: Date;
   updatedAt: Date;
+  version: number;
   isDeleted: boolean;
-  lastSyncedAt?: Date;
 }

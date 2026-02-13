@@ -30,7 +30,8 @@ export class WatchSourceService {
       ...source,
       createdAt: now,
       updatedAt: now,
-      isDeleted: false
+      isDeleted: false,
+      version: 1
     } as WatchSource);
     
     this.syncService.sync();
@@ -38,17 +39,21 @@ export class WatchSourceService {
   }
 
   async updateSource(id: number, changes: Partial<WatchSource>): Promise<void> {
+    const existing = await db.watchSources.get(id);
     await db.watchSources.update(id, {
       ...changes,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      version: (existing?.version || 1) + 1
     });
     this.syncService.sync();
   }
 
   async deleteSource(id: number): Promise<void> {
+    const existing = await db.watchSources.get(id);
     await db.watchSources.update(id, {
         isDeleted: true,
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        version: (existing?.version || 1) + 1
     });
     this.syncService.sync();
   }

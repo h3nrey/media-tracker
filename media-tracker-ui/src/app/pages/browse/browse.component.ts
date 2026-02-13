@@ -196,7 +196,8 @@ export class BrowseComponent implements OnInit, OnDestroy {
       const newListId = await this.listService.addList({
         name,
         mediaItemIds: [],
-        animeIds: []
+        animeIds: [],
+        version: 1
       });
       this.toast.success(`Lista "${name}" criada!`);
       

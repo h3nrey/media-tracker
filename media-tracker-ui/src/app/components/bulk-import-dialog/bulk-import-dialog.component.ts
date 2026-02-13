@@ -265,7 +265,8 @@ export class BulkImportDialogComponent {
       releaseYear: tvShow.first_air_date ? new Date(tvShow.first_air_date).getFullYear() : undefined,
       progressCurrent: 0,
       progressTotal: tvShow.number_of_episodes || 0,
-      isDeleted: false
+      isDeleted: false,
+      version: 1
     };
     
     await this.animeService.addAnime(animeData);

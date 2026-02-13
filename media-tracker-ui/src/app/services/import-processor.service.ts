@@ -180,7 +180,8 @@ export class ImportProcessorService {
         progressCurrent: 0,
         progressTotal: 0,
         sourceLinks: [],
-        activityDates: []
+        activityDates: [],
+        version: 1
       };
 
       const id = await this.mediaService.addMedia(mediaItem);
@@ -231,7 +232,8 @@ export class ImportProcessorService {
         progressCurrent: 0,
         progressTotal: 0,
         sourceLinks: [],
-        activityDates
+        activityDates,
+        version: 1
       };
 
       const id = await this.mediaService.addMedia(mediaItem);

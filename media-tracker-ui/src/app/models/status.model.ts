@@ -6,11 +6,11 @@ export interface Category {
   order: number;
   createdAt: Date;
   updatedAt: Date;
-  lastSyncedAt?: Date;
+  version: number;
   isDeleted?: boolean;
 }
 
-export const DEFAULT_CATEGORIES: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>[] = [
+export const DEFAULT_CATEGORIES: Omit<Category, 'id' | 'createdAt' | 'updatedAt' | 'version'>[] = [
   { name: 'Plan to Watch', color: '#8B5CF6', order: 0 },
   { name: 'Watching', color: '#3B82F6', order: 1 },
   { name: 'Completed', color: '#10B981', order: 2 },

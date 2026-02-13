@@ -70,7 +70,8 @@ export class ManageCategoriesDialogComponent implements OnInit {
     await this.categoryService.addCategory({
       name: this.newCategoryName.trim(),
       color: this.newCategoryColor,
-      order: maxOrder + 1
+      order: maxOrder + 1,
+      version: 1
     });
 
     this.resetForm();

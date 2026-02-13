@@ -37,7 +37,7 @@ export interface MediaItem {
   sourceLinks?: MediaSourceLink[];
   createdAt: Date;
   updatedAt: Date;
-  lastSyncedAt?: Date;
+  version: number;
   progressCurrent?: number;
   progressTotal?: number;
   runs?: MediaRun[];

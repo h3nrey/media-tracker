@@ -63,7 +63,8 @@ export class ManageSourcesDialogComponent {
     
     await this.sourceService.addSource({
       name: this.newName().trim(),
-      baseUrl: this.newUrl().trim()
+      baseUrl: this.newUrl().trim(),
+      version: 1
     });
     
     this.newName.set('');
