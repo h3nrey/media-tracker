@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { db } from '../database.service';
 import { List, Folder } from '../../models/list.model';
 import { SyncBaseService } from './sync-base.service';
+import { AuthService } from '../auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -45,7 +46,8 @@ export class FolderSyncService extends SyncBaseService<Folder> {
       icon: local.icon,
       order: local.order,
       is_deleted: !!local.isDeleted,
-      updated_at: local.updatedAt.toISOString()
+      updated_at: local.updatedAt.toISOString(),
+      user_id: this.authService.currentUser()?.id
     };
   }
 
@@ -54,6 +56,7 @@ export class FolderSyncService extends SyncBaseService<Folder> {
       .from(this.tableName)
       .select('*')
       .eq('name', local.name)
+      .eq('user_id', this.authService.currentUser()?.id)
       .maybeSingle();
 
     if (matchedRemote) {
@@ -143,7 +146,8 @@ export class ListSyncService extends SyncBaseService<List> {
       description: local.description,
       media_type_id: local.mediaTypeId,
       is_deleted: !!local.isDeleted,
-      updated_at: local.updatedAt.toISOString()
+      updated_at: local.updatedAt.toISOString(),
+      user_id: this.authService.currentUser()?.id
     };
   }
 
@@ -179,6 +183,7 @@ export class ListSyncService extends SyncBaseService<List> {
       .select('*')
       .eq('name', local.name)
       .eq('media_type_id', local.mediaTypeId)
+      .eq('user_id', this.authService.currentUser()?.id)
       .maybeSingle();
 
     if (matchedRemote) {

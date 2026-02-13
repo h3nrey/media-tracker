@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../supabase.service';
 import { db } from '../database.service';
 import { ChapterProgress } from '../../models/media-run.model';
+import { AuthService } from '../auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,7 @@ import { ChapterProgress } from '../../models/media-run.model';
 })
 export class ChapterProgressSyncService {
   private supabase = inject(SupabaseService).client;
+  private authService = inject(AuthService);
 
   async sync(lastSyncedAt?: Date) {
     console.log('Syncing chapter progress...');
@@ -18,7 +20,8 @@ export class ChapterProgressSyncService {
     
     const { data: remoteProgress, error } = await this.supabase
       .from('chapter_progress')
-      .select('*');
+      .select('*')
+      .eq('user_id', this.authService.currentUser()?.id);
 
     if (error) throw error;
 
@@ -69,6 +72,7 @@ export class ChapterProgressSyncService {
         .select('id')
         .eq('run_id', supabaseRunId)
         .eq('chapter_number', local.chapterNumber)
+        .eq('user_id', this.authService.currentUser()?.id)
         .maybeSingle();
 
       if (existing) {
@@ -83,7 +87,8 @@ export class ChapterProgressSyncService {
           chapter_number: local.chapterNumber,
           read_at: local.readAt.toISOString(),
           created_at: local.createdAt.toISOString(),
-          updated_at: (local.updatedAt || local.createdAt).toISOString()
+          updated_at: (local.updatedAt || local.createdAt).toISOString(),
+          user_id: this.authService.currentUser()?.id
         }])
         .select()
         .single();

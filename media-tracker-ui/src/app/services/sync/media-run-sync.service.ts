@@ -20,7 +20,8 @@ export class MediaRunSyncService {
     
     const { data: remoteRuns, error } = await this.supabase
       .from('media_runs')
-      .select('*');
+      .select('*')
+      .eq('user_id', user.id);
 
     if (error) throw error;
 
@@ -76,6 +77,7 @@ export class MediaRunSyncService {
         .select('id')
         .eq('media_item_id', supabaseMediaId)
         .eq('run_number', local.runNumber)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (existing) {

@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
 import { db } from '../database.service';
 import { SyncBaseService } from './sync-base.service';
 import { WatchSource } from '../../models/watch-source.model';
+import { AuthService } from '../auth.service';
+import { inject, Injectable } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -42,12 +43,13 @@ export class WatchSourceSyncService extends SyncBaseService<WatchSource> {
       name: local.name,
       base_url: local.baseUrl,
       is_deleted: !!local.isDeleted,
-      updated_at: local.updatedAt.toISOString()
+      updated_at: local.updatedAt.toISOString(),
+      user_id: this.authService.currentUser()?.id
     };
   }
 
   protected override async handleNewLocal(local: WatchSource) {
-    const user = (await this.supabase.auth.getUser()).data.user;
+    const user = this.authService.currentUser();
     if (!user) return;
 
     const { data, error } = await this.supabase

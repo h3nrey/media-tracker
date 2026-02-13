@@ -10,7 +10,6 @@ import { AuthService } from '../auth.service';
 export class CategorySyncService extends SyncBaseService<Category> {
   protected override tableName = 'categories';
   protected override entityType = 'Category';
-  private authService = inject(AuthService);
 
   async sync(lastSyncedAt?: Date) {
     const localCategories = await db.categories.toArray();

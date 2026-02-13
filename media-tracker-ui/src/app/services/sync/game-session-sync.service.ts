@@ -2,12 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../supabase.service';
 import { db } from '../database.service';
 import { GameSession } from '../../models/media-run.model';
+import { AuthService } from '../auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GameSessionSyncService {
   private supabase = inject(SupabaseService).client;
+  private authService = inject(AuthService);
 
   async sync(lastSyncedAt?: Date) {
     console.log('Syncing game sessions...');
@@ -15,7 +17,8 @@ export class GameSessionSyncService {
     
     const { data: remoteSessions, error } = await this.supabase
       .from('game_sessions')
-      .select('*');
+      .select('*')
+      .eq('user_id', this.authService.currentUser()?.id);
 
     if (error) throw error;
 
@@ -67,6 +70,7 @@ export class GameSessionSyncService {
         .select('id')
         .eq('run_id', supabaseRunId)
         .eq('played_at', local.playedAt.toISOString())
+        .eq('user_id', this.authService.currentUser()?.id)
         .maybeSingle();
 
       if (existing) {
@@ -82,7 +86,8 @@ export class GameSessionSyncService {
           duration_minutes: local.durationMinutes,
           notes: local.notes,
           created_at: local.createdAt.toISOString(),
-          updated_at: local.updatedAt.toISOString()
+          updated_at: local.updatedAt.toISOString(),
+          user_id: this.authService.currentUser()?.id
         }])
         .select()
         .single();

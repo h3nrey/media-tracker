@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { db } from '../database.service';
 import { MediaItem } from '../../models/media-type.model';
 import { SyncBaseService } from './sync-base.service';
+import { AuthService } from '../auth.service';
+import { inject } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -136,7 +138,8 @@ export class MangaSyncService extends SyncBaseService<MediaItem> {
       progress_current: local.progressCurrent,
       progress_total: local.progressTotal,
       is_deleted: !!local.isDeleted,
-      updated_at: local.updatedAt.toISOString()
+      updated_at: local.updatedAt.toISOString(),
+      user_id: this.authService.currentUser()?.id
     };
   }
 
@@ -166,6 +169,7 @@ export class MangaSyncService extends SyncBaseService<MediaItem> {
         .select('*')
         .eq('external_id', local.externalId)
         .eq('media_type_id', 2)
+        .eq('user_id', this.authService.currentUser()?.id)
         .maybeSingle();
 
       if (matchedRemote) {

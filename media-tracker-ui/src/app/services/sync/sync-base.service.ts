@@ -3,16 +3,23 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { SupabaseService } from '../supabase.service';
 import { db } from '../database.service';
 import { SyncConflict } from '../../models/sync-conflict.model';
+import { AuthService } from '../auth.service';
 
 export abstract class SyncBaseService<T extends { id?: number; supabaseId?: number; version: number; isDeleted?: boolean }> {
   protected supabase = inject(SupabaseService).client;
+  protected authService = inject(AuthService);
   protected abstract tableName: string;
   protected abstract entityType: string;
 
   async syncEntity(localItems: T[], lastSyncedAt?: Date) {
     console.log(`Syncing ${this.entityType}...`);
     
-    let query = this.supabase.from(this.tableName).select('*');
+    const user = this.authService.currentUser();
+    if (!user) return;
+
+    let query = this.supabase.from(this.tableName)
+      .select('*')
+      .eq('user_id', user.id);
     
     const { data: remoteItems, error } = await query;
 
