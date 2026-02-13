@@ -20,10 +20,14 @@ export class AnimeSyncService extends SyncBaseService<MediaItem> {
   override async syncEntity(localItems: MediaItem[], lastSyncedAt?: Date) {
     console.log(`Syncing ${this.entityType}...`);
     
+    const user = this.authService.currentUser();
+    if (!user) return;
+
     const { data: remoteItems, error } = await this.supabase
       .from(this.tableName)
       .select('*')
-      .eq('media_type_id', 1);
+      .eq('media_type_id', 1)
+      .eq('user_id', user.id);
 
     if (error) throw error;
 
@@ -176,7 +180,13 @@ export class AnimeSyncService extends SyncBaseService<MediaItem> {
         await db.mediaItems.update(local.id!, { supabaseId: matchedRemote.id });
         const categories = await db.categories.toArray();
         const mapSupabaseToLocalCategory = (supabaseId: number) => categories.find(c => c.supabaseId === supabaseId)?.id;
-        await this.pullRemote(local.id!, matchedRemote, mapSupabaseToLocalCategory);
+        
+        if (matchedRemote.is_deleted) {
+          // Reactivate the deleted item with local data
+          await this.pushLocalWithVersionCheck(local, matchedRemote, mapLocalToSupabaseCategory);
+        } else {
+          await this.pullRemote(local.id!, matchedRemote, mapSupabaseToLocalCategory);
+        }
         return;
       }
     }
