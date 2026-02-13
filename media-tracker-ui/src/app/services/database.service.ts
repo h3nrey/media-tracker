@@ -219,13 +219,12 @@ export class AnimeTrackerDatabase extends Dexie {
     // Version 13: Version-based Optimistic Concurrency
     this.version(13).stores({
       syncConflicts: '++id, entityType, createdAt',
-      profiles: 'id, updatedAt, version', // Profile also needs versioning
+      profiles: 'id, updatedAt, version', 
       mediaItems: '++id, supabaseId, mediaTypeId, externalId, statusId, version, isDeleted',
       lists: '++id, supabaseId, folderId, mediaTypeId, version, isDeleted',
       categories: '++id, supabaseId, version, isDeleted',
       watchSources: '++id, supabaseId, version, isDeleted',
       folders: '++id, supabaseId, version, isDeleted',
-      // Append-only tables (no version needed for concurrency, synced by supabaseId)
       mediaRuns: '++id, supabaseId, userId, mediaItemId, runNumber, isDeleted',
       gameSessions: '++id, supabaseId, runId, playedAt',
       episodeProgress: '++id, supabaseId, runId, episodeNumber, [runId+episodeNumber]',
@@ -240,6 +239,15 @@ export class AnimeTrackerDatabase extends Dexie {
           }
         });
       }
+    });
+
+    // Version 14: Fix missing indexes from v13 that caused SchemaErrors and sync issues
+    this.version(14).stores({
+      mediaItems: '++id, supabaseId, mediaTypeId, title, externalId, statusId, version, isDeleted',
+      lists: '++id, supabaseId, name, folderId, mediaTypeId, version, isDeleted',
+      categories: '++id, supabaseId, name, version, isDeleted',
+      watchSources: '++id, supabaseId, name, version, isDeleted',
+      folders: '++id, supabaseId, name, version, isDeleted',
     });
   }
 
