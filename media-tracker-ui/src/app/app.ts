@@ -5,7 +5,6 @@ import { filter } from 'rxjs/operators';
 import { MediaService } from './services/media.service';
 import { MobileNavComponent } from './components/mobile-library/mobile-nav/mobile-nav.component';
 import { CategoryService } from './services/status.service';
-import { SyncService } from './services/sync.service';
 import { DialogService } from './services/dialog.service';
 import { AuthService } from './services/auth.service';
 
@@ -49,7 +48,6 @@ import { MediaRunService } from './services/media-run.service';
 export class App implements OnInit {
   protected readonly title = signal('Anime Tracker');
   private categoryService = inject(CategoryService);
-  private syncService = inject(SyncService);
   public dialogService = inject(DialogService);
   private shortcutService = inject(ShortcutService);
   private router = inject(Router);
@@ -65,23 +63,9 @@ export class App implements OnInit {
   @ViewChild(MetadataSyncDialogComponent) metadataSyncDialog!: MetadataSyncDialogComponent;
   @ViewChild(ThemeSettingsDialogComponent) themeSettingsDialog!: ThemeSettingsDialogComponent;
   
-  constructor() {
-    effect(() => {
-      this.handleSync();
-    });
-  }
 
   async ngOnInit() {
     this.handleHeader();
-  }
-
-  handleSync() {
-    const user = this.authService.currentUser();
-    if (user) {
-      console.log('User logged in, triggering sync');
-      this.syncService.sync();
-      this.categoryService.seedDefaultCategories();
-    }
   }
 
   handleHeader() {

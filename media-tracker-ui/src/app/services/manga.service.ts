@@ -1,11 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, from } from 'rxjs';
 import { MediaService } from './media.service';
 import { MalService } from './mal.service';
 import { MediaItem, MediaType } from '../models/media-type.model';
 import { MangaMetadata } from '../models/manga-metadata.model';
 import { JikanManga } from '../models/jikan-manga.model';
-import { db } from './database.service';
 
 @Injectable({
   providedIn: 'root'
@@ -26,6 +25,10 @@ export class MangaService {
 
   async getMangaById(id: number): Promise<MediaItem | undefined> {
     return this.mediaService.getMediaById(id);
+  }
+
+  getMangaById$(id: number): Observable<MediaItem | undefined> {
+    return from(this.getMangaById(id));
   }
 
   async addMangaFromMal(jikanManga: JikanManga, statusId: number): Promise<number> {

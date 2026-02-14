@@ -1,151 +1,137 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, from } from 'rxjs';
-import { liveQuery } from 'dexie';
-import { db } from './database.service';
-import { EpisodeProgress, MediaRun } from '../models/media-run.model';
-import { MediaItem } from '../models/media-type.model';
-import { SyncService } from './sync.service';
+import { Observable, from, switchMap, map } from 'rxjs';
+import { EpisodeProgress } from '../models/media-run.model';
 import { SupabaseService } from './supabase.service';
+import { MediaService } from './media.service';
+import { CategoryService } from './status.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EpisodeProgressService {
-  private syncService = inject(SyncService);
   private supabaseService = inject(SupabaseService);
+  private mediaService = inject(MediaService);
+  private categoryService = inject(CategoryService);
 
-  /**
-   * Get all watched episodes for a specific run
-   */
-  getEpisodesForRun$(runId: number): Observable<EpisodeProgress[]> {
-    return from(liveQuery(async () => {
-      const episodes = await db.episodeProgress
-        .where('runId')
-        .equals(runId)
-        .toArray();
-      
-      return episodes.sort((a, b) => a.episodeNumber - b.episodeNumber);
-    }));
+  private mapFromSupabase(item: any): EpisodeProgress {
+    return {
+      id: item.id,
+      supabaseId: item.id,
+      runId: item.run_id,
+      episodeNumber: item.episode_number,
+      watchedAt: new Date(item.watched_at),
+      createdAt: new Date(item.created_at),
+      updatedAt: item.updated_at ? new Date(item.updated_at) : undefined
+    };
   }
 
+  getEpisodesForRun$(runId: number): Observable<EpisodeProgress[]> {
+    return this.mediaService.filterUpdate$.pipe(
+      switchMap(() => from(this.getEpisodesForRun(runId)))
+    );
+  }
 
   async getEpisodesForRun(runId: number): Promise<EpisodeProgress[]> {
-    const episodes = await db.episodeProgress
-      .where('runId')
-      .equals(runId)
-      .toArray();
+    const { data, error } = await this.supabaseService.client
+      .from('episode_progress')
+      .select('*')
+      .eq('run_id', runId)
+      .order('episode_number', { ascending: true });
     
-    return episodes.sort((a, b) => a.episodeNumber - b.episodeNumber);
+    if (error) return [];
+    return (data || []).map(item => this.mapFromSupabase(item));
   }
 
   async isEpisodeWatched(runId: number, episodeNumber: number): Promise<boolean> {
-    const episode = await db.episodeProgress
-      .where(['runId', 'episodeNumber'])
-      .equals([runId, episodeNumber])
-      .first();
+    const { data, error } = await this.supabaseService.client
+      .from('episode_progress')
+      .select('id')
+      .eq('run_id', runId)
+      .eq('episode_number', episodeNumber)
+      .maybeSingle();
     
-    return !!episode;
+    return !!data && !error;
   }
 
   async markEpisodeWatched(runId: number, episodeNumber: number): Promise<number> {
-    const now = new Date();
+    const existing = await this.supabaseService.client
+      .from('episode_progress')
+      .select('id')
+      .eq('run_id', runId)
+      .eq('episode_number', episodeNumber)
+      .maybeSingle();
 
-    const existing = await db.episodeProgress
-      .where('[runId+episodeNumber]')
-      .equals([runId, episodeNumber])
-      .first();
-    
-    if (existing) {
-      return existing.id!;
-    }
+    if (existing.data) return existing.data.id;
 
-    const id = await db.episodeProgress.add({
-      runId,
-      episodeNumber,
-      watchedAt: now,
-      createdAt: now
-    } as EpisodeProgress);
+    const { data, error } = await this.supabaseService.client
+      .from('episode_progress')
+      .insert([{
+        run_id: runId,
+        episode_number: episodeNumber,
+        watched_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
 
-    // Auto-complete run if it's the last episode
+    if (error) throw error;
+
     await this.checkRunCompletion(runId);
-
-    this.syncService.sync();
-    return id as number;
+    this.mediaService.triggerFilterUpdate();
+    return data.id;
   }
 
-  /**
-   * Check if a run should be marked as finished
-   */
   async checkRunCompletion(runId: number): Promise<void> {
-    const run = await db.mediaRuns.get(runId);
-    if (!run || run.endDate) return;
+    const { data: run, error: runError } = await this.supabaseService.client
+      .from('media_runs')
+      .select('*')
+      .eq('id', runId)
+      .single();
 
-    const media = await db.mediaItems.get(run.mediaItemId);
+    if (runError || !run || run.end_date) return;
+
+    const media = await this.mediaService.getMediaById(run.media_item_id);
     if (!media || !media.progressTotal) return;
 
-    const watchedEpisodes = await db.episodeProgress
-      .where('runId')
-      .equals(runId)
-      .toArray();
+    const watchedEpisodes = await this.getEpisodesForRun(runId);
 
     if (watchedEpisodes.length >= media.progressTotal) {
-      const now = new Date();
+      const now = new Date().toISOString();
       
-      // 1. Mark run as finished
-      await db.mediaRuns.update(runId, {
-        endDate: now,
-        updatedAt: now
-      });
+      await this.supabaseService.client
+        .from('media_runs')
+        .update({ end_date: now, updated_at: now })
+        .eq('id', runId);
 
-      // 2. Move media to completed category and update progress
-      const completedCategory = await db.categories
-        .where('name')
-        .anyOfIgnoreCase(['completed', 'completado', 'finalizado', 'concluído'])
-        .first();
+      const categories = await this.categoryService.getAllCategories();
+      const completedCategory = categories.find(c => 
+        ['completed', 'completado', 'finalizado', 'concluído'].includes(c.name.toLowerCase())
+      );
 
-      const updates: Partial<MediaItem> = {
-        progressCurrent: media.progressTotal,
-        updatedAt: now
+      const updates: any = {
+        progress_current: media.progressTotal,
+        updated_at: now
       };
 
       if (completedCategory) {
-        updates.statusId = completedCategory.id;
+        updates.status_id = completedCategory.id;
       }
 
-      await db.mediaItems.update(media.id!, updates);
+      await this.supabaseService.client
+        .from('media_items')
+        .update(updates)
+        .eq('id', media.id);
     }
   }
 
   async markEpisodeUnwatched(runId: number, episodeNumber: number): Promise<void> {
-    console.log('[EpisodeProgressService] markEpisodeUnwatched called:', { runId, episodeNumber });
+    const { error } = await this.supabaseService.client
+      .from('episode_progress')
+      .delete()
+      .eq('run_id', runId)
+      .eq('episode_number', episodeNumber);
     
-    // Find using compound index
-    const episode = await db.episodeProgress
-      .where('[runId+episodeNumber]')
-      .equals([runId, episodeNumber])
-      .first();
-    
-    if (episode?.id) {
-      console.log('[EpisodeProgressService] Deleting episode:', episode);
-      
-      // Delete from Supabase first if it has a supabaseId
-      if (episode.supabaseId) {
-        console.log('[EpisodeProgressService] Deleting from Supabase:', episode.supabaseId);
-        const { error } = await this.supabaseService.client
-          .from('episode_progress')
-          .delete()
-          .eq('id', episode.supabaseId);
-        
-        if (error) {
-          console.error('[EpisodeProgressService] Error deleting from Supabase:', error);
-        }
-      }
-      
-      // Then delete locally
-      await db.episodeProgress.delete(episode.id);
-    } else {
-      console.log('[EpisodeProgressService] Episode not found to delete');
-    }
+    if (error) console.error('Error deleting episode progress:', error);
+    this.mediaService.triggerFilterUpdate();
   }
 
   async markNextEpisodeWatched(runId: number): Promise<number | null> {
@@ -191,27 +177,9 @@ export class EpisodeProgressService {
   }
 
   async markEpisodesWatched(runId: number, episodeNumbers: number[]): Promise<void> {
-    const now = new Date();
-    
     for (const episodeNumber of episodeNumbers) {
-      const existing = await db.episodeProgress
-        .where(['runId', 'episodeNumber'])
-        .equals([runId, episodeNumber])
-        .first();
-      
-      if (!existing) {
-        await db.episodeProgress.add({
-          runId,
-          episodeNumber,
-          watchedAt: now,
-          createdAt: now
-        } as EpisodeProgress);
-      }
+      await this.markEpisodeWatched(runId, episodeNumber);
     }
-
-    await this.checkRunCompletion(runId);
-
-    this.syncService.sync();
   }
 
   async markEpisodeRangeWatched(runId: number, fromEpisode: number, toEpisode: number): Promise<void> {
@@ -226,26 +194,16 @@ export class EpisodeProgressService {
   async getWatchHistory(runId: number): Promise<EpisodeProgress[]> {
     const episodes = await this.getEpisodesForRun(runId);
     return episodes.sort((a, b) => 
-      new Date(b.watchedAt).getTime() - new Date(a.watchedAt).getTime()
+      b.watchedAt.getTime() - a.watchedAt.getTime()
     );
   }
 
   async clearProgress(runId: number): Promise<void> {
-    const episodes = await this.getEpisodesForRun(runId);
-    const ids = episodes.map(e => e.id!).filter(id => !!id);
-    const supabaseIds = episodes.map(e => e.supabaseId).filter(id => !!id);
-    
-    if (supabaseIds.length > 0) {
-      const { error } = await this.supabaseService.client
-        .from('episode_progress')
-        .delete()
-        .in('id', supabaseIds);
-      
-      if (error) {
-        console.error('[EpisodeProgressService] Error deleting from Supabase:', error);
-      }
-    }
-    
-    await db.episodeProgress.bulkDelete(ids);
+    await this.supabaseService.client
+      .from('episode_progress')
+      .delete()
+      .eq('run_id', runId);
+
+    this.mediaService.triggerFilterUpdate();
   }
 }

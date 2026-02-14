@@ -1,104 +1,97 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, from } from 'rxjs';
-import { liveQuery } from 'dexie';
-import { db } from './database.service';
+import { Observable, from, switchMap, map } from 'rxjs';
 import { ChapterProgress } from '../models/media-run.model';
-import { SyncService } from './sync.service';
+import { SupabaseService } from './supabase.service';
+import { MediaService } from './media.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChapterProgressService {
-  private syncService = inject(SyncService);
+  private supabaseService = inject(SupabaseService);
+  private mediaService = inject(MediaService);
 
-  /**
-   * Get all read chapters for a specific run
-   */
+  private mapFromSupabase(item: any): ChapterProgress {
+    return {
+      id: item.id,
+      supabaseId: item.id,
+      runId: item.run_id,
+      chapterNumber: item.chapter_number,
+      readAt: new Date(item.read_at),
+      createdAt: new Date(item.created_at),
+      updatedAt: item.updated_at ? new Date(item.updated_at) : undefined
+    };
+  }
+
   getChaptersForRun$(runId: number): Observable<ChapterProgress[]> {
-    return from(liveQuery(async () => {
-      const chapters = await db.chapterProgress
-        .where('runId')
-        .equals(runId)
-        .toArray();
-      
-      return chapters.sort((a, b) => a.chapterNumber - b.chapterNumber);
-    }));
+    return this.mediaService.filterUpdate$.pipe(
+      switchMap(() => from(this.getChaptersForRun(runId)))
+    );
   }
 
-  /**
-   * Get all read chapters for a specific run (promise version)
-   */
   async getChaptersForRun(runId: number): Promise<ChapterProgress[]> {
-    const chapters = await db.chapterProgress
-      .where('runId')
-      .equals(runId)
-      .toArray();
+    const { data, error } = await this.supabaseService.client
+      .from('chapter_progress')
+      .select('*')
+      .eq('run_id', runId)
+      .order('chapter_number', { ascending: true });
     
-    return chapters.sort((a, b) => a.chapterNumber - b.chapterNumber);
+    if (error) return [];
+    return (data || []).map(item => this.mapFromSupabase(item));
   }
 
-  /**
-   * Check if a specific chapter has been read
-   */
   async isChapterRead(runId: number, chapterNumber: number): Promise<boolean> {
-    const chapter = await db.chapterProgress
-      .where(['runId', 'chapterNumber'])
-      .equals([runId, chapterNumber])
-      .first();
+    const { data, error } = await this.supabaseService.client
+      .from('chapter_progress')
+      .select('id')
+      .eq('run_id', runId)
+      .eq('chapter_number', chapterNumber)
+      .maybeSingle();
     
-    return !!chapter;
+    return !!data && !error;
   }
 
-  /**
-   * Mark a chapter as read
-   */
   async markChapterRead(runId: number, chapterNumber: number): Promise<number> {
-    const now = new Date();
+    const existing = await this.supabaseService.client
+      .from('chapter_progress')
+      .select('id')
+      .eq('run_id', runId)
+      .eq('chapter_number', chapterNumber)
+      .maybeSingle();
 
-    // Check if already marked
-    const existing = await db.chapterProgress
-      .where(['runId', 'chapterNumber'])
-      .equals([runId, chapterNumber])
-      .first();
-    
-    if (existing) {
-      return existing.id!;
-    }
+    if (existing.data) return existing.data.id;
 
-    const id = await db.chapterProgress.add({
-      runId,
-      chapterNumber,
-      readAt: now,
-      createdAt: now
-    } as ChapterProgress);
+    const { data, error } = await this.supabaseService.client
+      .from('chapter_progress')
+      .insert([{
+        run_id: runId,
+        chapter_number: chapterNumber,
+        read_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
 
-    this.syncService.sync();
-    return id as number;
+    if (error) throw error;
+
+    this.mediaService.triggerFilterUpdate();
+    return data.id;
   }
 
-  /**
-   * Mark a chapter as unread (delete the progress entry)
-   */
   async markChapterUnread(runId: number, chapterNumber: number): Promise<void> {
-    const chapter = await db.chapterProgress
-      .where(['runId', 'chapterNumber'])
-      .equals([runId, chapterNumber])
-      .first();
+    const { error } = await this.supabaseService.client
+      .from('chapter_progress')
+      .delete()
+      .eq('run_id', runId)
+      .eq('chapter_number', chapterNumber);
     
-    if (chapter?.id) {
-      await db.chapterProgress.delete(chapter.id);
-      this.syncService.sync();
-    }
+    if (error) console.error('Error deleting chapter progress:', error);
+    this.mediaService.triggerFilterUpdate();
   }
 
-  /**
-   * Mark the next unread chapter as read
-   */
   async markNextChapterRead(runId: number): Promise<number | null> {
     const readChapters = await this.getChaptersForRun(runId);
     const readNumbers = readChapters.map(c => c.chapterNumber);
     
-    // Find the next chapter number
     let nextChapter = 1;
     while (readNumbers.includes(nextChapter)) {
       nextChapter++;
@@ -107,9 +100,6 @@ export class ChapterProgressService {
     return this.markChapterRead(runId, nextChapter);
   }
 
-  /**
-   * Get progress statistics for a run
-   */
   async getProgressStats(runId: number, totalChapters?: number): Promise<{
     chaptersRead: number;
     chaptersTotal: number | null;
@@ -122,7 +112,6 @@ export class ChapterProgressService {
     const readNumbers = chapters.map(c => c.chapterNumber);
     const lastRead = readNumbers.length > 0 ? Math.max(...readNumbers) : null;
     
-    // Find next chapter to read
     let nextChapter = 1;
     while (readNumbers.includes(nextChapter)) {
       nextChapter++;
@@ -141,34 +130,12 @@ export class ChapterProgressService {
     };
   }
 
-  /**
-   * Mark multiple chapters as read (for binge reading)
-   */
   async markChaptersRead(runId: number, chapterNumbers: number[]): Promise<void> {
-    const now = new Date();
-    
     for (const chapterNumber of chapterNumbers) {
-      const existing = await db.chapterProgress
-        .where(['runId', 'chapterNumber'])
-        .equals([runId, chapterNumber])
-        .first();
-      
-      if (!existing) {
-        await db.chapterProgress.add({
-          runId,
-          chapterNumber,
-          readAt: now,
-          createdAt: now
-        } as ChapterProgress);
-      }
+      await this.markChapterRead(runId, chapterNumber);
     }
-
-    this.syncService.sync();
   }
 
-  /**
-   * Mark a range of chapters as read
-   */
   async markChapterRangeRead(runId: number, fromChapter: number, toChapter: number): Promise<void> {
     const chapters = Array.from(
       { length: toChapter - fromChapter + 1 }, 
@@ -178,24 +145,19 @@ export class ChapterProgressService {
     await this.markChaptersRead(runId, chapters);
   }
 
-  /**
-   * Get reading history (all chapters with dates)
-   */
   async getReadingHistory(runId: number): Promise<ChapterProgress[]> {
     const chapters = await this.getChaptersForRun(runId);
     return chapters.sort((a, b) => 
-      new Date(b.readAt).getTime() - new Date(a.readAt).getTime()
+      b.readAt.getTime() - a.readAt.getTime()
     );
   }
 
-  /**
-   * Delete all progress for a run
-   */
   async clearProgress(runId: number): Promise<void> {
-    const chapters = await this.getChaptersForRun(runId);
-    const ids = chapters.map(c => c.id!).filter(id => !!id);
-    
-    await db.chapterProgress.bulkDelete(ids);
-    this.syncService.sync();
+    await this.supabaseService.client
+      .from('chapter_progress')
+      .delete()
+      .eq('run_id', runId);
+
+    this.mediaService.triggerFilterUpdate();
   }
 }

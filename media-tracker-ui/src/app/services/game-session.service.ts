@@ -1,51 +1,64 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, from } from 'rxjs';
-import { liveQuery } from 'dexie';
-import { db } from './database.service';
+import { Observable, from, switchMap, map } from 'rxjs';
 import { GameSession } from '../models/media-run.model';
-import { SyncService } from './sync.service';
+import { SupabaseService } from './supabase.service';
+import { MediaService } from './media.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GameSessionService {
-  private syncService = inject(SyncService);
+  private supabaseService = inject(SupabaseService);
+  private mediaService = inject(MediaService);
+
+  private mapFromSupabase(item: any): GameSession {
+    return {
+      id: item.id,
+      supabaseId: item.id,
+      runId: item.run_id,
+      playedAt: new Date(item.played_at),
+      durationMinutes: item.duration_minutes,
+      notes: item.notes,
+      createdAt: new Date(item.created_at),
+      updatedAt: new Date(item.updated_at)
+    };
+  }
 
   /**
    * Get all sessions for a specific run
    */
   getSessionsForRun$(runId: number): Observable<GameSession[]> {
-    return from(liveQuery(async () => {
-      const sessions = await db.gameSessions
-        .where('runId')
-        .equals(runId)
-        .toArray();
-      
-      return sessions.sort((a, b) => 
-        new Date(b.playedAt).getTime() - new Date(a.playedAt).getTime()
-      );
-    }));
+    return this.mediaService.filterUpdate$.pipe(
+      switchMap(() => from(this.getSessionsForRun(runId)))
+    );
   }
 
   /**
    * Get all sessions for a specific run (promise version)
    */
   async getSessionsForRun(runId: number): Promise<GameSession[]> {
-    const sessions = await db.gameSessions
-      .where('runId')
-      .equals(runId)
-      .toArray();
+    const { data, error } = await this.supabaseService.client
+      .from('game_sessions')
+      .select('*')
+      .eq('run_id', runId)
+      .order('played_at', { ascending: false });
     
-    return sessions.sort((a, b) => 
-      new Date(b.playedAt).getTime() - new Date(a.playedAt).getTime()
-    );
+    if (error) return [];
+    return (data || []).map(item => this.mapFromSupabase(item));
   }
 
   /**
    * Get a specific session by ID
    */
   async getSessionById(id: number): Promise<GameSession | undefined> {
-    return await db.gameSessions.get(id);
+    const { data, error } = await this.supabaseService.client
+      .from('game_sessions')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error || !data) return undefined;
+    return this.mapFromSupabase(data);
   }
 
   /**
@@ -61,14 +74,17 @@ export class GameSessionService {
    * Get total hours played across all runs for a media item
    */
   async getTotalHoursForMedia(mediaItemId: number): Promise<number> {
-    const runs = await db.mediaRuns
-      .where('mediaItemId')
-      .equals(mediaItemId)
-      .toArray();
+    const { data: runs, error: runError } = await this.supabaseService.client
+      .from('media_runs')
+      .select('id')
+      .eq('media_item_id', mediaItemId)
+      .eq('is_deleted', false);
+
+    if (runError || !runs) return 0;
     
     let totalMinutes = 0;
-    for (const run of runs.filter(r => !r.isDeleted)) {
-      const sessions = await this.getSessionsForRun(run.id!);
+    for (const run of runs) {
+      const sessions = await this.getSessionsForRun(run.id);
       totalMinutes += sessions.reduce((sum, s) => sum + s.durationMinutes, 0);
     }
     
@@ -79,16 +95,22 @@ export class GameSessionService {
    * Create a new game session
    */
   async createSession(session: Omit<GameSession, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
-    const now = new Date();
+    const supabaseData = {
+      run_id: session.runId,
+      played_at: session.playedAt.toISOString(),
+      duration_minutes: session.durationMinutes,
+      notes: session.notes
+    };
 
-    const id = await db.gameSessions.add({
-      ...session,
-      createdAt: now,
-      updatedAt: now
-    } as GameSession);
+    const { data, error } = await this.supabaseService.client
+      .from('game_sessions')
+      .insert([supabaseData])
+      .select()
+      .single();
 
-    this.syncService.sync();
-    return id as number;
+    if (error) throw error;
+    this.mediaService.triggerFilterUpdate();
+    return data.id;
   }
 
   /**
@@ -107,23 +129,35 @@ export class GameSessionService {
    * Update an existing session
    */
   async updateSession(id: number, updates: Partial<GameSession>): Promise<number> {
-    const now = new Date();
-    
-    const result = await db.gameSessions.update(id, {
-      ...updates,
-      updatedAt: now
-    });
+    const supabaseData: any = {
+      updated_at: new Date().toISOString()
+    };
 
-    this.syncService.sync();
-    return result;
+    if (updates.playedAt !== undefined) supabaseData.played_at = updates.playedAt.toISOString();
+    if (updates.durationMinutes !== undefined) supabaseData.duration_minutes = updates.durationMinutes;
+    if (updates.notes !== undefined) supabaseData.notes = updates.notes;
+
+    const { error } = await this.supabaseService.client
+      .from('game_sessions')
+      .update(supabaseData)
+      .eq('id', id);
+
+    if (error) throw error;
+    this.mediaService.triggerFilterUpdate();
+    return id;
   }
 
   /**
    * Delete a session
    */
   async deleteSession(id: number): Promise<void> {
-    await db.gameSessions.delete(id);
-    this.syncService.sync();
+    const { error } = await this.supabaseService.client
+      .from('game_sessions')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    this.mediaService.triggerFilterUpdate();
   }
 
   /**
@@ -164,10 +198,13 @@ export class GameSessionService {
    * Get recent sessions across all runs
    */
   async getRecentSessions(limit: number = 10): Promise<GameSession[]> {
-    const allSessions = await db.gameSessions.toArray();
+    const { data, error } = await this.supabaseService.client
+      .from('game_sessions')
+      .select('*')
+      .order('played_at', { ascending: false })
+      .limit(limit);
     
-    return allSessions
-      .sort((a, b) => new Date(b.playedAt).getTime() - new Date(a.playedAt).getTime())
-      .slice(0, limit);
+    if (error) return [];
+    return (data || []).map(item => this.mapFromSupabase(item));
   }
 }

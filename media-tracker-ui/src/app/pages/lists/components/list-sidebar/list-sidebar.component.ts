@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Plus, Layers, Folder as FolderIcon, Book, Gamepad2, Film, Star, Heart, Bookmark, Hash, Edit2 } from 'lucide-angular';
 import { Folder, List } from '../../../../models/list.model';
 import { ListService } from '../../../../services/list.service';
-import { db } from '../../../../services/database.service';
 import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { FormsModule } from '@angular/forms';
 
@@ -79,7 +78,7 @@ export class ListSidebarComponent {
       await this.listService.addFolder({
         name: this.newFolderName(),
         icon: this.selectedIcon(),
-        order: (await db.folders.count()) + 1,
+        order: (this.folders?.length || 0) + 1,
         version: 1
       });
     }

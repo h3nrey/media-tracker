@@ -1,10 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { liveQuery } from 'dexie';
-import { Observable, from, BehaviorSubject, combineLatest, map } from 'rxjs';
+import { Observable, BehaviorSubject, combineLatest, map, from, switchMap } from 'rxjs';
 import { MediaItem, MediaType, MediaFilterParams } from '../models/media-type.model';
 import { Category } from '../models/status.model';
-import { db } from './database.service';
-import { SyncService } from './sync.service';
+import { MediaService } from './media.service';
 import { Anime } from '../models/anime.model';
 
 export interface AnimeByCategory {
@@ -16,52 +14,35 @@ export interface AnimeByCategory {
   providedIn: 'root'
 })
 export class AnimeService {
-  private syncService = inject(SyncService);
-  public filterUpdate$ = new BehaviorSubject<number>(0);
+  private mediaService = inject(MediaService);
+  public filterUpdate$ = this.mediaService.filterUpdate$;
   public metadataSyncRequested = signal(false);
 
   constructor() {}
 
   triggerFilterUpdate() {
-    this.filterUpdate$.next(Date.now());
+    this.mediaService.triggerFilterUpdate();
   }
 
   getAllAnime$(): Observable<Anime[]> {
-    return from(liveQuery(async () => {
-      const items = await db.mediaItems.where('mediaTypeId').equals(MediaType.ANIME).toArray();
-      const withMeta = await Promise.all(items.map(async item => {
-        const meta = await db.animeMetadata.get(item.id!);
-        return {
-          ...item,
-          // mediaItemId is redundant if we have id, but keeping for compatibility if needed
-          mediaItemId: item.id!, 
-          progressCurrent: item.progressCurrent,
-          progressTotal: item.progressTotal,
-          studios: meta?.studios || [],
-          malId: meta?.malId
-        } as Anime;
-      }));
-      return withMeta.filter(a => !a.isDeleted);
-    }));
+    return this.mediaService.getAllMedia$(MediaType.ANIME).pipe(
+      map(items => items.map(item => this.mapToAnime(item)))
+    );
+  }
+
+  private mapToAnime(item: MediaItem): Anime {
+    return {
+      ...item,
+      mediaItemId: item.id!,
+      studios: item.studios || [],
+      malId: item.externalApi === 'mal' ? Number(item.externalId) : undefined
+    } as Anime;
   }
 
   getAnimeByStatus$(statusId: number): Observable<MediaItem[]> {
-    return from(liveQuery(async () => {
-      const items = await db.mediaItems
-        .where('statusId').equals(statusId)
-        .and(item => item.mediaTypeId === MediaType.ANIME)
-        .toArray();
-      const withMeta = await Promise.all(items.map(async item => {
-        const meta = await db.animeMetadata.get(item.id!);
-        return {
-          ...item,
-          progressCurrent: item.progressCurrent,
-          progressTotal: item.progressTotal,
-          studios: meta?.studios || []
-        } as MediaItem;
-      }));
-      return withMeta.filter(a => !a.isDeleted);
-    }));
+    return this.getAllAnime$().pipe(
+      map(items => items.filter(item => item.statusId === statusId))
+    );
   }
 
   getAnimeGroupedByCategory$(categories: Category[]): Observable<AnimeByCategory[]> {
@@ -69,7 +50,7 @@ export class AnimeService {
       map(allAnime => 
         categories.map(category => ({
           category,
-          anime: allAnime.filter(anime => anime.statusId === category.id)
+          anime: allAnime.filter(anime => anime.statusId === (category.supabaseId || category.id))
         }))
       )
     );
@@ -94,154 +75,55 @@ export class AnimeService {
   }
 
   async getAnimeById(id: number): Promise<Anime | undefined> {
-    const item = await db.mediaItems.get(id);
+    const item = await this.mediaService.getMediaById(id);
     if (!item || item.mediaTypeId !== MediaType.ANIME) return undefined;
-    const meta = await db.animeMetadata.get(id);
-    const runs = await db.mediaRuns.where('mediaItemId').equals(id).toArray();
-    return {
-      ...item,
-      progressCurrent: item.progressCurrent,
-      progressTotal: item.progressTotal,
-      studios: meta?.studios || [],
-      malId: meta?.malId,
-      runs: runs.filter(r => !r.isDeleted)
-    } as Anime;
+    return this.mapToAnime(item);
   }
 
   getAnimeById$(id: number): Observable<Anime | undefined> {
-    return from(liveQuery(() => this.getAnimeById(id)));
+    return from(this.getAnimeById(id));
   }
 
   async getAnimeBySupabaseId(supabaseId: number): Promise<Anime | undefined> {
-    const item = await db.mediaItems.where('supabaseId').equals(supabaseId).first();
+    const item = await this.mediaService.getMediaById(supabaseId);
     if (!item || item.mediaTypeId !== MediaType.ANIME) return undefined;
-    return this.getAnimeById(item.id!);
+    return this.mapToAnime(item);
   }
 
   getAnimeByExternalId(externalId: number): Observable<MediaItem | undefined> {
-    return from(liveQuery(async () => {
-      const item = await db.mediaItems
-        .where('externalId').equals(externalId)
-        .and(m => m.mediaTypeId === MediaType.ANIME)
-        .first();
-      if (!item) return undefined;
-      return this.getAnimeById(item.id!);
-    }));
+    return from(this.mediaService.getMediaByExternalId(externalId, 'mal')).pipe(
+      map(item => item ? this.mapToAnime(item) : undefined)
+    );
   }
 
-
   async addAnime(anime: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
-    const now = new Date();
-    const { runs, ...animeData } = anime;
-
-    // Safety check: prevent duplicates
-    if (animeData.externalId && animeData.externalApi) {
-      const existing = await db.mediaItems
-        .where('externalId').equals(animeData.externalId)
-        .and(m => m.externalApi === animeData.externalApi && !m.isDeleted)
-        .first();
-      if (existing) return existing.id!;
-    }
-
-    const id = await db.mediaItems.add({
-      ...animeData,
-      mediaTypeId: MediaType.ANIME,
-      createdAt: now,
-      updatedAt: now,
-      isDeleted: false,
-      version: anime.version || 1
-    } as MediaItem);
-    
-    // Save metadata if available
-    const animeTyped = anime as any;
-    if (animeTyped.studios || animeTyped.externalId) {
-      await db.animeMetadata.add({
-        mediaItemId: id as number,
-        studios: animeTyped.studios || [],
-        malId: animeTyped.externalId || animeTyped.malId
-      });
-    }
-
-    if (runs && runs.length > 0) {
-      const runsToAdd = runs.map(run => ({
-        ...run,
-        mediaItemId: id as number,
-        createdAt: now,
-        updatedAt: now,
-        isDeleted: false
-      }));
-      await db.mediaRuns.bulkAdd(runsToAdd);
-    }
-
-    this.syncService.sync();
-    return id as number;
+    return this.mediaService.addMedia({
+      ...anime,
+      mediaTypeId: MediaType.ANIME
+    });
   }
 
   async updateAnime(id: number, updates: Partial<MediaItem>): Promise<number> {
-    const now = new Date();
-    const { runs, ...itemUpdates } = updates;
-    const existing = await db.mediaItems.get(id);
-    const result = await db.mediaItems.update(id, {
-      ...itemUpdates,
-      updatedAt: now,
-      version: (existing?.version || 1) + 1
-    });
-
-    if (runs) {
-      await db.mediaRuns.where('mediaItemId').equals(id).delete();
-      if (runs.length > 0) {
-        const runsToAdd = runs.map(run => ({
-          ...run,
-          mediaItemId: id,
-          createdAt: run.createdAt || now,
-          updatedAt: now,
-          isDeleted: false
-        }));
-        await db.mediaRuns.bulkAdd(runsToAdd);
-      }
-    }
-
-    this.syncService.sync();
-    return result;
+    return this.mediaService.updateMedia(id, updates);
   }
 
   async updateAnimeStatus(id: number, statusId: number): Promise<number> {
-    const existing = await db.mediaItems.get(id);
-    const result = await db.mediaItems.update(id, {
-      statusId,
-      updatedAt: new Date(),
-      version: (existing?.version || 1) + 1
-    });
-    this.syncService.sync();
-    return result;
+    return this.mediaService.updateMedia(id, { statusId });
   }
 
   async deleteAnime(id: number): Promise<void> {
-    // Soft delete for sync
-    const existing = await db.mediaItems.get(id);
-    await db.mediaItems.update(id, {
-        isDeleted: true,
-        updatedAt: new Date(),
-        version: (existing?.version || 1) + 1
-    });
-    this.syncService.sync();
+    await this.mediaService.deleteMedia(id);
   }
 
   async searchAnimeByTitle(query: string): Promise<MediaItem[]> {
-    const lowerQuery = query.toLowerCase();
-    const list = await db.mediaItems
-      .where('mediaTypeId').equals(MediaType.ANIME)
-      .and(anime => !anime.isDeleted && anime.title.toLowerCase().includes(lowerQuery))
-      .toArray();
-    return list;
+    const all = await this.mediaService.getAllMedia(MediaType.ANIME);
+    const q = query.toLowerCase();
+    return all.filter(a => a.title.toLowerCase().includes(q));
   }
 
   async getAnimeCountByStatus(statusId: number): Promise<number> {
-    const count = await db.mediaItems
-      .where('statusId').equals(statusId)
-      .and(m => m.mediaTypeId === MediaType.ANIME && !m.isDeleted)
-      .count();
-    return count;
+    const all = await this.mediaService.getAllMedia(MediaType.ANIME);
+    return all.filter(a => a.statusId === statusId).length;
   }
 
   filterAnimeList(list: Anime[], params: MediaFilterParams): Anime[] {
@@ -304,7 +186,6 @@ export class AnimeService {
         let valA: any = a[params.sortBy as keyof MediaItem];
         let valB: any = b[params.sortBy as keyof MediaItem];
         
-        // Handle specific sort keys that might differ from model keys
         if (params.sortBy === 'updated') {
             valA = new Date(a.updatedAt || 0).getTime();
             valB = new Date(b.updatedAt || 0).getTime();

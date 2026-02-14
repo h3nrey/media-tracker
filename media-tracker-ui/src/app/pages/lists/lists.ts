@@ -5,7 +5,6 @@ import { ListService } from '../../services/list.service';
 import { MediaService } from '../../services/media.service';
 import { FilterService } from '../../services/filter.service';
 import { AlertService } from '../../services/alert.service';
-import { db } from '../../services/database.service';
 import { List, Folder } from '../../models/list.model';
 import { MediaItem, MediaType } from '../../models/media-type.model';
 import { MediaTypeStateService } from '../../services/media-type-state.service';

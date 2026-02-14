@@ -1,80 +1,84 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, from } from 'rxjs';
-import { liveQuery } from 'dexie';
-import { db } from './database.service';
+import { Observable, from, switchMap, map } from 'rxjs';
 import { MediaRun } from '../models/media-run.model';
-import { SyncService } from './sync.service';
 import { AuthService } from './auth.service';
+import { SupabaseService } from './supabase.service';
+import { MediaService } from './media.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MediaRunService {
-  private syncService = inject(SyncService);
+  private supabaseService = inject(SupabaseService);
   private authService = inject(AuthService);
+  private mediaService = inject(MediaService);
 
-  /**
-   * Get all runs for a specific media item
-   */
+  private mapFromSupabase(item: any): MediaRun {
+    return {
+      id: item.id,
+      supabaseId: item.id,
+      userId: item.user_id,
+      mediaItemId: item.media_item_id,
+      runNumber: item.run_number,
+      startDate: item.start_date ? new Date(item.start_date) : undefined,
+      endDate: item.end_date ? new Date(item.end_date) : undefined,
+      rating: item.rating,
+      notes: item.notes,
+      isDeleted: item.is_deleted,
+      createdAt: new Date(item.created_at),
+      updatedAt: new Date(item.updated_at)
+    };
+  }
+
   getRunsForMedia$(mediaItemId: number): Observable<MediaRun[]> {
-    return from(liveQuery(async () => {
-      const runs = await db.mediaRuns
-        .where('mediaItemId')
-        .equals(mediaItemId)
-        .toArray();
-      
-      return runs
-        .filter(r => !r.isDeleted)
-        .sort((a, b) => a.runNumber - b.runNumber);
-    }));
+    return this.mediaService.filterUpdate$.pipe(
+      switchMap(() => from(this.getRunsForMedia(mediaItemId)))
+    );
   }
 
-  /**
-   * Get all runs for a specific media item (promise version)
-   */
   async getRunsForMedia(mediaItemId: number): Promise<MediaRun[]> {
-    const runs = await db.mediaRuns
-      .where('mediaItemId')
-      .equals(mediaItemId)
-      .toArray();
-    
-    return runs
-      .filter(r => !r.isDeleted)
-      .sort((a, b) => a.runNumber - b.runNumber);
+    const user = this.authService.currentUser();
+    if (!user) return [];
+
+    const { data, error } = await this.supabaseService.client
+      .from('media_runs')
+      .select('*')
+      .eq('media_item_id', mediaItemId)
+      .eq('user_id', user.id)
+      .eq('is_deleted', false)
+      .order('run_number', { ascending: true });
+
+    if (error) return [];
+    return (data || []).map(item => this.mapFromSupabase(item));
   }
 
-  /**
-   * Get a specific run by ID
-   */
   async getRunById(id: number): Promise<MediaRun | undefined> {
-    return await db.mediaRuns.get(id);
+    const { data, error } = await this.supabaseService.client
+      .from('media_runs')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error || !data) return undefined;
+    return this.mapFromSupabase(data);
   }
 
-  /**
-   * Get the current active run for a media item (no end date)
-   */
   async getActiveRun(mediaItemId: number): Promise<MediaRun | undefined> {
     const runs = await this.getRunsForMedia(mediaItemId);
     return runs.find(r => !r.endDate);
   }
 
-  /**
-   * Create a new run
-   */
   async createRun(run: Omit<MediaRun, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const user = this.authService.currentUser();
     if (!user) throw new Error('User not authenticated');
 
-    const now = new Date();
-    
     if (!run.endDate) {
       const activeRun = await this.getActiveRun(run.mediaItemId);
       if (activeRun) {
-        await this.updateRun(activeRun.id!, { endDate: now });
+        await this.updateRun(activeRun.id!, { endDate: new Date() });
       }
     }
 
-    // Determine the target run number
     let targetRunNumber = run.runNumber;
     if (!targetRunNumber) {
       const activeRuns = await this.getRunsForMedia(run.mediaItemId);
@@ -83,54 +87,49 @@ export class MediaRunService {
         : 1;
     }
 
-    // Check if a run with this number already exists (including deleted ones)
-    const existingRun = await db.mediaRuns
-      .where({ mediaItemId: run.mediaItemId, runNumber: targetRunNumber })
-      .first();
+    const supabaseData = {
+      user_id: user.id,
+      media_item_id: run.mediaItemId,
+      run_number: targetRunNumber,
+      start_date: run.startDate?.toISOString(),
+      end_date: run.endDate?.toISOString(),
+      rating: run.rating,
+      notes: run.notes,
+      is_deleted: false
+    };
 
-    if (existingRun) {
-      // If we're restoring a run that was "Ongoing", we don't need to finish it 
-      // because we already finished "the previous" one above.
-      await db.mediaRuns.update(existingRun.id!, {
-        ...run,
-        isDeleted: false,
-        updatedAt: now
-      });
-      this.syncService.sync();
-      return existingRun.id!;
-    }
+    const { data, error } = await this.supabaseService.client
+      .from('media_runs')
+      .insert([supabaseData])
+      .select()
+      .single();
 
-    const id = await db.mediaRuns.add({
-      ...run,
-      userId: user.id,
-      runNumber: targetRunNumber,
-      isDeleted: false,
-      createdAt: now,
-      updatedAt: now
-    } as MediaRun);
-
-    this.syncService.sync();
-    return id as number;
+    if (error) throw error;
+    this.mediaService.triggerFilterUpdate();
+    return data.id;
   }
 
-  /**
-   * Update an existing run
-   */
   async updateRun(id: number, updates: Partial<MediaRun>): Promise<number> {
-    const now = new Date();
-    
-    const result = await db.mediaRuns.update(id, {
-      ...updates,
-      updatedAt: now
-    });
+    const supabaseData: any = {
+      updated_at: new Date().toISOString()
+    };
 
-    this.syncService.sync();
-    return result;
+    if (updates.startDate !== undefined) supabaseData.start_date = updates.startDate?.toISOString();
+    if (updates.endDate !== undefined) supabaseData.end_date = updates.endDate?.toISOString();
+    if (updates.rating !== undefined) supabaseData.rating = updates.rating;
+    if (updates.notes !== undefined) supabaseData.notes = updates.notes;
+    if (updates.runNumber !== undefined) supabaseData.run_number = updates.runNumber;
+
+    const { error } = await this.supabaseService.client
+      .from('media_runs')
+      .update(supabaseData)
+      .eq('id', id);
+
+    if (error) throw error;
+    this.mediaService.triggerFilterUpdate();
+    return id;
   }
 
-  /**
-   * Complete a run (set end date and optionally rating)
-   */
   async completeRun(id: number, rating?: number): Promise<number> {
     return this.updateRun(id, {
       endDate: new Date(),
@@ -138,26 +137,19 @@ export class MediaRunService {
     });
   }
 
-  /**
-   * Delete a run (soft delete)
-   */
   async deleteRun(id: number): Promise<void> {
-    await db.mediaRuns.update(id, {
-      isDeleted: true,
-      updatedAt: new Date()
-    });
+    await this.supabaseService.client
+      .from('media_runs')
+      .update({ is_deleted: true, updated_at: new Date().toISOString() })
+      .eq('id', id);
     
-    this.syncService.sync();
+    this.mediaService.triggerFilterUpdate();
   }
 
-  /**
-   * Start a new run for a media item
-   */
   async startNewRun(mediaItemId: number): Promise<number> {
     const user = this.authService.currentUser();
     if (!user) throw new Error('User not authenticated');
 
-    // Check if there's already an active run
     const activeRun = await this.getActiveRun(mediaItemId);
     if (activeRun) {
       throw new Error('There is already an active run for this media item');
@@ -166,43 +158,41 @@ export class MediaRunService {
     return this.createRun({
       userId: user.id,
       mediaItemId,
-      runNumber: 0, // Will be calculated in createRun
+      runNumber: 0,
       startDate: new Date(),
-      isDeleted: false
+      isDeleted: false,
+      rating: 0
     });
   }
 
-  /**
-   * Get all runs for the current user
-   */
   async getAllUserRuns(): Promise<MediaRun[]> {
     const user = this.authService.currentUser();
     if (!user) return [];
 
-    const runs = await db.mediaRuns
-      .where('userId')
-      .equals(user.id)
-      .toArray();
+    const { data, error } = await this.supabaseService.client
+      .from('media_runs')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_deleted', false);
     
-    return runs.filter(r => !r.isDeleted);
+    if (error) return [];
+    return (data || []).map(item => this.mapFromSupabase(item));
   }
 
-  /**
-   * Get completed runs for a specific year
-   */
   async getCompletedRunsByYear(year: number): Promise<MediaRun[]> {
     const user = this.authService.currentUser();
     if (!user) return [];
 
-    const runs = await db.mediaRuns
-      .where('userId')
-      .equals(user.id)
-      .toArray();
+    const { data, error } = await this.supabaseService.client
+      .from('media_runs')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_deleted', false)
+      .not('end_date', 'is', null);
     
-    return runs.filter(r => {
-      if (r.isDeleted || !r.endDate) return false;
-      const endYear = new Date(r.endDate).getFullYear();
-      return endYear === year;
-    });
+    if (error) return [];
+    
+    const runs = (data || []).map(item => this.mapFromSupabase(item));
+    return runs.filter(r => r.endDate && r.endDate.getFullYear() === year);
   }
 }

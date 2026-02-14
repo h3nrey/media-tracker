@@ -8,13 +8,13 @@ import { JikanAnime } from '../../models/mal-anime.model';
 import { Anime } from '../../models/anime.model';
 import { Category } from '../../models/status.model';
 import { CategoryService } from '../../services/status.service';
+import { MediaService } from '../../services/media.service';
 import { LucideAngularModule, Sparkles, Filter, RefreshCw, Plus, BookOpen, Globe, Search, Layers, X, Sword, Map, Heart, Wand2, Ghost, Zap, Coffee, Trophy, User, Music, Film, Smile, Book, Gamepad2, Tv, Monitor, ChevronDown } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../services/toast.service';
-import { db } from '../../services/database.service';
 import { SelectComponent } from '../../components/ui/select/select';
 import { TagChipComponent } from '../../components/ui/tag-chip/tag-chip.component';
-import { MediaType } from '../../models/media-type.model';
+import { MediaType, MediaItem } from '../../models/media-type.model';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MediaTypeStateService } from '../../services/media-type-state.service';
 
@@ -31,6 +31,7 @@ export class RecommendationComponent implements OnInit {
   private gameService = inject(GameService);
   private igdbService = inject(IgdbService);
   private categoryService = inject(CategoryService);
+  private mediaService = inject(MediaService);
   private toast = inject(ToastService);
   private mediaTypeState = inject(MediaTypeStateService);
 
@@ -90,7 +91,7 @@ export class RecommendationComponent implements OnInit {
   constructor() {
     effect(() => {
       // Reload genres when media type changes
-      this.mediaType();
+      const currentType = this.mediaType();
       this.selectedGenres.set([]);
       this.selectedPlatforms.set([]);
       this.loadGenres();
@@ -154,7 +155,8 @@ export class RecommendationComponent implements OnInit {
   }
 
   loadGenres() {
-    if (this.mediaType() === MediaType.ANIME) {
+    const type = this.mediaType();
+    if (type === MediaType.ANIME) {
       this.malService.getGenres().subscribe(data => {
         this.genres.set(data);
       });
@@ -184,8 +186,6 @@ export class RecommendationComponent implements OnInit {
   getUnselectedGenres() {
     return this.genres().filter(g => !this.selectedGenres().includes(g.mal_id));
   }
-
-
 
   toggleGenre(genreId: number) {
     this.selectedGenres.update(prev => 
@@ -224,13 +224,13 @@ export class RecommendationComponent implements OnInit {
   }
 
   async getBacklogRecommendation() {
-    const allMedia = await db.mediaItems.toArray();
+    const allMedia = await this.mediaService.getAllMedia();
     const type = this.mediaType();
-    let backlog = allMedia.filter(m => !m.isDeleted && (type === null || m.mediaTypeId === type));
+    let backlog = allMedia.filter(m => (type === null || m.mediaTypeId === type));
 
     const ptwCategory = this.categories().find(c => c.name.toLowerCase().includes('plan to watch'));
     if (ptwCategory) {
-      backlog = backlog.filter(m => m.statusId === ptwCategory.supabaseId || m.statusId === ptwCategory.id);
+      backlog = backlog.filter(m => m.statusId === ptwCategory.id);
     }
 
     const decadeValue = this.selectedDecadeValue();
@@ -319,20 +319,20 @@ export class RecommendationComponent implements OnInit {
          // It's a local item, update its status
          const itemType = item.mediaTypeId;
          if (itemType === MediaType.GAME) {
-           await this.gameService.updateGame(item.id, { statusId: category.supabaseId || category.id });
+           await this.gameService.updateGame(item.id, { statusId: category.id });
          } else {
-           await this.animeService.updateAnime(item.id, { statusId: category.supabaseId || category.id });
+           await this.animeService.updateAnime(item.id, { statusId: category.id });
          }
          this.toast.success(`${item.title} moved to ${category.name}!`);
       } else {
         // It's from external API
         const type = this.mediaType();
         if (type === MediaType.GAME) {
-          await this.gameService.addGameFromIgdb(item, category.supabaseId || category.id!);
+          await this.gameService.addGameFromIgdb(item, category.id!);
           this.toast.success(`${item.name} added to ${category.name}!`);
         } else {
           // Default to anime if null or 1
-          const animeToAdd = this.malService.convertJikanToAnime(item, category.supabaseId || category.id!);
+          const animeToAdd = this.malService.convertJikanToAnime(item, category.id!);
           await this.animeService.addAnime(animeToAdd);
           this.toast.success(`${animeToAdd.title} added to ${category.name}!`);
         }

@@ -4,8 +4,6 @@ import { MediaService } from './media.service';
 import { TmdbService, TMDBMovie } from './tmdb.service';
 import { MediaItem, MediaType } from '../models/media-type.model';
 import { MovieMetadata } from '../models/movie-metadata.model';
-import { db } from './database.service';
-import { liveQuery } from 'dexie';
 
 @Injectable({
   providedIn: 'root'
@@ -21,39 +19,15 @@ export class MovieService {
   }
 
   getMoviesByStatus$(statusId: number): Observable<MediaItem[]> {
-    return from(liveQuery(async () => {
-      const items = await db.mediaItems
-        .where('statusId').equals(statusId)
-        .and(item => item.mediaTypeId === MediaType.MOVIE)
-        .toArray();
-      const withMeta = await Promise.all(items.map(async item => {
-        const meta = await db.movieMetadata.get(item.id!);
-        return {
-          ...item,
-          directors: meta?.directors || [],
-          cast: meta?.cast || []
-        } as MediaItem;
-      }));
-      return withMeta.filter(m => !m.isDeleted);
-    }));
+    return this.mediaService.getMediaByStatus$(statusId, MediaType.MOVIE);
   }
 
   async getMovieById(id: number): Promise<MediaItem | undefined> {
-    const item = await db.mediaItems.get(id);
-    if (!item || item.mediaTypeId !== MediaType.MOVIE) return undefined;
-    const meta = await db.movieMetadata.get(id);
-    const runs = await db.mediaRuns.where('mediaItemId').equals(id).toArray();
-    return {
-      ...item,
-      directors: meta?.directors || [],
-      cast: meta?.cast || [],
-      tmdbId: meta?.tmdbId,
-      runs: runs.filter(r => !r.isDeleted)
-    } as MediaItem;
+    return this.mediaService.getMediaById(id);
   }
 
   getMovieById$(id: number): Observable<MediaItem | undefined> {
-    return from(liveQuery(() => this.getMovieById(id)));
+    return from(this.getMovieById(id));
   }
 
   async addMovieFromTmdb(tmdbMovie: TMDBMovie, statusId: number): Promise<number> {
@@ -64,7 +38,7 @@ export class MovieService {
     
     // Extract directors
     const directors = (movieData as any).credits?.crew?.filter((c: any) => c.job === 'Director').map((d: any) => d.name) || [];
-    mediaItem.studios = directors; // Using studios field as generic director container for now
+    mediaItem.studios = directors; 
 
     const id = await this.mediaService.addMedia(mediaItem);
     

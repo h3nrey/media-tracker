@@ -3,6 +3,7 @@ export interface Category {
   supabaseId?: number;
   name: string;
   color: string;
+  icon?: string;
   order: number;
   createdAt: Date;
   updatedAt: Date;
