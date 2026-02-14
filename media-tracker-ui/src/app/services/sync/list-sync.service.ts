@@ -61,7 +61,15 @@ export class FolderSyncService extends SyncBaseService<Folder> {
 
     if (matchedRemote) {
       await db.folders.update(local.id!, { supabaseId: matchedRemote.id });
-      await this.pullRemote(local.id!, matchedRemote);
+      if (matchedRemote.is_deleted) {
+        const supabaseData = this.mapToSupabase(local);
+        await this.supabase
+          .from(this.tableName)
+          .update({ ...supabaseData, version: (matchedRemote.version || 1) + 1 })
+          .eq('id', matchedRemote.id);
+      } else {
+        await this.pullRemote(local.id!, matchedRemote);
+      }
       return;
     }
 
@@ -188,7 +196,11 @@ export class ListSyncService extends SyncBaseService<List> {
 
     if (matchedRemote) {
       await db.lists.update(local.id!, { supabaseId: matchedRemote.id });
-      await this.pullRemote(local.id!, matchedRemote);
+      if (matchedRemote.is_deleted) {
+        await this.pushLocalWithVersionCheck(local, matchedRemote);
+      } else {
+        await this.pullRemote(local.id!, matchedRemote);
+      }
       return;
     }
 

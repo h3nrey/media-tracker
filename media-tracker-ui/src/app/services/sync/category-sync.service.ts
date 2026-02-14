@@ -79,7 +79,11 @@ export class CategorySyncService extends SyncBaseService<Category> {
 
     if (matchedRemote) {
       await db.categories.update(local.id!, { supabaseId: matchedRemote.id });
-      await this.pullRemote(local.id!, matchedRemote);
+      if (matchedRemote.is_deleted) {
+        await this.pushLocalWithVersionCheck(local, matchedRemote);
+      } else {
+        await this.pullRemote(local.id!, matchedRemote);
+      }
     } else {
       const { data, error } = await this.supabase
         .from('categories')

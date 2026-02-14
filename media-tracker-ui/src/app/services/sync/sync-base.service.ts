@@ -40,9 +40,24 @@ export abstract class SyncBaseService<T extends { id?: number; supabaseId?: numb
         }
       }
     }
+    // 3) New items (no ID) OR items with dangling IDs (not found on remote)
     const newItems = localItems.filter(l => !l.supabaseId && !l.isDeleted);
     for (const local of newItems) {
       await this.handleNewLocal(local);
+    }
+
+    // 4) Handle items that have a supabaseId but were NOT found in the remote pull
+    // These are likely deleted permanently in Supabase or belong to another user (unlikely here)
+    // We clear their ID so they can be re-created if they are not deleted locally.
+    const dangling = localItems.filter(l => 
+      l.supabaseId && 
+      !l.isDeleted && 
+      !remoteItems.some(r => r.id === l.supabaseId)
+    );
+    for (const local of dangling) {
+      console.warn(`Dangling supabaseId found for ${this.entityType} ${local.id}. Clearing ID to re-sync.`);
+      await db.table(this.tableName).update(local.id!, { supabaseId: undefined });
+      // We don't call handleNewLocal immediately to keep it simple, it will be caught in the next sync run
     }
   }
 

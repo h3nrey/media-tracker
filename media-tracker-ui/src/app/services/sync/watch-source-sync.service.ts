@@ -52,11 +52,31 @@ export class WatchSourceSyncService extends SyncBaseService<WatchSource> {
     const user = this.authService.currentUser();
     if (!user) return;
 
+    const { data: matchedRemote } = await this.supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('name', local.name)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (matchedRemote) {
+      await db.watchSources.update(local.id!, { supabaseId: matchedRemote.id });
+      if (matchedRemote.is_deleted) {
+        const supabaseData = this.mapToSupabase(local);
+        await this.supabase
+          .from(this.tableName)
+          .update({ ...supabaseData, version: (matchedRemote.version || 1) + 1 })
+          .eq('id', matchedRemote.id);
+      } else {
+        await this.pullRemote(local.id!, matchedRemote);
+      }
+      return;
+    }
+
     const { data, error } = await this.supabase
       .from(this.tableName)
       .insert([{
         ...this.mapToSupabase(local),
-        user_id: user.id,
         version: 1,
         created_at: local.createdAt.toISOString()
       }])

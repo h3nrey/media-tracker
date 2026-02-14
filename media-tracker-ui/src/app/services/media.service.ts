@@ -352,9 +352,11 @@ export class MediaService {
   }
 
   async deleteMedia(id: number): Promise<void> {
+    const existing = await db.mediaItems.get(id);
     await db.mediaItems.update(id, {
       isDeleted: true,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      version: (existing?.version || 1) + 1
     });
     this.syncService.sync();
   }
