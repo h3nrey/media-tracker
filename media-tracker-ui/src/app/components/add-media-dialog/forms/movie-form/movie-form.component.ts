@@ -38,7 +38,9 @@ export class MovieFormComponent {
   readonly SearchIcon = Search;
 
   get categoryOptions() {
-    return this.categories().map(c => ({ value: c.id, label: c.name }));
+    const options = this.categories().map(c => ({ value: c.id, label: c.name }));
+    console.log('MovieForm categoryOptions:', options);
+    return options;
   }
 
   title = signal('');
@@ -76,6 +78,7 @@ export class MovieFormComponent {
 
     effect(() => {
         const cats = this.categories();
+        console.log('MovieForm categories changed:', cats);
         if (cats.length > 0 && this.selectedCategoryId() === undefined) {
             this.selectedCategoryId.set(cats[0].id);
         }

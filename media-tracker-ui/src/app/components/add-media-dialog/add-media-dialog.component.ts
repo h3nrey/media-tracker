@@ -81,8 +81,11 @@ export class AddMediaDialogComponent {
 
   constructor() {
     this.initializeSearch();
-    this.loadCategories();
-    this.loadSources();
+
+    effect(() => {
+      const cats = this.categories();
+      console.log('Dialog categories changed:', cats);
+    });
 
     effect(() => {
       const isOpen = this.dialogService.isAddMediaOpen();
@@ -91,6 +94,10 @@ export class AddMediaDialogComponent {
       const globalMediaType = this.mediaTypeState.getCurrentMediaType();
 
       if (isOpen) {
+        // Load categories and sources when dialog opens (ensures user is authenticated)
+        this.loadCategories();
+        this.loadSources();
+        
         document.body.style.overflow = 'hidden';
         if (mediaToEdit) {
           this.initializeEdit(mediaToEdit);
@@ -149,12 +156,27 @@ export class AddMediaDialogComponent {
   }
 
   private async loadCategories() {
-    const categories = await this.categoryService.getAllCategories();
-    this.categories.set(categories);
+    try {
+      const categories = await this.categoryService.getAllCategories();
+      console.log('Loaded categories:', categories);
+      this.categories.set(categories);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      this.categories.set([]);
+    }
   }
 
   private loadSources() {
-    this.watchSourceService.getAllSources$().subscribe(sources => this.sources.set(sources));
+    this.watchSourceService.getAllSources$().subscribe({
+      next: sources => {
+        console.log('Loaded sources:', sources);
+        this.sources.set(sources);
+      },
+      error: error => {
+        console.error('Error loading sources:', error);
+        this.sources.set([]);
+      }
+    });
   }
 
   close() {

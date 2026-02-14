@@ -56,7 +56,6 @@ export class MediaService {
       statusId: item.status_id,
       score: item.score,
       genres: item.genres || [],
-      studios: item.studios || [],
       releaseYear: item.release_year,
       startDate: item.start_date,
       endDate: item.end_date,
@@ -222,7 +221,6 @@ export class MediaService {
       status_id: rest.statusId,
       score: rest.score,
       genres: rest.genres,
-      studios: rest.studios,
       release_year: rest.releaseYear,
       start_date: rest.startDate,
       end_date: rest.endDate,
@@ -289,7 +287,6 @@ export class MediaService {
     if (rest.progressCurrent !== undefined) supabaseData.progress_current = rest.progressCurrent;
     if (rest.progressTotal !== undefined) supabaseData.progress_total = rest.progressTotal;
     if (rest.genres !== undefined) supabaseData.genres = rest.genres;
-    if (rest.studios !== undefined) supabaseData.studios = rest.studios;
     if (rest.version !== undefined) supabaseData.version = rest.version;
 
     const { error } = await this.supabaseService.client
