@@ -1,0 +1,29 @@
+<div class="media-progress-actions">
+  @if (totalProgress()) {
+    <div class="progress-section">
+      <div class="progress-info">
+        <span>Progresso</span>
+        <span class="count">{{ currentProgress() }} / {{ totalProgress() }}</span>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" [style.width.%]="progress()"></div>
+      </div>
+    </div>
+  }
+
+  <div class="action-grid">
+    <button class="btn-outline" (click)="onIncrement()" title="Adicionar {{ progressLabel() }}">
+      <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
+    </button>
+    <button class="btn-outline" (click)="onDecrement()" title="Remover {{ progressLabel() }}" [disabled]="currentProgress() <= 0">
+      <lucide-icon [img]="MinusIcon" [size]="18"></lucide-icon>
+    </button>
+    <button class="btn-outline" (click)="onComplete()" title="Completar Tudo" [disabled]="totalProgress() === currentProgress()">
+      <lucide-icon [img]="CheckIcon" [size]="18"></lucide-icon>
+    </button>
+    <button class="btn-outline" (click)="onReset()" title="Resetar Progresso" [disabled]="currentProgress() <= 0">
+      <lucide-icon [img]="ResetIcon" [size]="18"></lucide-icon>
+    </button>
+  </div>
+
+</div>

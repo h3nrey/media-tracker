@@ -51,30 +51,25 @@ export class ChapterProgressService {
     return !!data && !error;
   }
 
-  async markChapterRead(runId: number, chapterNumber: number): Promise<number> {
-    const existing = await this.supabaseService.client
+  async markChapterRead(runId: number, chapterNumber: number): Promise<void> {
+    const { count, error: countError } = await this.supabaseService.client
       .from('chapter_progress')
-      .select('id')
+      .select('id', { count: 'exact', head: true })
       .eq('run_id', runId)
-      .eq('chapter_number', chapterNumber)
-      .maybeSingle();
+      .eq('chapter_number', chapterNumber);
 
-    if (existing.data) return existing.data.id;
+    if (count && count > 0) return;
 
-    const { data, error } = await this.supabaseService.client
+    const { error } = await this.supabaseService.client
       .from('chapter_progress')
       .insert([{
         run_id: runId,
         chapter_number: chapterNumber,
         read_at: new Date().toISOString()
-      }])
-      .select()
-      .single();
+      }]);
 
     if (error) throw error;
-
     this.mediaService.triggerFilterUpdate();
-    return data.id;
   }
 
   async markChapterUnread(runId: number, chapterNumber: number): Promise<void> {
@@ -84,21 +79,38 @@ export class ChapterProgressService {
       .eq('run_id', runId)
       .eq('chapter_number', chapterNumber);
     
-    if (error) console.error('Error deleting chapter progress:', error);
+    if (error) throw error;
     this.mediaService.triggerFilterUpdate();
   }
 
-  async markNextChapterRead(runId: number): Promise<number | null> {
-    const readChapters = await this.getChaptersForRun(runId);
-    const readNumbers = readChapters.map(c => c.chapterNumber);
-    
-    let nextChapter = 1;
-    while (readNumbers.includes(nextChapter)) {
-      nextChapter++;
-    }
-    
-    return this.markChapterRead(runId, nextChapter);
+  async markNextChapterRead(runId: number): Promise<void> {
+    const { data, error } = await this.supabaseService.client
+      .from('chapter_progress')
+      .select('chapter_number')
+      .eq('run_id', runId)
+      .order('chapter_number', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+
+    const nextChapter = (data?.chapter_number || 0) + 1;
+    await this.markChapterRead(runId, nextChapter);
   }
+
+  async removeLastChapterRead(runId: number): Promise<void> {
+    const { data } = await this.supabaseService.client
+      .from('chapter_progress')
+      .select('chapter_number')
+      .eq('run_id', runId)
+      .order('chapter_number', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data) {
+      await this.markChapterUnread(runId, data.chapter_number);
+    }
+  }
+
 
   async getProgressStats(runId: number, totalChapters?: number): Promise<{
     chaptersRead: number;
@@ -131,9 +143,31 @@ export class ChapterProgressService {
   }
 
   async markChaptersRead(runId: number, chapterNumbers: number[]): Promise<void> {
-    for (const chapterNumber of chapterNumbers) {
-      await this.markChapterRead(runId, chapterNumber);
-    }
+    if (chapterNumbers.length === 0) return;
+
+    const { data: existingChapters } = await this.supabaseService.client
+      .from('chapter_progress')
+      .select('chapter_number')
+      .eq('run_id', runId);
+    
+    const existingNumbers = new Set(existingChapters?.map(c => c.chapter_number) || []);
+    const newChapters = chapterNumbers
+      .filter(num => !existingNumbers.has(num))
+      .map(num => ({
+        run_id: runId,
+        chapter_number: num,
+        read_at: new Date().toISOString()
+      }));
+
+    if (newChapters.length === 0) return;
+
+    const { error } = await this.supabaseService.client
+      .from('chapter_progress')
+      .insert(newChapters);
+
+    if (error) throw error;
+
+    this.mediaService.triggerFilterUpdate();
   }
 
   async markChapterRangeRead(runId: number, fromChapter: number, toChapter: number): Promise<void> {

@@ -104,10 +104,18 @@
         transform: translateX(4px);
       }
 
+
       .run-info {
         display: flex;
-        align-items: center;
-        gap: 1.25rem;
+        flex-direction: column;
+        gap: 0.75rem;
+        flex: 1;
+
+        .run-header {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
 
         .run-badge {
           background: rgba(255, 255, 255, 0.05);
@@ -117,6 +125,18 @@
           padding: 0.25rem 0.6rem;
           border-radius: 6px;
           border: 1px solid var(--app-border);
+        }
+
+        .current-badge {
+          background: linear-gradient(135deg, var(--app-primary), var(--app-primary-hover));
+          color: white;
+          font-size: 0.7rem;
+          font-weight: 800;
+          padding: 0.25rem 0.6rem;
+          border-radius: 6px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          box-shadow: 0 0 10px rgba(var(--app-primary), 0.3);
         }
 
         .run-dates {

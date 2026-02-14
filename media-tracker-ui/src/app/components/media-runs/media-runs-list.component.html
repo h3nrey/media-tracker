@@ -21,13 +21,19 @@
   </div>
 
   <div class="runs-list">
-    @for (run of runs(); track run.id) {
+    @for (run of runs(); track run.id; let isLast = $last) {
       <div 
           class="run-card" 
+          [class.current-run]="isLast"
           (click)="openRunDetails(run)">
         
         <div class="run-info">
-          <span class="run-badge">#{{ run.runNumber }}</span>
+          <div class="run-header">
+            <span class="run-badge">#{{ run.runNumber }}</span>
+            @if (isLast) {
+              <span class="current-badge">ATUAL</span>
+            }
+          </div>
           <div class="run-dates">
             <span class="label">{{ getRunLabel(run.runNumber) }}</span>
             <span class="date-range">

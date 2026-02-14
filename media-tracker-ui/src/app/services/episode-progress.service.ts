@@ -53,31 +53,27 @@ export class EpisodeProgressService {
     return !!data && !error;
   }
 
-  async markEpisodeWatched(runId: number, episodeNumber: number): Promise<number> {
-    const existing = await this.supabaseService.client
+  async markEpisodeWatched(runId: number, episodeNumber: number): Promise<void> {
+    const { count, error: countError } = await this.supabaseService.client
       .from('episode_progress')
-      .select('id')
+      .select('id', { count: 'exact', head: true })
       .eq('run_id', runId)
-      .eq('episode_number', episodeNumber)
-      .maybeSingle();
+      .eq('episode_number', episodeNumber);
 
-    if (existing.data) return existing.data.id;
+    if (count && count > 0) return;
 
-    const { data, error } = await this.supabaseService.client
+    const { error } = await this.supabaseService.client
       .from('episode_progress')
       .insert([{
         run_id: runId,
         episode_number: episodeNumber,
         watched_at: new Date().toISOString()
-      }])
-      .select()
-      .single();
+      }]);
 
     if (error) throw error;
 
     await this.checkRunCompletion(runId);
     this.mediaService.triggerFilterUpdate();
-    return data.id;
   }
 
   async checkRunCompletion(runId: number): Promise<void> {
@@ -92,9 +88,12 @@ export class EpisodeProgressService {
     const media = await this.mediaService.getMediaById(run.media_item_id);
     if (!media || !media.progressTotal) return;
 
-    const watchedEpisodes = await this.getEpisodesForRun(runId);
+    const { count } = await this.supabaseService.client
+      .from('episode_progress')
+      .select('id', { count: 'exact', head: true })
+      .eq('run_id', runId);
 
-    if (watchedEpisodes.length >= media.progressTotal) {
+    if (count && count >= media.progressTotal) {
       const now = new Date().toISOString();
       
       await this.supabaseService.client
@@ -130,21 +129,38 @@ export class EpisodeProgressService {
       .eq('run_id', runId)
       .eq('episode_number', episodeNumber);
     
-    if (error) console.error('Error deleting episode progress:', error);
+    if (error) throw error;
     this.mediaService.triggerFilterUpdate();
   }
 
-  async markNextEpisodeWatched(runId: number): Promise<number | null> {
-    const watchedEpisodes = await this.getEpisodesForRun(runId);
-    const watchedNumbers = watchedEpisodes.map(e => e.episodeNumber);
+  async markNextEpisodeWatched(runId: number): Promise<void> {
+    const { data } = await this.supabaseService.client
+      .from('episode_progress')
+      .select('episode_number')
+      .eq('run_id', runId)
+      .order('episode_number', { ascending: false })
+      .limit(1)
+      .maybeSingle();
     
-    let nextEpisode = 1;
-    while (watchedNumbers.includes(nextEpisode)) {
-      nextEpisode++;
-    }
-    
-    return this.markEpisodeWatched(runId, nextEpisode);
+    const nextEpisode = (data?.episode_number || 0) + 1;
+    await this.markEpisodeWatched(runId, nextEpisode);
   }
+
+  async removeLastEpisodeWatched(runId: number): Promise<void> {
+    const { data } = await this.supabaseService.client
+      .from('episode_progress')
+      .select('episode_number')
+      .eq('run_id', runId)
+      .order('episode_number', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data) {
+      await this.markEpisodeUnwatched(runId, data.episode_number);
+    }
+  }
+
+
 
   async getProgressStats(runId: number, totalEpisodes?: number): Promise<{
     episodesWatched: number;
@@ -177,9 +193,32 @@ export class EpisodeProgressService {
   }
 
   async markEpisodesWatched(runId: number, episodeNumbers: number[]): Promise<void> {
-    for (const episodeNumber of episodeNumbers) {
-      await this.markEpisodeWatched(runId, episodeNumber);
-    }
+    if (episodeNumbers.length === 0) return;
+
+    const { data: existingEpisodes } = await this.supabaseService.client
+      .from('episode_progress')
+      .select('episode_number')
+      .eq('run_id', runId);
+    
+    const existingNumbers = new Set(existingEpisodes?.map(e => e.episode_number) || []);
+    const newEpisodes = episodeNumbers
+      .filter(num => !existingNumbers.has(num))
+      .map(num => ({
+        run_id: runId,
+        episode_number: num,
+        watched_at: new Date().toISOString()
+      }));
+
+    if (newEpisodes.length === 0) return;
+
+    const { error } = await this.supabaseService.client
+      .from('episode_progress')
+      .insert(newEpisodes);
+
+    if (error) throw error;
+
+    await this.checkRunCompletion(runId);
+    this.mediaService.triggerFilterUpdate();
   }
 
   async markEpisodeRangeWatched(runId: number, fromEpisode: number, toEpisode: number): Promise<void> {

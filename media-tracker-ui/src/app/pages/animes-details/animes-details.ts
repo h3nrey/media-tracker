@@ -98,48 +98,30 @@ export class AnimesDetailsComponent implements OnInit, OnDestroy {
 
   async incrementEpisode() {
     const currentAnime = this.anime();
-    if (!currentAnime || !currentAnime.id) return;
+    if (!currentAnime?.id) return;
 
-    const total = currentAnime.progressTotal;
-    
-    // Get last run (active or most recent completed)
+    // Get last run
     const runs = await this.runService.getRunsForMedia(currentAnime.id);
     const lastRun = runs.length > 0 ? runs[runs.length - 1] : null;
     if (!lastRun?.id) return;
 
-    // Get current episode count
-    const episodes = await this.progressService.getEpisodesForRun(lastRun.id);
-    const current = episodes.length;
-
-    if (!total || current < total) {
-      const nextEpisode = current + 1;
-      await this.progressService.markEpisodeWatched(lastRun.id, nextEpisode);
-
-      if (total && nextEpisode === total) {
-        this.toastService.success(`You've finished ${currentAnime.title}!`);
-      }
-    }
+    await this.progressService.markNextEpisodeWatched(lastRun.id);
+    
+    // We don't do optimistic update here because the signals are in the sidebar component
+    // But the service call is now much faster.
   }
 
   async decrementEpisode() {
     const currentAnime = this.anime();
-    if (!currentAnime || !currentAnime.id) return;
+    if (!currentAnime?.id) return;
 
-    // Get last run (active or most recent completed)
     const runs = await this.runService.getRunsForMedia(currentAnime.id);
     const lastRun = runs.length > 0 ? runs[runs.length - 1] : null;
     if (!lastRun?.id) return;
 
-    // Get current episode count
-    const episodes = await this.progressService.getEpisodesForRun(lastRun.id);
-    const current = episodes.length;
-
-    if (current > 0) {
-      // Find the highest episode number and unwatch it
-      const maxEpisode = Math.max(...episodes.map(e => e.episodeNumber));
-      await this.progressService.markEpisodeUnwatched(lastRun.id, maxEpisode);
-    }
+    await this.progressService.removeLastEpisodeWatched(lastRun.id);
   }
+
 
   async resetEpisodes() {
     const currentAnime = this.anime();

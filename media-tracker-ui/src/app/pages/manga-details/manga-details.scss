@@ -1,10 +1,5 @@
 @import '../shared-details.scss';
 
-// ============================================
-// MANGA-SPECIFIC STYLES
-// ============================================
-
-// Override content-layout for manga (uses fixed 280px sidebar)
 .content-layout {
     grid-template-columns: 280px 1fr;
 }
@@ -68,6 +63,91 @@
       }
     }
 
+    .score-rating {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.5rem 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      .stars {
+        display: flex;
+        gap: 0.15rem;
+        align-items: center;
+        height: 32px;
+
+        .star-btn {
+          background: none;
+          border: none;
+          padding: 2px;
+          cursor: pointer;
+          color: var(--app-text-secondary);
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0.6;
+
+          &:hover {
+            color: var(--app-primary);
+            transform: scale(1.2);
+            opacity: 1;
+          }
+
+          &.filled {
+            color: #ffd700;
+            opacity: 1;
+            filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
+          }
+
+          &.special-star {
+            color: #ff4d4d;
+            animation: starAppear 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            
+            &.filled {
+              color: #ff4d4d;
+              filter: drop-shadow(0 0 6px rgba(255, 77, 77, 0.5));
+            }
+          }
+        }
+      }
+
+      .score-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--app-text-secondary);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        height: 1rem;
+        line-height: 1rem;
+        transition: all 0.2s;
+      }
+
+      &:hover {
+        .score-label {
+          color: var(--app-primary);
+        }
+      }
+    }
+
+    @keyframes starAppear {
+      from {
+        opacity: 0;
+        transform: scale(0) rotate(-45deg);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) rotate(0);
+      }
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+
     .score-display {
       display: flex;
       align-items: center;
@@ -78,23 +158,49 @@
       .star-icon { fill: currentColor; }
     }
 
-    .btn-edit {
+    .btn-edit, .btn-outline {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.75rem;
-      padding: 1rem;
-      background: var(--app-surface-light);
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 12px;
-      color: var(--app-text-primary);
-      font-weight: 700;
+      padding: 0.8rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
       cursor: pointer;
       transition: all 0.2s;
+      border: none;
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        filter: grayscale(1);
+      }
+    }
+
+    .btn-edit {
+      background: var(--app-surface-light);
+      border: 1px solid rgba(255,255,255,0.05);
+      color: var(--app-text-primary);
+      font-weight: 700;
+      width: 100%;
+      
       &:hover {
         background: var(--app-surface-hover);
         border-color: var(--app-primary);
         transform: translateY(-2px);
+      }
+    }
+
+    .btn-outline {
+      background: var(--app-surface);
+      color: var(--app-text-primary);
+      border: 1px solid var(--app-border);
+
+      &:hover:not(:disabled) {
+        background: var(--app-surface-hover);
+        border-color: var(--app-primary);
+        color: var(--app-primary);
       }
     }
   }

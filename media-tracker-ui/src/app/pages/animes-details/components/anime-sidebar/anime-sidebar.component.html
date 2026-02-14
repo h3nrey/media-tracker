@@ -41,17 +41,15 @@
   </div>
 
   <div class="side-actions">
-    @if (anime()?.progressTotal) {
-      <div class="episode-progress">
-        <div class="progress-info">
-          <span>Progress</span>
-          <span class="count">{{ activeRunEpisodeCount() }} / {{ anime()?.progressTotal }}</span>
-        </div>
-        <div class="progress-bar-container">
-          <div class="progress-bar" [style.width.%]="progress"></div>
-        </div>
-      </div>
-    }
+    <app-media-progress-actions
+      [currentProgress]="activeRunEpisodeCount()"
+      [totalProgress]="anime()?.progressTotal || 0"
+      [mediaType]="'anime'"
+      (increment)="onIncrementEpisode()"
+      (decrement)="onDecrementEpisode()"
+      (complete)="onCompleteEpisodes()"
+      (reset)="onResetEpisodes()">
+    </app-media-progress-actions>
 
     @if (anime()?.trailerUrl) {
       <a [href]="anime()?.trailerUrl" target="_blank" class="btn-primary">
@@ -60,26 +58,12 @@
       </a>
     }
 
-    <div class="action-grid">
-      <button class="btn-outline" (click)="onIncrementEpisode()" title="Add Episode">
-        <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
-      </button>
-      <button class="btn-outline" (click)="onDecrementEpisode()" title="Remove Episode" [disabled]="(anime()?.progressCurrent || 0) <= 0">
-        <lucide-icon [img]="MinusIcon" [size]="18"></lucide-icon>
-      </button>
-      <button class="btn-outline" (click)="onCompleteEpisodes()" title="Complete All" [disabled]="anime()?.progressTotal === anime()?.progressCurrent">
-        <lucide-icon [img]="CheckIcon" [size]="18"></lucide-icon>
-      </button>
-      <button class="btn-outline" (click)="onResetEpisodes()" title="Reset Progress" [disabled]="(anime()?.progressCurrent || 0) <= 0">
-        <lucide-icon [img]="ResetIcon" [size]="18"></lucide-icon>
-      </button>
-    </div>
-
     <button class="btn-outline full-width" (click)="onEdit()">
       <lucide-icon [img]="EditIcon" [size]="18"></lucide-icon>
       <span>Edit Anime</span>
     </button>
   </div>
+
 
   <app-media-list-section
     [mediaId]="anime()!.id!"

@@ -5,11 +5,12 @@ import { MediaRun } from '../../../../models/media-run.model';
 import { Category } from '../../../../models/status.model';
 import { List } from '../../../../models/list.model';
 import { AnimeLinksComponent } from '../anime-links/anime-links.component';
-import { LucideAngularModule, Play, Edit3, Plus, Star, Minus, RotateCcw, CheckCheck, List as ListIcon } from 'lucide-angular';
+import { LucideAngularModule, Play, Edit3, Star, List as ListIcon } from 'lucide-angular';
 import { SelectComponent } from '../../../../components/ui/select/select';
 import { RouterModule } from '@angular/router';
 import { MediaRunService } from '../../../../services/media-run.service';
 import { EpisodeProgressService } from '../../../../services/episode-progress.service';
+import { MediaProgressActionsComponent } from '../../../../components/media-progress-actions/media-progress-actions.component';
 
 export interface AnimeDetails extends Anime {
   sourceLinks?: any[];
@@ -21,7 +22,7 @@ import { MediaListSectionComponent } from '../../../../components/media-list-sec
 @Component({
   selector: 'app-anime-sidebar',
   standalone: true,
-  imports: [CommonModule, AnimeLinksComponent, LucideAngularModule, SelectComponent, RouterModule, MediaListSectionComponent],
+  imports: [CommonModule, AnimeLinksComponent, LucideAngularModule, SelectComponent, RouterModule, MediaListSectionComponent, MediaProgressActionsComponent],
   templateUrl: './anime-sidebar.component.html',
   styleUrl: './anime-sidebar.component.scss'
 })
@@ -49,12 +50,9 @@ export class AnimeSidebarComponent {
 
   readonly PlayIcon = Play;
   readonly EditIcon = Edit3;
-  readonly PlusIcon = Plus;
-  readonly MinusIcon = Minus;
-  readonly ResetIcon = RotateCcw;
-  readonly CheckIcon = CheckCheck;
   readonly StarIcon = Star;
   readonly ListIcon = ListIcon;
+
 
   readonly scoreLabels: Record<number, string> = {
     1: 'shit',
@@ -135,20 +133,35 @@ export class AnimeSidebarComponent {
   }
 
   onIncrementEpisode() {
+    const total = this.anime()?.progressTotal;
+    const current = this.activeRunEpisodeCount();
+    if (!total || current < total) {
+      this.activeRunEpisodeCount.set(current + 1);
+    }
     this.incrementEpisode.emit();
   }
 
   onDecrementEpisode() {
+    const current = this.activeRunEpisodeCount();
+    if (current > 0) {
+      this.activeRunEpisodeCount.set(current - 1);
+    }
     this.decrementEpisode.emit();
   }
 
   onResetEpisodes() {
+    this.activeRunEpisodeCount.set(0);
     this.resetEpisodes.emit();
   }
 
   onCompleteEpisodes() {
+    const total = this.anime()?.progressTotal;
+    if (total) {
+      this.activeRunEpisodeCount.set(total);
+    }
     this.completeEpisodes.emit();
   }
+
 
   onSaveLinks(links: any[]) {
     this.saveLinks.emit(links);

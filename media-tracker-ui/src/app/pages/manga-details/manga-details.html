@@ -11,6 +11,16 @@
             <img [src]="manga()?.coverImage" [alt]="manga()?.title" class="poster-image" />
           </div>
 
+          <app-media-progress-actions
+            [currentProgress]="activeRunChapterCount()"
+            [totalProgress]="manga()?.progressTotal || 0"
+            [mediaType]="'manga'"
+            (increment)="incrementChapter()"
+            (decrement)="decrementChapter()"
+            (complete)="completeChapters()"
+            (reset)="resetChapters()">
+          </app-media-progress-actions>
+
           <div class="sidebar-actions">
             <div class="action-group">
               <label>Status</label>
@@ -19,16 +29,6 @@
                 {{ category()?.name }}
               </div>
             </div>
-
-            @if (manga()?.score && manga()!.score > 0) {
-              <div class="action-group">
-                <label>Rating</label>
-                <div class="score-display">
-                  <lucide-icon name="star" size="18" class="star-icon"></lucide-icon>
-                  <span class="score-value">{{ manga()?.score }}/6</span>
-                </div>
-              </div>
-            }
 
             <button class="btn-edit" (click)="onEdit()">
               <lucide-icon name="edit-3" size="16"></lucide-icon>
