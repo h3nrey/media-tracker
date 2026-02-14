@@ -36,7 +36,7 @@ export class TmdbService {
       return of([]);
     }
 
-    const url = `${this.BASE_URL}/search/movie?api_key=${this.API_KEY}&query=${encodeURIComponent(query)}&language=pt-BR`;
+    const url = `${this.BASE_URL}/search/movie?api_key=${this.API_KEY}&query=${encodeURIComponent(query)}`;
     
     return this.http.get<{ results: TMDBMovie[] }>(url).pipe(
       map(response => response.results.slice(0, limit)),
@@ -49,7 +49,7 @@ export class TmdbService {
 
   getMovieById(id: number): Observable<TMDBMovie | null> {
     if (!this.API_KEY) return of(null);
-    const url = `${this.BASE_URL}/movie/${id}?api_key=${this.API_KEY}&language=pt-BR&append_to_response=credits`;
+    const url = `${this.BASE_URL}/movie/${id}?api_key=${this.API_KEY}&append_to_response=credits`;
     return this.http.get<TMDBMovie>(url).pipe(
       catchError(error => {
         console.error('Error fetching movie details:', error);
