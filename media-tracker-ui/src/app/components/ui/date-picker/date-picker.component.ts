@@ -19,6 +19,7 @@ export class DatePickerComponent {
   
   // Existing Inputs
   selectedDate = input<Date | string | undefined | null>(new Date());
+  minYear = input<number | undefined>(undefined); // Optional minimum year filter
   dateChange = output<Date>();
   close = output<void>();
 
@@ -103,8 +104,9 @@ export class DatePickerComponent {
 
   years = computed(() => {
     const currentYear = new Date().getFullYear();
+    const minYearValue = this.minYear() || (currentYear - 50);
     const range = [];
-    for (let i = currentYear - 50; i <= currentYear + 10; i++) {
+    for (let i = minYearValue; i <= currentYear + 10; i++) {
       range.push(i);
     }
     return range;

@@ -1,0 +1,39 @@
+<div class="settings-overlay" *ngIf="isOpen()" (click)="close.emit()">
+  <div class="settings-container" (click)="$event.stopPropagation()">
+    <header class="settings-header">
+      <h2>Preferências</h2>
+      <button class="close-btn" (click)="close.emit()">
+        <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+      </button>
+    </header>
+
+    <div class="settings-content">
+      <div class="setting-item">
+        <label for="startYear">Ano Inicial (Opcional)</label>
+        <p class="setting-description">
+          Define o ano mínimo disponível nos seletores de data. 
+          Útil para filtrar anos antes do seu nascimento.
+        </p>
+        <input 
+          type="number" 
+          id="startYear"
+          class="year-input"
+          [value]="currentStartYear()"
+          (change)="updateStartYear($any($event.target).value)"
+          placeholder="Ex: 2004"
+          min="1900"
+          [max]="currentYear">
+        <button 
+          class="clear-btn" 
+          *ngIf="currentStartYear()"
+          (click)="clearStartYear()">
+          Limpar
+        </button>
+      </div>
+    </div>
+
+    <footer class="settings-footer">
+      <button class="btn-primary" (click)="close.emit()">Concluído</button>
+    </footer>
+  </div>
+</div>

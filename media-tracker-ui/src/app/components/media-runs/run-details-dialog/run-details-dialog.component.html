@@ -7,7 +7,46 @@
           <h2>{{ getRunLabel(run()?.runNumber || 0) }}</h2>
           <div class="run-dates">
             <lucide-icon [img]="CalendarIcon" [size]="14"></lucide-icon>
-            {{ formatDate(run()?.startDate) }} — {{ run()?.endDate ? formatDate(run()?.endDate) : 'Em andamento' }}
+            
+            <span 
+              class="date-display" 
+              cdkOverlayOrigin
+              #startDateOrigin="cdkOverlayOrigin"
+              (click)="editingStartDate.set(true); startDateTrigger.set(startDateOrigin)" 
+              title="Clique para editar">
+              {{ formatDate(run()?.startDate) }}
+            </span>
+            
+            <span class="date-separator">—</span>
+            
+            <span 
+              class="date-display" 
+              cdkOverlayOrigin
+              #endDateOrigin="cdkOverlayOrigin"
+              (click)="editingEndDate.set(true); endDateTrigger.set(endDateOrigin)" 
+              title="Clique para editar">
+              {{ run()?.endDate ? formatDate(run()?.endDate) : 'Em andamento' }}
+            </span>
+            
+            <!-- Start Date Picker -->
+            <app-date-picker
+              [trigger]="startDateTrigger()"
+              [isOpen]="editingStartDate()"
+              [selectedDate]="run()?.startDate"
+              [minYear]="preferencesService.getStartYear()"
+              (dateChange)="updateStartDate($event.toISOString())"
+              (close)="editingStartDate.set(false)">
+            </app-date-picker>
+            
+            <!-- End Date Picker -->
+            <app-date-picker
+              [trigger]="endDateTrigger()"
+              [isOpen]="editingEndDate()"
+              [selectedDate]="run()?.endDate"
+              [minYear]="preferencesService.getStartYear()"
+              (dateChange)="updateEndDate($event.toISOString())"
+              (close)="editingEndDate.set(false)">
+            </app-date-picker>
           </div>
         </div>
       </div>

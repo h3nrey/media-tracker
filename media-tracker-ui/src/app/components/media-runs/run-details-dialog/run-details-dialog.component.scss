@@ -76,6 +76,39 @@
                     color: var(--app-primary);
                     opacity: 0.7;
                 }
+
+                .date-display {
+                    cursor: pointer;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 6px;
+                    transition: all 0.2s;
+
+                    &:hover {
+                        background: rgba(255, 255, 255, 0.05);
+                        color: var(--app-primary);
+                    }
+                }
+
+                .date-separator {
+                    margin: 0 0.25rem;
+                }
+
+                .date-input {
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid var(--app-primary);
+                    border-radius: 8px;
+                    padding: 0.4rem 0.6rem;
+                    color: var(--app-text-primary);
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    outline: none;
+                    transition: all 0.2s;
+
+                    &:focus {
+                        background: rgba(255, 255, 255, 0.08);
+                        box-shadow: 0 0 0 3px rgba(var(--app-primary-rgb), 0.2);
+                    }
+                }
             }
         }
     }

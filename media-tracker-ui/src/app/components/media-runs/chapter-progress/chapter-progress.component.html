@@ -1,34 +1,48 @@
 <div class="progress-wrapper">
   <div class="progress-stats">
     <div class="label">
-      Read: <span>{{ getLastRead() }}</span> / {{ totalChapters || '?' }}
+      Lido: <span>{{ readChapters().length }}</span> / {{ totalChapters || '?' }}
     </div>
-    <div class="percentage" *ngIf="totalChapters">{{ getProgressPercentage() | number:'1.0-0' }}%</div>
+    @if (totalChapters) {
+      <div class="percentage">{{ getProgressPercentage() | number:'1.0-0' }}%</div>
+    }
   </div>
 
-  <div class="progress-bar-bg" *ngIf="totalChapters">
-    <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
-  </div>
-
-  <div class="quick-update">
-    <div class="current-info" *ngIf="!showInput()">
-        <span class="title">Current Progress</span>
-        <span class="value">Chapter {{ getLastRead() }}</span>
+  @if (totalChapters) {
+    <div class="progress-bar-bg">
+      <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
     </div>
+  }
 
-    <button class="edit-toggle" *ngIf="!showInput()" (click)="showInput.set(true)">
-        <lucide-icon name="edit-3"></lucide-icon>
-        Update
+  <div class="action-buttons">
+    <button class="action-btn clear-btn" (click)="clearAll()" title="Desmarcar todos">
+      <lucide-icon [img]="ClearIcon" [size]="16"></lucide-icon>
+      Limpar
     </button>
-
-    <div class="input-mode" *ngIf="showInput()">
-        <input type="number" [(ngModel)]="bulkInput" min="0" (keyup.enter)="setProgress()">
-        <button class="confirm-btn" (click)="setProgress()">
-            <lucide-icon name="check"></lucide-icon>
-        </button>
-        <button class="edit-toggle" (click)="showInput.set(false)" style="padding: 0.4rem;">
-            <lucide-icon name="x" style="margin: 0;"></lucide-icon>
-        </button>
-    </div>
+    <button class="action-btn watch-all-btn" (click)="readAll()" title="Marcar todos como lidos">
+      <lucide-icon [img]="CheckAllIcon" [size]="16"></lucide-icon>
+      Marcar Todos
+    </button>
   </div>
+
+  <div class="episode-grid">
+    @for (ch of getVisibleChapters(); track ch) {
+      <button 
+        type="button"
+        class="episode-item"
+        [class.watched]="readChapters().includes(ch)"
+        (click)="toggleChapter(ch, $event)"
+        [title]="'Capítulo ' + ch + ' (Shift+Click para marcar até aqui)'">
+        {{ ch }}
+      </button>
+    }
+  </div>
+
+  @if (getChapterList().length > 24) {
+    <button 
+      class="show-more-btn" 
+      (click)="showAll.set(!showAll())">
+      {{ showAll() ? 'Mostrar Menos' : 'Mostrar Todos os Capítulos' }}
+    </button>
+  }
 </div>

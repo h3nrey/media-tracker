@@ -7,8 +7,11 @@ import { StarRatingInputComponent } from '../../ui/star-rating-input/star-rating
 import { GameSessionsComponent } from '../game-sessions/game-sessions.component';
 import { EpisodeProgressComponent } from '../episode-progress/episode-progress.component';
 import { ChapterProgressComponent } from '../chapter-progress/chapter-progress.component';
+import { DatePickerComponent } from '../../ui/date-picker/date-picker.component';
 import { FormsModule } from '@angular/forms';
 import { DialogService } from '../../../services/dialog.service';
+import { UserPreferencesService } from '../../../services/user-preferences.service';
+import { CdkOverlayOrigin, OverlayModule } from '@angular/cdk/overlay';
 
 @Component({
   selector: 'app-run-details-dialog',
@@ -20,7 +23,9 @@ import { DialogService } from '../../../services/dialog.service';
     FormsModule,
     GameSessionsComponent,
     EpisodeProgressComponent,
-    ChapterProgressComponent
+    ChapterProgressComponent,
+    DatePickerComponent,
+    OverlayModule
   ],
   templateUrl: './run-details-dialog.component.html',
   styleUrl: './run-details-dialog.component.scss'
@@ -42,6 +47,15 @@ export class RunDetailsDialogComponent {
 
   public runService = inject(MediaRunService);
   private dialogService = inject(DialogService);
+  public preferencesService = inject(UserPreferencesService);
+
+  // Date editing state
+  editingStartDate = signal(false);
+  editingEndDate = signal(false);
+  
+  // Date picker overlay triggers
+  startDateTrigger = signal<CdkOverlayOrigin | undefined>(undefined);
+  endDateTrigger = signal<CdkOverlayOrigin | undefined>(undefined);
 
   async updateRating(rating: number) {
     const currentRun = this.run();
@@ -74,6 +88,30 @@ export class RunDetailsDialogComponent {
     }
   }
 
+  async updateStartDate(dateString: string) {
+    const currentRun = this.run();
+    if (currentRun?.id && dateString) {
+      const startDate = new Date(dateString);
+      this.dialogService.updateSelectedRun({ ...currentRun, startDate });
+      
+      await this.runService.updateRun(currentRun.id, { startDate });
+      this.updated.emit();
+      this.editingStartDate.set(false);
+    }
+  }
+
+  async updateEndDate(dateString: string | null) {
+    const currentRun = this.run();
+    if (currentRun?.id) {
+      const endDate = dateString ? new Date(dateString) : undefined;
+      this.dialogService.updateSelectedRun({ ...currentRun, endDate });
+      
+      await this.runService.updateRun(currentRun.id, { endDate });
+      this.updated.emit();
+      this.editingEndDate.set(false);
+    }
+  }
+
   formatDate(date: Date | undefined): string {
     if (!date) return '—';
     return new Date(date).toLocaleDateString('pt-BR', { 
@@ -81,6 +119,15 @@ export class RunDetailsDialogComponent {
       month: 'long', 
       day: 'numeric' 
     });
+  }
+
+  formatDateForInput(date: Date | undefined): string {
+    if (!date) return '';
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   getRunLabel(runNumber: number): string {
