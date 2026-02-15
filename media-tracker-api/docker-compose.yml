@@ -1,0 +1,27 @@
+services:
+  api-dev:
+    build:
+      context: .
+      target: development
+    container_name: media-tracker-api-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+
+  api-prod:
+    build:
+      context: .
+      target: production
+    container_name: media-tracker-api-prod
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
