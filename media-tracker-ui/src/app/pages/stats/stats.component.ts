@@ -223,7 +223,7 @@ export class StatsComponent implements OnInit, OnDestroy {
 
   loadData(mediaTypeId: number | null) {
     this.mediaService.getAllMedia$(mediaTypeId).subscribe(media => {
-      console.log(media);
+      console.log("load base medias of stats", media);
       this.allMedia.set(media);
     });
   }

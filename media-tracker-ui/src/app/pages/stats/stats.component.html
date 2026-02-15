@@ -95,7 +95,7 @@
 
     @if (completedMediaList().length > 0) {
       <div class="media-stats-grid small">
-        @for (item of completedMediaList(); track item.id) {
+        @for (item of completedMediaList(); track (item.id)) {
           <app-stats-media-card 
             [item]="item" 
             [showProgress]="true">

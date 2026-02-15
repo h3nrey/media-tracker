@@ -71,6 +71,35 @@ export class MediaService {
     };
   }
 
+  private mapRunFromSupabase(item: any): any {
+    return {
+      id: item.id,
+      supabaseId: item.id,
+      userId: item.user_id,
+      mediaItemId: item.media_item_id,
+      runNumber: item.run_number,
+      startDate: item.start_date ? new Date(item.start_date) : undefined,
+      endDate: item.end_date ? new Date(item.end_date) : undefined,
+      rating: item.rating,
+      notes: item.notes,
+      isDeleted: item.is_deleted,
+      createdAt: new Date(item.created_at),
+      updatedAt: new Date(item.updated_at)
+    };
+  }
+
+  private mapImageFromSupabase(img: any): any {
+    return {
+      id: img.id,
+      mediaItemId: img.media_item_id,
+      url: img.url,
+      description: img.description,
+      createdAt: new Date(img.created_at),
+      updatedAt: new Date(img.updated_at),
+      isDeleted: img.is_deleted
+    };
+  }
+
   getAllMedia$(mediaTypeId?: number | null): Observable<MediaItem[]> {
     return combineLatest([
       this.filterUpdate$,
@@ -104,8 +133,12 @@ export class MediaService {
       const mediaItem = this.mapFromSupabase(item);
       return {
         ...mediaItem,
-        runs: (item.media_runs || []).filter((r: any) => !r.is_deleted),
-        screenshots: (item.media_images || []).filter((s: any) => !s.is_deleted)
+        runs: (item.media_runs || [])
+          .filter((r: any) => !r.is_deleted)
+          .map((r: any) => this.mapRunFromSupabase(r)),
+        screenshots: (item.media_images || [])
+          .filter((s: any) => !s.is_deleted)
+          .map((img: any) => this.mapImageFromSupabase(img))
       };
     });
 
@@ -168,8 +201,12 @@ export class MediaService {
     const mediaItem = this.mapFromSupabase(data);
     return {
       ...mediaItem,
-      runs: (data.media_runs || []).filter((r: any) => !r.is_deleted),
-      screenshots: (data.media_images || []).filter((s: any) => !s.is_deleted)
+      runs: (data.media_runs || [])
+        .filter((r: any) => !r.is_deleted)
+        .map((r: any) => this.mapRunFromSupabase(r)),
+      screenshots: (data.media_images || [])
+        .filter((s: any) => !s.is_deleted)
+        .map((img: any) => this.mapImageFromSupabase(img))
     };
   }
 
@@ -481,34 +518,60 @@ export class MediaService {
   }
 
   getCompletedMedia(list: MediaItem[], year?: number): MediaItem[] {
-    const getEffectiveCompletionDate = (item: MediaItem): Date | null => {
-      if (item.endDate) {
-        const d = new Date(item.endDate);
-        return isNaN(d.getTime()) ? null : d;
-      }
-      if (item.runs && item.runs.length > 0) {
-        const lastRun = item.runs.sort((a: any, b: any) => 
-          new Date(b.endDate || 0).getTime() - new Date(a.endDate || 0).getTime()
-        )[0];
-        if (lastRun?.endDate) {
-          const d = new Date(lastRun.endDate);
-          return isNaN(d.getTime()) ? null : d;
-        }
-      }
-      return null;
-    };
+    const results: MediaItem[] = [];
 
-    const completedWithDates = (list || [])
-      .map(item => ({ item, date: getEffectiveCompletionDate(item) }))
-      .filter(({ date }) => {
-        if (!date) return false;
-        if (!year) return true;
-        return date.getFullYear() === year;
+    console.log("completed media: ", list);
+
+    (list || []).forEach(item => {
+      let itemCompletions = 0;
+
+      // Check all runs for completion dates
+      if (!item.runs || item.runs.length === 0) {
+        return;
+      }
+
+      item.runs.forEach(run => {
+        console.log("run of media: ", run);
+        if (run.endDate) {
+          const date = new Date(run.endDate);
+
+          if (!isNaN(date.getTime())) {
+            console.log("run end date: ", run.endDate);
+            if (!year || date.getFullYear() === year) {
+              results.push({
+                ...item,
+                endDate: run.endDate, // Specific completion date
+                score: run.rating || item.score, // Use run rating if available
+                id: item.id ? item.id : undefined,
+              } as any);
+              itemCompletions++;
+            }
+          }
+        }
       });
 
-    completedWithDates.sort((a, b) => b.date!.getTime() - a.date!.getTime());
-    return completedWithDates.map(c => c.item);
+      if (itemCompletions === 0 && item.endDate) {
+        const date = new Date(item.endDate);
+        if (!isNaN(date.getTime())) {
+          if (!year || date.getFullYear() === year) {
+            results.push({
+              ...item,
+              any: { ...(item as any).any, uniqueKey: `${item.id}-main` }
+            } as any);
+          }
+        }
+      }
+    });
+
+    results.sort((a, b) => {
+      const dateA = new Date(a.endDate || 0).getTime();
+      const dateB = new Date(b.endDate || 0).getTime();
+      return dateB - dateA;
+    });
+
+    return results;
   }
+
 
   async importMediaFromApi(apiItem: any): Promise<number> {
     const categories = await firstValueFrom(this.categoryService.getAllCategories$());
