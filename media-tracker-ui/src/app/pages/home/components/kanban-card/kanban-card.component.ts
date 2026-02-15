@@ -9,7 +9,7 @@ import { WatchSourceService } from '../../../../services/watch-source.service';
 @Component({
   selector: 'app-kanban-card',
   standalone: true,
-  imports: [CommonModule, DragDropModule, LucideAngularModule, RouterLink],
+  imports: [CommonModule, DragDropModule, LucideAngularModule],
   templateUrl: './kanban-card.component.html',
   styleUrl: './kanban-card.component.scss'
 })

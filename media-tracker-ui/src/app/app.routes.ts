@@ -12,6 +12,11 @@ export const routes: Routes = [
   },
   {
     path: '',
+    loadComponent: () => import('./pages/portal/portal.component').then(m => m.PortalComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'library',
     component: HomeComponent,
     canActivate: [authGuard]
   },

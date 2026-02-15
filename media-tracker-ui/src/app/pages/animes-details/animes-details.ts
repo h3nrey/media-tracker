@@ -30,7 +30,6 @@ import { LucideAngularModule } from 'lucide-angular';
     AnimeSidebarComponent,
     AnimeInfoComponent,
     MediaReviewsComponent,
-    MediaListSectionComponent,
     LucideAngularModule
   ],
   templateUrl: './animes-details.html',

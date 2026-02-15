@@ -28,7 +28,6 @@ import { LucideAngularModule } from 'lucide-angular';
     MovieSidebarComponent,
     MovieInfoComponent,
     MediaReviewsComponent,
-    MediaListSectionComponent,
     LucideAngularModule
   ],
   templateUrl: './movies-details.html',

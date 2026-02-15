@@ -19,6 +19,7 @@ export class WatchSourceService {
       supabaseId: item.id,
       name: item.name,
       iconUrl: item.icon_url,
+      baseUrl: item.base_url,
       isDeleted: item.is_deleted,
       version: item.version,
       createdAt: new Date(item.created_at),
@@ -54,6 +55,7 @@ export class WatchSourceService {
       user_id: user.id,
       name: source.name,
       icon_url: source.iconUrl,
+      base_url: source.baseUrl,
       is_deleted: false,
       version: 1
     };
@@ -76,6 +78,7 @@ export class WatchSourceService {
 
     if (changes.name !== undefined) supabaseData.name = changes.name;
     if (changes.iconUrl !== undefined) supabaseData.icon_url = changes.iconUrl;
+    if (changes.baseUrl !== undefined) supabaseData.base_url = changes.baseUrl;
     if (changes.version !== undefined) supabaseData.version = changes.version;
 
     const { error } = await this.supabaseService.client

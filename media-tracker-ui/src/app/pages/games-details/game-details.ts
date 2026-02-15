@@ -29,8 +29,7 @@ import { MediaListSectionComponent } from '../../components/media-list-section/m
     GameSidebarComponent,
     GameInfoComponent,
     MediaRunsListComponent,
-    MediaReviewsComponent,
-    MediaListSectionComponent
+    MediaReviewsComponent
   ],
   templateUrl: './game-details.html',
   styleUrl: './game-details.scss'

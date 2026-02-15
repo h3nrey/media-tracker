@@ -1,0 +1,109 @@
+@if (isOpen()) {
+  <div class="dialog-overlay" (click)="close()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>Gerenciar Atalhos do Portal</h2>
+        <button class="close-btn" (click)="close()">
+          <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        <div class="add-section">
+          <h3>Adicionar Novo Atalho</h3>
+          <div class="shortcut-form">
+            <div class="form-grid">
+              <div class="field">
+                <label>Nome</label>
+                <input type="text" placeholder="Ex: MegaThread" [ngModel]="newName()" (ngModelChange)="newName.set($event)">
+              </div>
+              <div class="field">
+                <label>URL</label>
+                <input type="text" placeholder="https://..." [ngModel]="newUrl()" (ngModelChange)="newUrl.set($event)">
+              </div>
+              <div class="field">
+                <label>Imagem/Ícone (URL)</label>
+                <input type="text" placeholder="Pule para usar ícone padrão" [ngModel]="newIconUrl()" (ngModelChange)="newIconUrl.set($event)">
+              </div>
+              <div class="field">
+                <label>Categoria</label>
+                <select [ngModel]="newMediaTypeId()" (ngModelChange)="newMediaTypeId.set($event)">
+                  @for (type of mediaTypeOptions; track type.id) {
+                    <option [value]="type.id">{{ type.name }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <button class="btn-primary" (click)="addShortcut()" [disabled]="!newName().trim() || !newUrl().trim()">
+              <lucide-icon [img]="PlusIcon" [size]="18"></lucide-icon>
+              Salvar Atalho
+            </button>
+          </div>
+        </div>
+
+        <div class="list-section">
+          <h3>Atalhos Configurados</h3>
+          <div class="shortcuts-list">
+            @for (item of shortcuts(); track item.id) {
+              <div class="shortcut-item" [class.editing]="editingId() === item.id">
+                @if (editingId() === item.id) {
+                  <div class="edit-mode">
+                    <div class="form-grid">
+                      <input type="text" [ngModel]="editName()" (ngModelChange)="editName.set($event)" placeholder="Nome">
+                      <input type="text" [ngModel]="editUrl()" (ngModelChange)="editUrl.set($event)" placeholder="URL">
+                      <input type="text" [ngModel]="editIconUrl()" (ngModelChange)="editIconUrl.set($event)" placeholder="Icon URL">
+                      <select [ngModel]="editMediaTypeId()" (ngModelChange)="editMediaTypeId.set($event)">
+                        @for (type of mediaTypeOptions; track type.id) {
+                          <option [value]="type.id">{{ type.name }}</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="edit-actions">
+                      <button class="save-btn" (click)="saveEdit()">
+                        <lucide-icon [img]="CheckIcon" [size]="18"></lucide-icon>
+                      </button>
+                      <button class="cancel-btn" (click)="cancelEdit()">
+                        <lucide-icon [img]="XIcon" [size]="18"></lucide-icon>
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="view-mode">
+                    <div class="icon-preview">
+                      @if (item.iconUrl) {
+                        <img [src]="item.iconUrl" alt="icon">
+                      } @else {
+                        <lucide-icon [img]="ExternalLinkIcon" [size]="18"></lucide-icon>
+                      }
+                    </div>
+                    <div class="info">
+                      <span class="name">{{ item.name }}</span>
+                      <div class="sub-info">
+                        <span class="category-tag">{{ mediaTypeOptions[item.mediaTypeId - 1].name }}</span>
+                        <span class="url">{{ item.url }}</span>
+                      </div>
+                    </div>
+                    <div class="actions">
+                      <button class="action-btn edit" (click)="startEdit(item)">
+                        <lucide-icon [img]="EditIcon" [size]="16"></lucide-icon>
+                      </button>
+                      <button class="action-btn delete" (click)="deleteShortcut(item.id!)">
+                        <lucide-icon [img]="TrashIcon" [size]="16"></lucide-icon>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (shortcuts().length === 0) {
+              <div class="empty-state">
+                Nenhum atalho personalizado ainda. Adicione acima para ver no portal!
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

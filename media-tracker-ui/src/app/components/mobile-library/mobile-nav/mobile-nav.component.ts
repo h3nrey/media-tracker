@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Library, Layers, Monitor } from 'lucide-angular';
+import { LucideAngularModule, Library, Layers, Monitor, Home } from 'lucide-angular';
 
 @Component({
   selector: 'app-mobile-nav',
@@ -11,6 +11,7 @@ import { LucideAngularModule, Library, Layers, Monitor } from 'lucide-angular';
   styleUrl: './mobile-nav.component.scss'
 })
 export class MobileNavComponent {
+  readonly HomeIcon = Home;
   readonly LibraryIcon = Library;
   readonly LayersIcon = Layers;
   readonly MonitorIcon = Monitor;

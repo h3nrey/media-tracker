@@ -7,12 +7,6 @@ import { MediaRun } from '../../models/media-run.model';
 import { MediaRunService } from '../../services/media-run.service';
 import { GameSessionService } from '../../services/game-session.service';
 import { ToastService } from '../../services/toast.service';
-import { StarRatingInputComponent } from '../ui/star-rating-input/star-rating-input.component';
-import { GameSessionsComponent } from './game-sessions/game-sessions.component';
-import { EpisodeProgressComponent } from './episode-progress/episode-progress.component';
-import { ChapterProgressComponent } from './chapter-progress/chapter-progress.component';
-import { AddRunDialogComponent } from './add-run-dialog/add-run-dialog.component';
-import { RunDetailsDialogComponent } from './run-details-dialog/run-details-dialog.component';
 import { DialogService } from '../../services/dialog.service';
 import { FormsModule } from '@angular/forms';
 import { getScoreColorClass } from '../../utils/anime-utils';
@@ -23,13 +17,7 @@ import { getScoreColorClass } from '../../utils/anime-utils';
   imports: [
     CommonModule, 
     LucideAngularModule, 
-    StarRatingInputComponent, 
-    FormsModule,
-    GameSessionsComponent,
-    EpisodeProgressComponent,
-    ChapterProgressComponent,
-    AddRunDialogComponent,
-    RunDetailsDialogComponent
+    FormsModule
   ],
   templateUrl: './media-runs-list.component.html',
   styleUrls: ['./media-runs-list.component.scss']

@@ -1,0 +1,210 @@
+<div class="portal-container">
+  <!-- 1. HERO SECTION: RESUME YOUR JOURNEY -->
+  @if (heroRun(); as run) {
+    <section class="hero-section" [style.--hero-color]="run.media.mediaTypeId === 1 ? '#6366f1' : run.media.mediaTypeId === 2 ? '#ec4899' : run.media.mediaTypeId === 3 ? '#8b5cf6' : '#2dd4bf'">
+      <div class="hero-background" [style.background-image]="'url(' + (run.media.bannerImage || run.media.coverImage) + ')'"></div>
+      <div class="hero-overlay"></div>
+      
+      <div class="hero-content">
+        <div class="hero-badge">
+          <lucide-icon [img]="ZapIcon" [size]="14"></lucide-icon>
+          Continuar sua Jornada
+        </div>
+        
+        <div class="hero-main">
+          <div class="hero-cover-wrapper" (click)="goToMedia(run)">
+             <img [src]="run.media.coverImage" class="hero-cover" alt="Cover">
+             <div class="play-overlay">
+                <lucide-icon [img]="PlayIcon" [size]="32"></lucide-icon>
+             </div>
+          </div>
+          
+          <div class="hero-details">
+            <h1 class="hero-title">{{ run.media.title }}</h1>
+            <p class="hero-summary">{{ run.media.notes || 'Retome de onde você parou e mantenha seu progresso atualizado.' }}</p>
+            
+            <div class="hero-progress-container">
+              <div class="progress-info">
+                <span class="progress-label">{{ getProgressLabel(run) }}</span>
+                <span class="progress-percent">{{ getProgressPercentage(run) }}%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" [style.width.%]="getProgressPercentage(run)"></div>
+              </div>
+            </div>
+
+            <div class="hero-actions">
+              <button class="btn-resume" (click)="goToMedia(run)">
+                <lucide-icon [img]="PlayIcon" [size]="20"></lucide-icon>
+                Retomar Agora
+              </button>
+              <button class="btn-details" (click)="goToMedia(run)">
+                Ver Detalhes
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  } @else {
+    <header class="portal-header">
+      <h1>Bem-vindo ao Media Tracker</h1>
+      <p>Gerencie seu entretenimento de forma inteligente.</p>
+    </header>
+  }
+
+  <!-- 2. STATS GRID -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon time-today">
+        <lucide-icon [img]="GamepadIcon" [size]="20"></lucide-icon>
+      </div>
+      <div class="stat-data">
+        <span class="stat-value">{{ portalStats().gameHours }}h</span>
+        <span class="stat-label">Horas Jogadas</span>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon time-week">
+        <lucide-icon [img]="MonitorIcon" [size]="20"></lucide-icon>
+      </div>
+      <div class="stat-data">
+        <span class="stat-value">{{ portalStats().animeEpisodes }}</span>
+        <span class="stat-label">Episódios Assistidos</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon completed">
+        <lucide-icon [img]="FilmIcon" [size]="20"></lucide-icon>
+      </div>
+      <div class="stat-data">
+        <span class="stat-value">{{ portalStats().moviesCount }}</span>
+        <span class="stat-label">Filmes Vistos</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. CONTINUAR (Active runs sorted by activity) -->
+  @if (continuarRuns().length > 1) {
+    <div class="section-container">
+      <div class="section-header">
+        <h2><lucide-icon [img]="PlayIcon" [size]="20" color="#6366f1"></lucide-icon> Continuar</h2>
+        <a routerLink="/browse" class="view-all">Ver todos <lucide-icon [img]="ArrowRightIcon" [size]="16"></lucide-icon></a>
+      </div>
+      
+      <div class="horizontal-scroll">
+        @for (run of continuarRuns(); track run.id) {
+          @if (run.id !== heroRun()?.id) {
+            <div class="media-card-mini" (click)="goToMedia(run)">
+              <div class="card-image-wrapper">
+                <img [src]="run.media.coverImage" alt="Cover">
+                <div class="card-progress-bar">
+                  <div class="fill" [style.width.%]="getProgressPercentage(run)"></div>
+                </div>
+              </div>
+              <div class="card-info">
+                <span class="type-tag" [attr.data-type]="run.media.mediaTypeId">
+                  {{ run.media.mediaTypeId === 1 ? 'Anime' : run.media.mediaTypeId === 2 ? 'Mangá' : run.media.mediaTypeId === 3 ? 'Jogo' : 'Filme' }}
+                </span>
+                <h4>{{ run.media.title }}</h4>
+                <span class="progress-text">{{ getProgressLabel(run) }}</span>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+
+  <!-- 4. ABANDONADOS (Oldest interaction) -->
+  @if (abandonadosRuns().length > 0) {
+    <div class="section-container">
+      <div class="section-header">
+        <h2><lucide-icon [img]="ClockIcon" [size]="20" color="#f59e0b"></lucide-icon> Abandonados?</h2>
+      </div>
+      <div class="completion-grid">
+        @for (run of abandonadosRuns(); track run.id) {
+          <div class="completion-item" (click)="goToMedia(run)">
+            <img [src]="run.media.coverImage" alt="Cover">
+            <div class="item-info">
+              <h4>{{ run.media.title }}</h4>
+              <div class="mini-progress">
+                <div class="bar">
+                  <div class="fill" [style.width.%]="getProgressPercentage(run)"></div>
+                </div>
+                <span>Iniciado em {{ run.startDate | date:'shortDate' }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- 5. DÊ UMA CHANCE (No runs) -->
+  @if (deUmaChanceMedia().length > 0) {
+    <div class="section-container">
+      <div class="section-header">
+        <h2><lucide-icon [img]="ZapIcon" [size]="20" color="#ec4899"></lucide-icon> Dê uma chance</h2>
+      </div>
+      <div class="horizontal-scroll">
+        @for (media of deUmaChanceMedia(); track media.id) {
+          <div class="media-card-mini" (click)="router.navigate(['/media', media.id])">
+            <div class="card-image-wrapper">
+              <img [src]="media.coverImage" alt="Cover">
+            </div>
+            <div class="card-info">
+              <span class="type-tag" [attr.data-type]="media.mediaTypeId">
+                {{ media.mediaTypeId === 1 ? 'Anime' : media.mediaTypeId === 2 ? 'Mangá' : media.mediaTypeId === 3 ? 'Jogo' : 'Filme' }}
+              </span>
+              <h4>{{ media.title }}</h4>
+              <span class="progress-text">Ainda não iniciado</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- 6. QUICK ACCESS (Shortcuts) -->
+  <section class="quick-access-section">
+    <div class="section-header">
+      <h2><lucide-icon [img]="ExternalLinkIcon" [size]="20"></lucide-icon> Acesso Rápido</h2>
+    </div>
+    
+    <div class="portal-shortcuts-grid">
+      @for (type of [{id:1, name:'Animes', icon:MonitorIcon}, {id:3, name:'Jogos', icon:GamepadIcon}, {id:2, name:'Mangás', icon:BookOpenIcon}, {id:4, name:'Filmes', icon:FilmIcon}]; track type.id) {
+        <div class="shortcut-type-card" [class]="type.name.toLowerCase()">
+          <div class="type-header">
+            <div class="type-title">
+              <lucide-icon [img]="type.icon" [size]="18"></lucide-icon>
+              <span>{{ type.name }}</span>
+            </div>
+            <button class="btn-edit-small" (click)="openManage(type.id)">
+              <lucide-icon [img]="SettingsIcon" [size]="14"></lucide-icon>
+            </button>
+          </div>
+          <div class="shortcuts-list">
+            @for (s of getShortcutsFor(type.id === 1 ? 'anime' : type.id === 2 ? 'manga' : type.id === 3 ? 'game' : 'movie'); track s.id) {
+              <a [href]="s.url" target="_blank" class="shortcut-link">
+                @if (s.iconUrl) {
+                  <img [src]="s.iconUrl" alt="icon">
+                } @else {
+                  <lucide-icon [img]="ExternalLinkIcon" [size]="12"></lucide-icon>
+                }
+                {{ s.name }}
+              </a>
+            }
+            @if (getShortcutsFor(type.id === 1 ? 'anime' : type.id === 2 ? 'manga' : type.id === 3 ? 'game' : 'movie').length === 0) {
+              <span class="empty">--</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <app-manage-portal-shortcuts-dialog></app-manage-portal-shortcuts-dialog>
+</div>

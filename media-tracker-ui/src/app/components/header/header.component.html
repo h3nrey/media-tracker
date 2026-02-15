@@ -1,12 +1,15 @@
 <header class="app-header" [class.scrolled]="isScrolled()">
   <div class="header-logo-wrapper">
     <a class="header-logo" routerLink="/">
-      <!-- <img src="assets/logo.png" alt="Logo" class="logo-img"> -->
       <span class="logo-text">Tracker</span>
     </a>
     <app-media-type-selector></app-media-type-selector>
   </div>
   <div class="header-actions">
+    <a class="nav-btn" routerLink="/library" title="My Library">
+      <lucide-icon [name]="MonitorIcon" [size]="18"></lucide-icon>
+      <span>Library</span>
+    </a>
     <a class="nav-btn" routerLink="/lists" title="Anime Lists">
       <lucide-icon [name]="LayersIcon" [size]="18"></lucide-icon>
       <span>Lists</span>
